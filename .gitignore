@@ -1,0 +1,4 @@
+src/experiments_replication/results_qwen1.5b/*
+src/models/
+out_pt/
+.env
