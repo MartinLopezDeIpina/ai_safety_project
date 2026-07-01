@@ -4,18 +4,22 @@
 #SBATCH --gres=gpu:A4000:1
 #SBATCH --mem=64G
 #SBATCH --time=04:00:00
-#SBATCH --output=logs/00_collect_behaviors.out
-#SBATCH --error=logs/00_collect_behaviors.err
+#SBATCH --output=/mnt/beegfs/home/stud127/LLMs_Encode_Harmfulness_Refusal_Separately/src/experiments_replication/logs/00_collect_behaviors_%j.out
+#SBATCH --error=/mnt/beegfs/home/stud127/LLMs_Encode_Harmfulness_Refusal_Separately/src/experiments_replication/logs/00_collect_behaviors_%j.err
 
 BASE=/mnt/beegfs/home/stud127/LLMs_Encode_Harmfulness_Refusal_Separately
 EXPDIR=$BASE/src/experiments_replication
 
-source $BASE/.env
+# conda install for this cluster (verified: conda info --base)
+CONDA_ROOT=/mnt/beegfs/home/stud127/miniconda
+source "$CONDA_ROOT/etc/profile.d/conda.sh"
+conda activate llm_separate
+
+source "$BASE/.env"
 export HF_TOKEN
-export PYTHONPATH=$BASE/src:$PYTHONPATH
+export PYTHONPATH="$BASE/src:$PYTHONPATH"
 
-mkdir -p $EXPDIR/logs $EXPDIR/results
+mkdir -p "$EXPDIR/logs" "$EXPDIR/results"
+cd "$EXPDIR"
 
-cd $EXPDIR
-conda run -n llm_separate --no-capture-output \
-    python 00_collect_behaviors.py
+python 00_collect_behaviors.py

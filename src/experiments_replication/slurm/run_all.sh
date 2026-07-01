@@ -11,6 +11,13 @@
 set -euo pipefail
 
 SLURM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE=/mnt/beegfs/home/stud127/LLMs_Encode_Harmfulness_Refusal_Separately
+LOGDIR="$BASE/src/experiments_replication/logs"
+
+# SLURM opens the --output/--error files BEFORE the job script runs, so the
+# log directory must exist at submit time or every job fails instantly with
+# no log explaining why. Create it once here.
+mkdir -p "$LOGDIR"
 
 echo "Submitting replication pipeline..."
 
@@ -43,8 +50,8 @@ echo "  [J08=$J08] 08_latent_guard (after J01)"
 
 echo ""
 echo "All jobs submitted. Results will be in experiments_replication/results/"
-echo "Logs will be in experiments_replication/logs/"
+echo "Logs will be in $LOGDIR"
 echo ""
 echo "Monitor progress:"
 echo "  squeue -u \$USER"
-echo "  tail -f ../logs/00_collect_behaviors.out"
+echo "  tail -f $LOGDIR/00_collect_behaviors_*.out"

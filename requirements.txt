@@ -1,8 +1,25 @@
---extra-index-url https://download.pytorch.org/whl/cu130
+# Install with: pip install -r requirements.txt
+#
+# For torch: adjust the --extra-index-url to match your cluster's CUDA version.
+# Check with: nvcc --version or nvidia-smi
+#   CUDA 12.1 → https://download.pytorch.org/whl/cu121
+#   CUDA 12.4 → https://download.pytorch.org/whl/cu124
+#   CUDA 13.0 → https://download.pytorch.org/whl/cu130  (local machine)
+--extra-index-url https://download.pytorch.org/whl/cu121
 
-numpy
+torch==2.12.1
+accelerate==1.14.0
+
+# transformers 4.57.x changed Qwen2DecoderLayer to return a tensor instead of
+# a tuple. model_utils.py has a monkey-patch for exactly this version.
+# Do NOT upgrade without verifying the monkey-patch still works.
+transformers==4.57.6
+tokenizers==0.22.2
+
+# Utilities
+tqdm==4.68.3
+numpy==2.5.0
+matplotlib==3.11.0
+protobuf==6.33.6
 openai
-torch==2.12.1+cu130
-transformers
-tqdm
 requests
