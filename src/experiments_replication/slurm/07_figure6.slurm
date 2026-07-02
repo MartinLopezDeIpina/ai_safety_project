@@ -2,7 +2,7 @@
 #SBATCH --job-name=repl_07_figure6
 #SBATCH --account=kisski-asc2026
 #SBATCH --partition=kisski
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gpus=A100:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=04:00:00
