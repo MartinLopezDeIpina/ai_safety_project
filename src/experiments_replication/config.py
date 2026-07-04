@@ -66,11 +66,26 @@ SORRY_DATA      = os.path.join(DATA_DIR, "sorry-badq.json")               # key:
 GPTZFUZZER_DATA = os.path.join(DATA_DIR, "GPTFuzzer-50-adv.json")         # key: bad_q
 HUMAN_SEED_DATA = os.path.join(DATA_DIR, "human-seed-50-adv.json")        # key: bad_q
 
+# CatQA harmful-question sets (12 category files, key: bad_q). These are blatantly
+# harmful direct questions; any the model accepts land in accepted_harmful with a
+# genuinely-harmful signature at t_inst (unlike the milder sorry-badq acceptances),
+# which is exactly what the Figure 2 red line needs. The *_test split is excluded.
+import glob as _glob
+CATQA_DATA = sorted(
+    f for f in _glob.glob(os.path.join(DATA_DIR, "catqa_*.json"))
+    if not f.endswith("_test.json")
+)
+
 # Sample sizes
-N_BEHAVIOR   = 100   # samples per dataset for behavior collection
-XSTEST_N     = 250   # use all xstest prompts to find over-refusals
+# Harmful behavior collection: run the FULL harmful sets so more prompts get a chance
+# to be accepted (advbench ~3% / sorry-badq ~15% acceptance on Qwen2.5-1.5B), growing
+# accepted_harmful well beyond the ~18 we got at N=100. None = use all rows in the file.
+N_HARMFUL    = None  # advbench (520) + sorry-badq (440) + catqa (12×50) in full
+N_HARMLESS   = 150   # alpaca rows for accepted_harmless (already plentiful)
+XSTEST_N     = 250   # all xstest prompts — the sole over-refusal (refused_harmless) source
 N_JAILBREAK  = 50    # jailbreak samples per type for Figure 6
-N_TRAIN      = 50    # samples per category for direction extraction
+N_TRAIN      = 100   # samples per category for cluster centers / direction extraction
+N_BEHAVIOR   = 100   # (legacy) default per-dataset cap, still used by older callers
 N_TEST       = 30    # samples per category for evaluation
 
 # ---------------------------------------------------------------------------

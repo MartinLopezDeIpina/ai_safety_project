@@ -36,8 +36,8 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import (
     HARMFUL_DATA, HARMLESS_DATA, XSTEST_DATA, SORRY_DATA,
-    GPTZFUZZER_DATA, HUMAN_SEED_DATA, RESULTS_DIR,
-    N_BEHAVIOR, XSTEST_N, N_JAILBREAK,
+    GPTZFUZZER_DATA, HUMAN_SEED_DATA, CATQA_DATA, RESULTS_DIR,
+    N_HARMFUL, N_HARMLESS, XSTEST_N, N_JAILBREAK,
 )
 from model_utils import load_model, load_data, tokenize_fn, is_refusal
 
@@ -103,41 +103,59 @@ def main():
     }
 
     # ------------------------------------------------------------------
-    # advbench — harmful prompts
+    # advbench — harmful prompts (full set)
     # ------------------------------------------------------------------
-    print("\n[1/6] advbench (harmful) …")
+    print("\n[1/7] advbench (harmful) …")
     refused, accepted = collect(model, tokenizer, HARMFUL_DATA, "bad_q",
-                                n=N_BEHAVIOR, true_label="harmful", dataset_name="advbench")
+                                n=N_HARMFUL, true_label="harmful", dataset_name="advbench")
     behaviors["refused_harmful"].extend(refused)
-    behaviors["accepted_harmful"].extend(accepted)   # rare: model complied with harmful
+    behaviors["accepted_harmful"].extend(accepted)   # model complied with harmful
 
     # ------------------------------------------------------------------
-    # alpaca — harmless prompts
+    # alpaca — harmless prompts.
+    # alpaca is the accepted_harmless source ONLY. We deliberately do NOT route alpaca
+    # refusals into refused_harmless: on this instruction-only file, most "refusals" are
+    # artifacts — capability disclaimers ("As an AI I don't have…") and missing-input
+    # apologies ("I'm sorry, you haven't provided any options") from prompts whose input
+    # field was stripped. The paper's over-refusal (refused_harmless) source is xstest.
     # ------------------------------------------------------------------
-    print("[2/6] alpaca (harmless) …")
+    print("[2/7] alpaca (harmless) …")
     refused, accepted = collect(model, tokenizer, HARMLESS_DATA, "instruction",
-                                n=N_BEHAVIOR, true_label="harmless", dataset_name="alpaca")
-    behaviors["refused_harmless"].extend(refused)   # rare: over-refusal
+                                n=N_HARMLESS, true_label="harmless", dataset_name="alpaca")
     behaviors["accepted_harmless"].extend(accepted)
+    print(f"  (dropped {len(refused)} alpaca 'refusals' — artifacts, not routed to refused_harmless)")
 
     # ------------------------------------------------------------------
-    # xstest — harmless prompts that may trigger over-refusal
+    # xstest — the sole over-refusal (refused_harmless) source
     # ------------------------------------------------------------------
-    print("[3/6] xstest (harmless, over-refusal candidates) …")
+    print("[3/7] xstest (harmless, over-refusal candidates) …")
     refused, accepted = collect(model, tokenizer, XSTEST_DATA, "bad_q",
                                 n=XSTEST_N, true_label="harmless", dataset_name="xstest")
     behaviors["refused_harmless"].extend(refused)
     behaviors["accepted_harmless"].extend(accepted)
 
     # ------------------------------------------------------------------
-    # sorry-badq — persuasion-style harmful prompts
+    # sorry-badq — persuasion-style harmful prompts (full set)
     # ------------------------------------------------------------------
-    print("[4/6] sorry-badq (persuasion jailbreak) …")
+    print("[4/7] sorry-badq (persuasion jailbreak) …")
     refused, accepted = collect(model, tokenizer, SORRY_DATA, "bad_q",
-                                n=N_BEHAVIOR, true_label="harmful", dataset_name="sorry-badq")
+                                n=N_HARMFUL, true_label="harmful", dataset_name="sorry-badq")
     behaviors["refused_harmful"].extend(refused)
     behaviors["accepted_harmful"].extend(accepted)  # jailbreak succeeded
     behaviors["jailbreak_persuasion"].extend(accepted)
+
+    # ------------------------------------------------------------------
+    # catqa — blatantly harmful direct questions (12 category files, full sets).
+    # These are naturally harmful (not disguised), so accepted ones carry a genuine
+    # harmful signature at t_inst — they go into accepted_harmful (NOT a jailbreak cat).
+    # ------------------------------------------------------------------
+    print(f"[4b/7] catqa ({len(CATQA_DATA)} category files, harmful) …")
+    for path in CATQA_DATA:
+        name = "catqa-" + os.path.splitext(os.path.basename(path))[0].replace("catqa_", "")
+        refused, accepted = collect(model, tokenizer, path, "bad_q",
+                                    n=N_HARMFUL, true_label="harmful", dataset_name=name)
+        behaviors["refused_harmful"].extend(refused)
+        behaviors["accepted_harmful"].extend(accepted)
 
     # ------------------------------------------------------------------
     # human-seed — adversarial prompts
@@ -145,7 +163,7 @@ def main():
     # NOT into accepted_harmful: their text is disguised so they look harmless
     # at tinst, which would corrupt the Figure 2/3 clustering analysis.
     # ------------------------------------------------------------------
-    print("[5/6] human-seed-50 (adversarial jailbreak) …")
+    print("[5/7] human-seed-50 (adversarial jailbreak) …")
     refused, accepted = collect(model, tokenizer, HUMAN_SEED_DATA, "bad_q",
                                 n=N_JAILBREAK, true_label="harmful", dataset_name="human-seed")
     behaviors["refused_harmful"].extend(refused)
@@ -156,7 +174,7 @@ def main():
     # Same reasoning: template jailbreaks disguise harmful intent as benign
     # text, so at tinst they look harmless. Figure 6 only.
     # ------------------------------------------------------------------
-    print("[6/6] GPTFuzzer-50 (template jailbreak) …")
+    print("[6/7] GPTFuzzer-50 (template jailbreak) …")
     refused, accepted = collect(model, tokenizer, GPTZFUZZER_DATA, "bad_q",
                                 n=N_JAILBREAK, true_label="harmful", dataset_name="gptzfuzzer")
     behaviors["refused_harmful"].extend(refused)
