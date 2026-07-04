@@ -141,22 +141,25 @@ def main():
 
     # ------------------------------------------------------------------
     # human-seed — adversarial prompts
+    # Template/adversarial jailbreaks go ONLY into their jailbreak category,
+    # NOT into accepted_harmful: their text is disguised so they look harmless
+    # at tinst, which would corrupt the Figure 2/3 clustering analysis.
     # ------------------------------------------------------------------
     print("[5/6] human-seed-50 (adversarial jailbreak) …")
     refused, accepted = collect(model, tokenizer, HUMAN_SEED_DATA, "bad_q",
                                 n=N_JAILBREAK, true_label="harmful", dataset_name="human-seed")
     behaviors["refused_harmful"].extend(refused)
-    behaviors["accepted_harmful"].extend(accepted)
     behaviors["jailbreak_adversarial"].extend(accepted)
 
     # ------------------------------------------------------------------
     # GPTFuzzer — template-based jailbreak prompts
+    # Same reasoning: template jailbreaks disguise harmful intent as benign
+    # text, so at tinst they look harmless. Figure 6 only.
     # ------------------------------------------------------------------
     print("[6/6] GPTFuzzer-50 (template jailbreak) …")
     refused, accepted = collect(model, tokenizer, GPTZFUZZER_DATA, "bad_q",
                                 n=N_JAILBREAK, true_label="harmful", dataset_name="gptzfuzzer")
     behaviors["refused_harmful"].extend(refused)
-    behaviors["accepted_harmful"].extend(accepted)
     behaviors["jailbreak_template"].extend(accepted)
 
     # ------------------------------------------------------------------

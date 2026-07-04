@@ -109,36 +109,36 @@ def main():
     # Extract at tinst (POS_TINST = [-5] = <|im_end|>)
     # ------------------------------------------------------------------
     print("\n--- Extracting at tinst ---")
-    acts_rh_tinst  = extract_for_category(model, tokenizer, behaviors["refused_harmful"],  "refused_harmful",  "tinst", POS_TINST)
-    acts_ah_tinst  = extract_for_category(model, tokenizer, behaviors["accepted_harmless"], "accepted_harmless","tinst", POS_TINST)
-    acts_aH_tinst  = extract_for_category(model, tokenizer, behaviors["accepted_harmful"],  "accepted_harmful", "tinst", POS_TINST)
-    acts_rH_tinst  = extract_for_category(model, tokenizer, behaviors["refused_harmless"],  "refused_harmless", "tinst", POS_TINST)
+    acts_refused_harmful_tinst   = extract_for_category(model, tokenizer, behaviors["refused_harmful"],  "refused_harmful",  "tinst", POS_TINST)
+    acts_accepted_harmless_tinst = extract_for_category(model, tokenizer, behaviors["accepted_harmless"], "accepted_harmless","tinst", POS_TINST)
+    acts_accepted_harmful_tinst  = extract_for_category(model, tokenizer, behaviors["accepted_harmful"],  "accepted_harmful", "tinst", POS_TINST)
+    acts_refused_harmless_tinst  = extract_for_category(model, tokenizer, behaviors["refused_harmless"],  "refused_harmless", "tinst", POS_TINST)
 
     # ------------------------------------------------------------------
     # Extract at tpost-inst (POS_TPOSTINST = [-1])
     # ------------------------------------------------------------------
     print("\n--- Extracting at tpost-inst ---")
-    acts_rh_tpost  = extract_for_category(model, tokenizer, behaviors["refused_harmful"],  "refused_harmful",  "tpostinst", POS_TPOSTINST)
-    acts_ah_tpost  = extract_for_category(model, tokenizer, behaviors["accepted_harmless"], "accepted_harmless","tpostinst", POS_TPOSTINST)
-    acts_aH_tpost  = extract_for_category(model, tokenizer, behaviors["accepted_harmful"],  "accepted_harmful", "tpostinst", POS_TPOSTINST)
-    acts_rH_tpost  = extract_for_category(model, tokenizer, behaviors["refused_harmless"],  "refused_harmless", "tpostinst", POS_TPOSTINST)
+    acts_refused_harmful_tpostinst   = extract_for_category(model, tokenizer, behaviors["refused_harmful"],  "refused_harmful",  "tpostinst", POS_TPOSTINST)
+    acts_accepted_harmless_tpostinst = extract_for_category(model, tokenizer, behaviors["accepted_harmless"], "accepted_harmless","tpostinst", POS_TPOSTINST)
+    acts_accepted_harmful_tpostinst  = extract_for_category(model, tokenizer, behaviors["accepted_harmful"],  "accepted_harmful", "tpostinst", POS_TPOSTINST)
+    acts_refused_harmless_tpostinst  = extract_for_category(model, tokenizer, behaviors["refused_harmless"],  "refused_harmless", "tpostinst", POS_TPOSTINST)
 
     # ------------------------------------------------------------------
     # Cluster centers
     # ------------------------------------------------------------------
     print("\n--- Computing cluster centers ---")
-    μ_refused_harmful_tinst   = cluster_center(acts_rh_tinst)   # [n_layers, hidden_dim]
-    μ_accepted_harmless_tinst = cluster_center(acts_ah_tinst)
+    μ_refused_harmful_tinst   = cluster_center(acts_refused_harmful_tinst)   # [n_layers, hidden_dim]
+    μ_accepted_harmless_tinst = cluster_center(acts_accepted_harmless_tinst)
 
     # Refusal-axis clusters use BOTH refused categories at tpost-inst
     if len(behaviors["refused_harmless"]) > 0:
-        refused_tpost_all = torch.cat([acts_rh_tpost, acts_rH_tpost], dim=1)
+        refused_tpost_all = torch.cat([acts_refused_harmful_tpostinst, acts_refused_harmless_tpostinst], dim=1)
     else:
-        refused_tpost_all = acts_rh_tpost
+        refused_tpost_all = acts_refused_harmful_tpostinst
     if len(behaviors["accepted_harmful"]) > 0:
-        accepted_tpost_all = torch.cat([acts_ah_tpost, acts_aH_tpost], dim=1)
+        accepted_tpost_all = torch.cat([acts_accepted_harmless_tpostinst, acts_accepted_harmful_tpostinst], dim=1)
     else:
-        accepted_tpost_all = acts_ah_tpost
+        accepted_tpost_all = acts_accepted_harmless_tpostinst
 
     μ_refused_tpostinst  = cluster_center(refused_tpost_all)
     μ_accepted_tpostinst = cluster_center(accepted_tpost_all)
@@ -157,7 +157,7 @@ def main():
     # ------------------------------------------------------------------
     # Directions
     # ------------------------------------------------------------------
-    dir_hf     = μ_refused_harmful_tinst   - μ_accepted_harmless_tinst
+    dir_hf     = μ_refused_harmful_tinst - μ_accepted_harmless_tinst
     dir_refuse = μ_refused_tpostinst       - μ_accepted_tpostinst
 
     torch.save(dir_hf,     os.path.join(RESULTS_DIR, "dir-hf.pt"))

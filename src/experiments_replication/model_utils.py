@@ -23,10 +23,22 @@ from utils import formatInp_llama_persuasion, REFUSAL_PHRASE, read_row  # noqa: 
 # ---------------------------------------------------------------------------
 
 def load_model():
-    """Load Qwen2-7B-Instruct via the repo's inference.load_model_and_tokenizer()."""
-    import inference as _inf
-    model, tokenizer = _inf.load_model_and_tokenizer(MODEL_TYPE, MODEL_SIZE)
-    # inference.py does not set these; required for batched generation with padding.
+    """Load model via inference.load_model_and_tokenizer() when the size is supported,
+    otherwise load directly (e.g. Qwen2.5-1.5B which inference.py doesn't know about)."""
+    from config import MODEL_NAME
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    _INFERENCE_SUPPORTED = {"7b", "13b", "14b"}
+    if MODEL_SIZE in _INFERENCE_SUPPORTED:
+        import inference as _inf
+        model, tokenizer = _inf.load_model_and_tokenizer(MODEL_TYPE, MODEL_SIZE)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+        model = AutoModelForCausalLM.from_pretrained(
+            MODEL_NAME, device_map="auto", trust_remote_code=True,
+            dtype=torch.float16,
+        )
+
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "left"
     model.eval()

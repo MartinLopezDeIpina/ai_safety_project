@@ -22,26 +22,38 @@ RESULTS_DIR = os.path.join(_HERE, "results")
 # Model
 # ---------------------------------------------------------------------------
 
-MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
+#MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
+#MODEL_TYPE = "qwen"
+#MODEL_SIZE = "7b"
+MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
 MODEL_TYPE = "qwen"
-MODEL_SIZE = "7b"
+MODEL_SIZE = "1.5b"
 
 # ---------------------------------------------------------------------------
 # Token positions
 # ---------------------------------------------------------------------------
-# The post-instruction marker for Qwen2 is:
-#   <|im_end|>  \n  <|im_start|>  assistant  \n   (5 tokens)
+# The prompt built by utils.formatInp_llama_persuasion(model='qwen') is:
+#   <|im_start|>user\n{instruction}<|im_end|>\n<|im_start|>assistant
+# There is NO trailing "\n" after "assistant", so the post-instruction suffix is
+# 4 tokens: <|im_end|>, \n, <|im_start|>, assistant.
 #
-# tinst     = position of <|im_end|>  (the END of the user's instruction)
-# tpost-inst = position of last \n    (the last token before model generation)
+# Tokenizing the full prompt, the last tokens are:
+#   ...  {last instruction token}  <|im_end|>  \n  <|im_start|>  assistant
+#         -5                        -4          -3   -2           -1
 #
-# With the full input `<|im_start|>user\n{instruction}<|im_end|>\n<|im_start|>assistant\n`:
-#   positions [-5] = <|im_end|>   → tinst
-#   positions [-1] = \n (last)    → tpost-inst
+# tinst     = position -5 = the last token of the instruction content
+#             (the paper's "last instruction token"; it is NOT <|im_end|>).
+# tpost-inst = position -1 = the "assistant" token, the last input token before the
+#             model starts generating (there is no trailing \n to land on).
+#
+# These match the original extract_hidden.py exactly: with inst_token
+# '<|im_end|>\n<|im_start|>assistant' (4 tokens) and NUM_TOKEN_HIDDEN=2, its 'hf' mode
+# reads merged[NUM_TOKEN_HIDDEN-1] = position -5, and its 'refuse' mode reads
+# merged[-1] = position -1.  Do not change these values without re-deriving the offsets.
 
-INST_TOKEN_LEN = 5       # verified via tokenizer('<|im_end|>\n<|im_start|>assistant\n')
-POS_TINST      = [-INST_TOKEN_LEN]   # [-5] → <|im_end|>
-POS_TPOSTINST  = [-1]                # last input token before generation
+INST_TOKEN_LEN = 5       # offset of the last instruction token from the sequence end
+POS_TINST      = [-INST_TOKEN_LEN]   # [-5] → last instruction content token
+POS_TPOSTINST  = [-1]                # [-1] → "assistant" (last input token before generation)
 
 # ---------------------------------------------------------------------------
 # Data files
