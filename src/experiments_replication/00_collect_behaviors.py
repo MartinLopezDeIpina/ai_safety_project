@@ -158,27 +158,36 @@ def main():
         behaviors["accepted_harmful"].extend(accepted)
 
     # ------------------------------------------------------------------
-    # human-seed — adversarial prompts
-    # Template/adversarial jailbreaks go ONLY into their jailbreak category,
-    # NOT into accepted_harmful: their text is disguised so they look harmless
-    # at tinst, which would corrupt the Figure 2/3 clustering analysis.
+    # human-seed — adversarial jailbreak prompts.
+    # Jailbreaks are NOT part of the paper's harmful pool (advbench/sorry/catqa) —
+    # they are a separate Figure-6 category. So the ACCEPTED (successful) jailbreaks
+    # go to jailbreak_adversarial, and the REFUSED ones are dropped (the paper does
+    # not fold refused jailbreaks into refused_harmful; their disguised wrappers also
+    # look harmless at tinst and would not belong in the harmful cluster).
     # ------------------------------------------------------------------
     print("[5/7] human-seed-50 (adversarial jailbreak) …")
-    refused, accepted = collect(model, tokenizer, HUMAN_SEED_DATA, "bad_q",
-                                n=N_JAILBREAK, true_label="harmful", dataset_name="human-seed")
-    behaviors["refused_harmful"].extend(refused)
+    _refused, accepted = collect(model, tokenizer, HUMAN_SEED_DATA, "bad_q",
+                                 n=N_JAILBREAK, true_label="harmful", dataset_name="human-seed")
     behaviors["jailbreak_adversarial"].extend(accepted)
 
     # ------------------------------------------------------------------
-    # GPTFuzzer — template-based jailbreak prompts
-    # Same reasoning: template jailbreaks disguise harmful intent as benign
-    # text, so at tinst they look harmless. Figure 6 only.
+    # GPTFuzzer — template-based jailbreak prompts (same handling as human-seed).
     # ------------------------------------------------------------------
     print("[6/7] GPTFuzzer-50 (template jailbreak) …")
-    refused, accepted = collect(model, tokenizer, GPTZFUZZER_DATA, "bad_q",
-                                n=N_JAILBREAK, true_label="harmful", dataset_name="gptzfuzzer")
-    behaviors["refused_harmful"].extend(refused)
+    _refused, accepted = collect(model, tokenizer, GPTZFUZZER_DATA, "bad_q",
+                                 n=N_JAILBREAK, true_label="harmful", dataset_name="gptzfuzzer")
     behaviors["jailbreak_template"].extend(accepted)
+
+    # ------------------------------------------------------------------
+    # Deterministically shuffle accepted_harmful so a first-N slice (01 uses the first
+    # N_TRAIN samples) is representative of ALL sources. Its natural order is
+    # advbench → sorry-badq (191) → catqa, so an unshuffled first-100 would be entirely
+    # mild sorry-badq and exclude every catqa acceptance — dropping exactly the
+    # genuinely-harmful examples that give the Figure 2 red line a positive signature.
+    # ------------------------------------------------------------------
+    import random
+    random.seed(0)
+    random.shuffle(behaviors["accepted_harmful"])
 
     # ------------------------------------------------------------------
     # Summary
