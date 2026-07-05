@@ -7,7 +7,7 @@
 #   CUDA 13.0 → https://download.pytorch.org/whl/cu130  (local machine)
 --extra-index-url https://download.pytorch.org/whl/cu121
 
-torch==2.12.1
+torch==2.6.0
 accelerate==1.14.0
 
 # transformers 5.x is required for the qwen3_5 judge model (config.JUDGE_MODEL_NAME,

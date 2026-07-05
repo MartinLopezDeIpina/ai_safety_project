@@ -22,12 +22,12 @@ RESULTS_DIR = os.path.join(_HERE, "results")
 # Model
 # ---------------------------------------------------------------------------
 
-#MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
-#MODEL_TYPE = "qwen"
-#MODEL_SIZE = "7b"
-MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
 MODEL_TYPE = "qwen"
-MODEL_SIZE = "1.5b"
+MODEL_SIZE = "7b"
+#MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+#MODEL_TYPE = "qwen"
+#MODEL_SIZE = "1.5b"
 
 # ---------------------------------------------------------------------------
 # LLM-judge verification of accepted-harmful classifications
@@ -46,7 +46,7 @@ MODEL_SIZE = "1.5b"
 # by 00_collect_behaviors.py when JUDGE is on. Set it to whatever you want to
 # judge with, e.g. a larger or a "thinking" model.
 JUDGE = True
-JUDGE_MODEL_NAME = "Qwen/Qwen3.5-4B"   # judge model (may differ from MODEL_NAME)
+JUDGE_MODEL_NAME = "Qwen/Qwen3.5-9B"   # judge model (may differ from MODEL_NAME)
 JUDGE_THINKING = True                   # judge emits <think>…</think>; parse the answer after it
 # Thinking judges need room to reason before the verdict; non-thinking judges only
 # need to emit ACCEPT / REFUSE.

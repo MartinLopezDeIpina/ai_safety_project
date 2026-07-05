@@ -17,7 +17,7 @@ VENV=$REPO/venv
 
 # HF_HOME / HF_HUB_OFFLINE from the project .env (compute nodes have no internet).
 set -a
-source "$PROJECT/.env"
+source "$REPO/.env"
 set +a
 
 source "$VENV/bin/activate"
