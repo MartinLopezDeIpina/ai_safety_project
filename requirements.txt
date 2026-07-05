@@ -5,21 +5,18 @@
 #   CUDA 12.1 → https://download.pytorch.org/whl/cu121
 #   CUDA 12.4 → https://download.pytorch.org/whl/cu124
 #   CUDA 13.0 → https://download.pytorch.org/whl/cu130  (local machine)
---extra-index-url https://download.pytorch.org/whl/cu121
-
+--extra-index-url https://download.pytorch.org/whl/cu124
 torch==2.6.0
 accelerate==1.14.0
-
 # transformers 4.57.x changed Qwen2DecoderLayer to return a tensor instead of
 # a tuple. model_utils.py has a monkey-patch for exactly this version.
 # Do NOT upgrade without verifying the monkey-patch still works.
 transformers==4.57.6
 tokenizers==0.22.2
-
 # Utilities
 tqdm==4.68.3
-numpy==2.5.0
-matplotlib==3.11.0
-protobuf==6.33.6
+numpy==2.4.6
+matplotlib==3.9.2
+protobuf==5.28.2
 openai
 requests
