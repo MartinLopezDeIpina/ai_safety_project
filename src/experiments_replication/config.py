@@ -22,12 +22,12 @@ RESULTS_DIR = os.path.join(_HERE, "results")
 # Model
 # ---------------------------------------------------------------------------
 
-MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
-MODEL_TYPE = "qwen"
-MODEL_SIZE = "7b"
-#MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+#MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
 #MODEL_TYPE = "qwen"
-#MODEL_SIZE = "1.5b"
+#MODEL_SIZE = "7b"
+MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+MODEL_TYPE = "qwen"
+MODEL_SIZE = "1.5b"
 
 # ---------------------------------------------------------------------------
 # LLM-judge verification of accepted-harmful classifications
@@ -46,7 +46,7 @@ MODEL_SIZE = "7b"
 # by 00_collect_behaviors.py when JUDGE is on. Set it to whatever you want to
 # judge with, e.g. a larger or a "thinking" model.
 JUDGE = True
-JUDGE_MODEL_NAME = "Qwen/Qwen3.5-9B"   # judge model (may differ from MODEL_NAME)
+JUDGE_MODEL_NAME = "Qwen/Qwen3.5-4B"   # judge model (may differ from MODEL_NAME)
 JUDGE_THINKING = True                   # judge emits <think>…</think>; parse the answer after it
 # Thinking judges need room to reason before the verdict; non-thinking judges only
 # need to emit ACCEPT / REFUSE.
@@ -54,6 +54,20 @@ JUDGE_MAX_NEW_TOKENS = 512 if JUDGE_THINKING else 5
 # Judge generation batch size. Keep small for big judges on a 16GB GPU — the 4B
 # Qwen3.5 (hybrid linear-attention) OOMs at 32. Raise for small judges / big GPUs.
 JUDGE_BATCH_SIZE = 8
+
+# ---------------------------------------------------------------------------
+# Figure 2 faithful replication — harmful bucket sourcing
+# ---------------------------------------------------------------------------
+# When True, the harmful buckets (refused_harmful / accepted_harmful) are built from
+# ADVBENCH ONLY, matching the paper. This keeps the harmful pole and the harmful test
+# line (accepted_harmful) in the same homogeneously-harmful corpus, so:
+#   - the difference-in-means axis measures harmfulness, not advbench-vs-other style;
+#   - the acceptance filter cannot self-select a benign tail (advbench has none).
+# sorry-badq is still collected but routed to jailbreak_persuasion ONLY (for Fig 6),
+# and catqa is skipped (not a paper source; can't be filtered to genuinely-harmful
+# without the prompt-harmfulness judge, which is a separate later step).
+# Set False to restore the multi-source harmful buckets (sorry-badq + catqa).
+FAITHFUL_HARMFUL_BUCKETS = True
 
 # ---------------------------------------------------------------------------
 # Token positions

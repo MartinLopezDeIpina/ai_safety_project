@@ -40,6 +40,7 @@ from config import (
     GPTZFUZZER_DATA, HUMAN_SEED_DATA, CATQA_DATA, RESULTS_DIR,
     N_HARMFUL, N_HARMLESS, XSTEST_N, N_JAILBREAK,
     JUDGE, JUDGE_MODEL_NAME, JUDGE_THINKING, JUDGE_MAX_NEW_TOKENS, JUDGE_BATCH_SIZE,
+    FAITHFUL_HARMFUL_BUCKETS,
 )
 from model_utils import (
     load_model, load_judge_model, load_data, tokenize_fn, is_refusal,
@@ -209,8 +210,11 @@ def main():
     print("[4/7] sorry-badq (persuasion jailbreak) …")
     refused, accepted = collect(model, tokenizer, SORRY_DATA, "bad_q",
                                 n=N_HARMFUL, dataset_name="sorry-badq")
-    behaviors["refused_harmful"].extend(refused)
-    behaviors["accepted_harmful"].extend(accepted)  # jailbreak succeeded
+    if not FAITHFUL_HARMFUL_BUCKETS:
+        # Non-faithful mode: sorry-badq acceptances also count as accepted_harmful.
+        # Faithful mode keeps the harmful buckets advbench-only (see config).
+        behaviors["refused_harmful"].extend(refused)
+        behaviors["accepted_harmful"].extend(accepted)  # jailbreak succeeded
     behaviors["jailbreak_persuasion"].extend(accepted)
 
     # ------------------------------------------------------------------
@@ -218,13 +222,16 @@ def main():
     # These are naturally harmful (not disguised), so accepted ones carry a genuine
     # harmful signature at t_inst — they go into accepted_harmful (NOT a jailbreak cat).
     # ------------------------------------------------------------------
-    print(f"[4b/7] catqa ({len(CATQA_DATA)} category files, harmful) …")
-    for path in CATQA_DATA:
-        name = "catqa-" + os.path.splitext(os.path.basename(path))[0].replace("catqa_", "")
-        refused, accepted = collect(model, tokenizer, path, "bad_q",
-                                    n=N_HARMFUL, dataset_name=name)
-        behaviors["refused_harmful"].extend(refused)
-        behaviors["accepted_harmful"].extend(accepted)
+    if FAITHFUL_HARMFUL_BUCKETS:
+        print("[4b/7] catqa … SKIPPED (faithful advbench-only harmful buckets)")
+    else:
+        print(f"[4b/7] catqa ({len(CATQA_DATA)} category files, harmful) …")
+        for path in CATQA_DATA:
+            name = "catqa-" + os.path.splitext(os.path.basename(path))[0].replace("catqa_", "")
+            refused, accepted = collect(model, tokenizer, path, "bad_q",
+                                        n=N_HARMFUL, dataset_name=name)
+            behaviors["refused_harmful"].extend(refused)
+            behaviors["accepted_harmful"].extend(accepted)
 
     # ------------------------------------------------------------------
     # human-seed — adversarial jailbreak prompts.
