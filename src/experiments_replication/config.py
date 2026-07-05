@@ -30,6 +30,32 @@ MODEL_TYPE = "qwen"
 MODEL_SIZE = "1.5b"
 
 # ---------------------------------------------------------------------------
+# LLM-judge verification of accepted-harmful classifications
+# ---------------------------------------------------------------------------
+# The substring classifier (is_refusal / REFUSAL_PHRASE) mislabels ~10-15% of
+# harmful cases: responses that restate the task then refuse, or give a safe
+# workaround, carry no leading refusal phrase and are wrongly bucketed as
+# "accepted". When JUDGE is True, every substring-"accepted" response on a
+# HARMFUL source is re-checked by an LLM judge; if the judge says it actually
+# refused, the sample is moved to "refused". Substring-"refused" samples are
+# trusted as-is (the judge only rescues false-accepts). Harmless sources are
+# never judged.
+#
+# The judge model is SEPARATE from the inference model (MODEL_NAME) above — it is
+# loaded on its own (load_judge_model()) only when judging: by eval_judge.py and
+# by 00_collect_behaviors.py when JUDGE is on. Set it to whatever you want to
+# judge with, e.g. a larger or a "thinking" model.
+JUDGE = True
+JUDGE_MODEL_NAME = "Qwen/Qwen3.5-4B"   # judge model (may differ from MODEL_NAME)
+JUDGE_THINKING = True                   # judge emits <think>…</think>; parse the answer after it
+# Thinking judges need room to reason before the verdict; non-thinking judges only
+# need to emit ACCEPT / REFUSE.
+JUDGE_MAX_NEW_TOKENS = 512 if JUDGE_THINKING else 5
+# Judge generation batch size. Keep small for big judges on a 16GB GPU — the 4B
+# Qwen3.5 (hybrid linear-attention) OOMs at 32. Raise for small judges / big GPUs.
+JUDGE_BATCH_SIZE = 8
+
+# ---------------------------------------------------------------------------
 # Token positions
 # ---------------------------------------------------------------------------
 # The prompt built by utils.formatInp_llama_persuasion(model='qwen') is:
