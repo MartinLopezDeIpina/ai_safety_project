@@ -36,11 +36,8 @@ from transformers import GenerationConfig
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import (
-    HARMFUL_DATA, HARMLESS_DATA, XSTEST_DATA, SORRY_DATA,
-    GPTZFUZZER_DATA, HUMAN_SEED_DATA, CATQA_DATA, RESULTS_DIR,
-    N_HARMFUL, N_HARMLESS, XSTEST_N, N_JAILBREAK,
+    RESULTS_DIR, DATASET_ROUTING, JUDGE_BUCKET, JUDGE_MOVE_TO,
     JUDGE, JUDGE_MODEL_NAME, JUDGE_THINKING, JUDGE_MAX_NEW_TOKENS, JUDGE_BATCH_SIZE,
-    FAITHFUL_HARMFUL_BUCKETS,
 )
 from model_utils import (
     load_model, load_judge_model, load_data, tokenize_fn, is_refusal,
@@ -120,9 +117,9 @@ def _judge_reclassify(behaviors):
     # the same objects already in accepted_harmful; the adversarial/template jailbreak
     # accepts are the only extra ones. harmful_ids marks the harmful-pool members so
     # their refusals route to refused_harmful (jailbreak-only ones are just dropped).
-    harmful_ids = {id(e) for e in behaviors["accepted_harmful"]}
+    harmful_ids = {id(e) for e in behaviors[JUDGE_BUCKET]}
     candidates, seen = [], set()
-    for e in (behaviors["accepted_harmful"]
+    for e in (behaviors[JUDGE_BUCKET]
               + behaviors["jailbreak_adversarial"]
               + behaviors["jailbreak_template"]):
         if id(e) not in seen:
@@ -160,17 +157,17 @@ def _judge_reclassify(behaviors):
         print("  judge moved 0 accepted->refused")
         return
     moved = [e for e in candidates if id(e) in moved_ids]
-    for cat in ("accepted_harmful", "jailbreak_persuasion",
+    for cat in (JUDGE_BUCKET, "jailbreak_persuasion",
                 "jailbreak_adversarial", "jailbreak_template"):
         behaviors[cat] = [x for x in behaviors[cat] if id(x) not in moved_ids]
     n_pool = 0
     for e in moved:
         if id(e) in harmful_ids:
-            behaviors["refused_harmful"].append(e)
+            behaviors[JUDGE_MOVE_TO].append(e)
             n_pool += 1
     JUDGE_MOVED.extend(moved)
     print(f"  judge moved {len(moved)} accepted->refused "
-          f"({n_pool} to refused_harmful, {len(moved) - n_pool} jailbreak-only dropped)")
+          f"({n_pool} to {JUDGE_MOVE_TO}, {len(moved) - n_pool} jailbreak-only dropped)")
 
 
 def main():
@@ -179,97 +176,28 @@ def main():
     print("Loading inference model …")
     model, tokenizer = load_model()
 
-    behaviors = {
-        "refused_harmful": [],
-        "accepted_harmful": [],
-        "refused_harmless": [],
-        "accepted_harmless": [],
-        "jailbreak_template": [],
-        "jailbreak_adversarial": [],
-        "jailbreak_persuasion": [],
-    }
+    # Buckets = every bucket named in DATASET_ROUTING, plus the standard ones the judge
+    # and downstream stages expect (so they always exist even if empty).
+    behaviors = {b: [] for _n, _p, _k, _nn, rb, ab in DATASET_ROUTING for b in (*rb, *ab)}
+    for b in ("refused_harmful", "accepted_harmful", "refused_harmless", "accepted_harmless",
+              "jailbreak_template", "jailbreak_adversarial", "jailbreak_persuasion"):
+        behaviors.setdefault(b, [])
 
     # ------------------------------------------------------------------
-    # advbench — harmful prompts (full set)
+    # Collect every dataset per config.DATASET_ROUTING (edit routing in config.py, not here).
     # ------------------------------------------------------------------
-    print("\n[1/7] advbench (harmful) …")
-    refused, accepted = collect(model, tokenizer, HARMFUL_DATA, "bad_q",
-                                n=N_HARMFUL, dataset_name="advbench")
-    behaviors["refused_harmful"].extend(refused)
-    behaviors["accepted_harmful"].extend(accepted)   # model complied with harmful
-
-    # ------------------------------------------------------------------
-    # alpaca — harmless prompts.
-    # alpaca is the accepted_harmless source ONLY. We deliberately do NOT route alpaca
-    # refusals into refused_harmless: on this instruction-only file, most "refusals" are
-    # artifacts — capability disclaimers ("As an AI I don't have…") and missing-input
-    # apologies ("I'm sorry, you haven't provided any options") from prompts whose input
-    # field was stripped. The paper's over-refusal (refused_harmless) source is xstest.
-    # ------------------------------------------------------------------
-    print("[2/7] alpaca (harmless) …")
-    refused, accepted = collect(model, tokenizer, HARMLESS_DATA, "instruction",
-                                n=N_HARMLESS, dataset_name="alpaca")
-    behaviors["accepted_harmless"].extend(accepted)
-    print(f"  (dropped {len(refused)} alpaca 'refusals' — artifacts, not routed to refused_harmless)")
-
-    # ------------------------------------------------------------------
-    # xstest — the sole over-refusal (refused_harmless) source
-    # ------------------------------------------------------------------
-    print("[3/7] xstest (harmless, over-refusal candidates) …")
-    refused, accepted = collect(model, tokenizer, XSTEST_DATA, "bad_q",
-                                n=XSTEST_N, dataset_name="xstest")
-    behaviors["refused_harmless"].extend(refused)
-    behaviors["accepted_harmless"].extend(accepted)
-
-    # ------------------------------------------------------------------
-    # sorry-badq — persuasion-style harmful prompts (full set)
-    # ------------------------------------------------------------------
-    print("[4/7] sorry-badq (persuasion jailbreak) …")
-    refused, accepted = collect(model, tokenizer, SORRY_DATA, "bad_q",
-                                n=N_HARMFUL, dataset_name="sorry-badq")
-    if not FAITHFUL_HARMFUL_BUCKETS:
-        # Non-faithful mode: sorry-badq acceptances also count as accepted_harmful.
-        # Faithful mode keeps the harmful buckets advbench-only (see config).
-        behaviors["refused_harmful"].extend(refused)
-        behaviors["accepted_harmful"].extend(accepted)  # jailbreak succeeded
-    behaviors["jailbreak_persuasion"].extend(accepted)
-
-    # ------------------------------------------------------------------
-    # catqa — blatantly harmful direct questions (12 category files, full sets).
-    # These are naturally harmful (not disguised), so accepted ones carry a genuine
-    # harmful signature at t_inst — they go into accepted_harmful (NOT a jailbreak cat).
-    # ------------------------------------------------------------------
-    if FAITHFUL_HARMFUL_BUCKETS:
-        print("[4b/7] catqa … SKIPPED (faithful advbench-only harmful buckets)")
-    else:
-        print(f"[4b/7] catqa ({len(CATQA_DATA)} category files, harmful) …")
-        for path in CATQA_DATA:
-            name = "catqa-" + os.path.splitext(os.path.basename(path))[0].replace("catqa_", "")
-            refused, accepted = collect(model, tokenizer, path, "bad_q",
-                                        n=N_HARMFUL, dataset_name=name)
-            behaviors["refused_harmful"].extend(refused)
-            behaviors["accepted_harmful"].extend(accepted)
-
-    # ------------------------------------------------------------------
-    # human-seed — adversarial jailbreak prompts.
-    # Jailbreaks are NOT part of the paper's harmful pool (advbench/sorry/catqa) —
-    # they are a separate Figure-6 category. So the ACCEPTED (successful) jailbreaks
-    # go to jailbreak_adversarial, and the REFUSED ones are dropped (the paper does
-    # not fold refused jailbreaks into refused_harmful; their disguised wrappers also
-    # look harmless at tinst and would not belong in the harmful cluster).
-    # ------------------------------------------------------------------
-    print("[5/7] human-seed-50 (adversarial jailbreak) …")
-    _refused, accepted = collect(model, tokenizer, HUMAN_SEED_DATA, "bad_q",
-                                 n=N_JAILBREAK, dataset_name="human-seed")
-    behaviors["jailbreak_adversarial"].extend(accepted)
-
-    # ------------------------------------------------------------------
-    # GPTFuzzer — template-based jailbreak prompts (same handling as human-seed).
-    # ------------------------------------------------------------------
-    print("[6/7] GPTFuzzer-50 (template jailbreak) …")
-    _refused, accepted = collect(model, tokenizer, GPTZFUZZER_DATA, "bad_q",
-                                 n=N_JAILBREAK, dataset_name="gptzfuzzer")
-    behaviors["jailbreak_template"].extend(accepted)
+    for i, (name, path, key, n, refused_buckets, accepted_buckets) in enumerate(DATASET_ROUTING, 1):
+        print(f"\n[{i}/{len(DATASET_ROUTING)}] {name} → refused:{refused_buckets or '(drop)'} "
+              f"accepted:{accepted_buckets or '(drop)'} …")
+        refused, accepted = collect(model, tokenizer, path, key, n=n, dataset_name=name)
+        for b in refused_buckets:
+            behaviors[b].extend(refused)
+        for b in accepted_buckets:
+            behaviors[b].extend(accepted)
+        if not refused_buckets and refused:
+            print(f"  (dropped {len(refused)} '{name}' refusals — not routed to any bucket)")
+        if not accepted_buckets and accepted:
+            print(f"  (dropped {len(accepted)} '{name}' accepts — not routed to any bucket)")
 
     # ------------------------------------------------------------------
     # All inference done. Free the inference model BEFORE loading the judge so the

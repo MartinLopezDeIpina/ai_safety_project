@@ -1,0 +1,88 @@
+Loading inference model …
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  12%|█▏        | 39/338 [00:00<00:00, 380.96it/s]Loading weights:  37%|███▋      | 124/338 [00:00<00:00, 651.44it/s]Loading weights:  61%|██████    | 205/338 [00:00<00:00, 709.48it/s]Loading weights:  90%|████████▉ | 303/338 [00:00<00:00, 811.77it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 753.48it/s]
+[transformers] The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+
+[1/6] advbench → refused:['refused_harmful'] accepted:['accepted_harmful'] …
+  advbench: 503 refused / 17 accepted out of 520 (0 empty skipped)
+
+[2/6] alpaca → refused:(drop) accepted:['accepted_harmless'] …
+  alpaca: 30 refused / 120 accepted out of 150 (0 empty skipped)
+  (dropped 30 'alpaca' refusals — not routed to any bucket)
+
+[3/6] xstest → refused:['refused_harmless'] accepted:['accepted_harmless'] …
+  xstest: 20 refused / 230 accepted out of 250 (0 empty skipped)
+
+[4/6] sorry-badq → refused:['refused_sorry'] accepted:['accepted_sorry', 'jailbreak_persuasion'] …
+  sorry-badq: 236 refused / 204 accepted out of 440 (0 empty skipped)
+
+[5/6] human-seed → refused:(drop) accepted:['jailbreak_adversarial'] …
+  human-seed: 49 refused / 1 accepted out of 50 (0 empty skipped)
+  (dropped 49 'human-seed' refusals — not routed to any bucket)
+
+[6/6] gptzfuzzer → refused:(drop) accepted:['jailbreak_template'] …
+  gptzfuzzer: 50 refused / 0 accepted out of 50 (0 empty skipped)
+  (dropped 50 'gptzfuzzer' refusals — not routed to any bucket)
+
+Loading judge model … Qwen/Qwen3.5-9B (thinking=True)
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 8710.91it/s]
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]Loading weights:   0%|          | 2/427 [00:00<02:47,  2.54it/s]Loading weights:   3%|▎         | 13/427 [00:00<00:23, 17.58it/s]Loading weights:   4%|▍         | 18/427 [00:01<00:19, 21.35it/s]Loading weights:   6%|▌         | 26/427 [00:01<00:12, 31.91it/s]Loading weights:   7%|▋         | 32/427 [00:01<00:13, 28.96it/s]Loading weights:   9%|▊         | 37/427 [00:01<00:12, 31.65it/s]Loading weights:  10%|▉         | 42/427 [00:01<00:12, 30.20it/s]Loading weights:  11%|█         | 46/427 [00:01<00:13, 27.72it/s]Loading weights:  12%|█▏        | 50/427 [00:02<00:15, 24.77it/s]Loading weights:  13%|█▎        | 54/427 [00:02<00:14, 26.53it/s]Loading weights:  14%|█▍        | 60/427 [00:02<00:11, 31.57it/s]Loading weights:  15%|█▌        | 66/427 [00:02<00:09, 36.38it/s]Loading weights:  16%|█▋        | 70/427 [00:02<00:11, 30.50it/s]Loading weights:  18%|█▊        | 77/427 [00:02<00:09, 38.70it/s]Loading weights:  19%|█▉        | 82/427 [00:03<00:11, 29.29it/s]Loading weights:  22%|██▏       | 92/427 [00:03<00:07, 42.42it/s]Loading weights:  23%|██▎       | 98/427 [00:03<00:08, 40.30it/s]Loading weights:  24%|██▍       | 103/427 [00:03<00:08, 36.30it/s]Loading weights:  25%|██▌       | 108/427 [00:03<00:08, 39.00it/s]Loading weights:  27%|██▋       | 114/427 [00:03<00:07, 42.51it/s]Loading weights:  28%|██▊       | 120/427 [00:03<00:07, 38.83it/s]Loading weights:  29%|██▉       | 125/427 [00:04<00:07, 40.55it/s]Loading weights:  31%|███       | 133/427 [00:04<00:06, 43.80it/s]Loading weights:  32%|███▏      | 138/427 [00:04<00:07, 39.54it/s]Loading weights:  34%|███▍      | 147/427 [00:04<00:05, 48.05it/s]Loading weights:  36%|███▌      | 153/427 [00:04<00:06, 40.74it/s]Loading weights:  37%|███▋      | 158/427 [00:04<00:06, 42.49it/s]Loading weights:  40%|███▉      | 169/427 [00:04<00:04, 56.76it/s]Loading weights:  41%|████      | 176/427 [00:05<00:04, 52.28it/s]Loading weights:  44%|████▎     | 186/427 [00:05<00:04, 55.10it/s]Loading weights:  47%|████▋     | 201/427 [00:05<00:04, 55.12it/s]Loading weights:  48%|████▊     | 207/427 [00:05<00:04, 52.05it/s]Loading weights:  52%|█████▏    | 220/427 [00:05<00:03, 66.38it/s]Loading weights:  53%|█████▎    | 228/427 [00:05<00:03, 60.37it/s]Loading weights:  56%|█████▌    | 239/427 [00:06<00:02, 67.34it/s]Loading weights:  58%|█████▊    | 247/427 [00:06<00:02, 66.47it/s]Loading weights:  59%|█████▉    | 254/427 [00:06<00:03, 54.55it/s]Loading weights:  61%|██████    | 260/427 [00:06<00:03, 46.07it/s]Loading weights:  65%|██████▍   | 276/427 [00:06<00:02, 67.43it/s]Loading weights:  67%|██████▋   | 284/427 [00:06<00:02, 65.71it/s]Loading weights:  69%|██████▊   | 293/427 [00:06<00:02, 65.15it/s]Loading weights:  71%|███████▏  | 305/427 [00:07<00:01, 76.02it/s]Loading weights:  74%|███████▎  | 314/427 [00:07<00:02, 46.28it/s]Loading weights:  85%|████████▍ | 362/427 [00:07<00:00, 118.96it/s]Loading weights: 100%|██████████| 427/427 [00:07<00:00, 56.13it/s] 
+Some parameters are on the meta device because they were offloaded to the cpu.
+Judging 18 accepted-harmful responses (batch_size=8) …
+Traceback (most recent call last):
+  File "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/src/experiments_replication/00_collect_behaviors.py", line 278, in <module>
+    main()
+  File "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/src/experiments_replication/00_collect_behaviors.py", line 212, in main
+    _judge_reclassify(behaviors)
+  File "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/src/experiments_replication/00_collect_behaviors.py", line 135, in _judge_reclassify
+    details = judge_accepted_batch(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/src/experiments_replication/model_utils.py", line 369, in judge_accepted_batch
+    out = model.generate(
+          ^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/transformers/generation/utils.py", line 2645, in generate
+    result = decoding_method(
+             ^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/transformers/generation/utils.py", line 2859, in _sample
+    outputs = model_forward(**model_inputs, return_dict=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/accelerate/hooks.py", line 192, in new_forward
+    output = module._old_forward(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/transformers/utils/generic.py", line 911, in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py", line 1667, in forward
+    logits = self.lm_head(hidden_states[:, slice_indices, :])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/accelerate/hooks.py", line 187, in new_forward
+    args, kwargs = module._hf_hook.pre_forward(module, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/accelerate/hooks.py", line 50, in wrapper
+    return wrapper._compiled_fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1298, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/accelerate/hooks.py", line 388, in pre_forward
+    set_module_tensor_to_device(
+  File "/home/martin/.pyenv/versions/3.12.13/lib/python3.12/site-packages/accelerate/utils/modeling.py", line 353, in set_module_tensor_to_device
+    new_value = value.to(device, non_blocking=non_blocking)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.89 GiB. GPU 0 has a total capacity of 15.47 GiB of which 378.88 MiB is free. Including non-PyTorch memory, this process has 12.70 GiB memory in use. Process 57413 has 2.37 GiB memory in use. Of the allocated memory 12.03 GiB is allocated by PyTorch, and 450.12 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+CHAIN_EXIT=1

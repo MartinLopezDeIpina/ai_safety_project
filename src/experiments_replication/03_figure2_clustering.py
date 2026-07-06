@@ -40,22 +40,17 @@ import torch.nn.functional as F
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
-from config import RESULTS_DIR
+from config import (
+    RESULTS_DIR, FIG2_TEST_CATEGORIES,
+    FIG2_TINST_POLE_POS, FIG2_TINST_POLE_NEG, FIG2_TPOST_POLE_POS, FIG2_TPOST_POLE_NEG,
+)
 
 
-CATS = ["accepted_harmful", "refused_harmless"]
-CAT_LABELS = {
-    "accepted_harmful":  "Accepted Harmful",
-    "refused_harmless":  "Refused Harmless",
-}
-CAT_COLORS = {
-    "accepted_harmful":  "#e41a1c",   # red
-    "refused_harmless":  "#4daf4a",   # green
-}
-CAT_STYLE = {
-    "accepted_harmful":  "-",
-    "refused_harmless":  "-",
-}
+CATS = list(FIG2_TEST_CATEGORIES)
+_PALETTE = ["#e41a1c", "#4daf4a", "#377eb8", "#984ea3", "#ff7f00"]
+CAT_LABELS = {c: c.replace("_", " ").title() for c in CATS}
+CAT_COLORS = {c: _PALETTE[i % len(_PALETTE)] for i, c in enumerate(CATS)}
+CAT_STYLE = {c: "-" for c in CATS}
 
 
 def load_acts(cat, pos_name):
@@ -142,19 +137,27 @@ def main():
     # NOTE: do NOT use the all-refused / all-accepted centers here — those are the
     # Δrefuse anchors from §3.3 eq. (4), used for Figure 3/6/8, not Figure 2.
 
-    # Tinst poles: refused_harmful vs accepted_harmless at tinst.
-    mu_harmful_tinst  = load_center("refused_harmful_tinst")
-    mu_harmless_tinst = load_center("accepted_harmless_tinst")
-
-    # Tpostinst poles: the SAME two categories, but their centers at tpost-inst.
-    # 01_extract_directions.py does not save these as cluster-*.pt files, so recompute
-    # them from the cached per-sample activations.
-    mu_refused_tpost  = acts_center("refused_harmful",   "tpostinst")
-    mu_accepted_tpost = acts_center("accepted_harmless", "tpostinst")
-    if mu_refused_tpost is None or mu_accepted_tpost is None:
+    # Poles are config-driven (config.FIG2_*_POLE_*), recomputed from the cached
+    # per-sample activations so any bucket can serve as a pole. Default t_inst poles are
+    # the paper's diagonal (refused_harmful vs accepted_harmless); the t_post poles can be
+    # pointed at a within-corpus balanced pair (e.g. refused_sorry / accepted_sorry) to
+    # measure refusal WITHOUT the advbench-vs-alpaca corpus confound.
+    print(f"t_inst  poles: {FIG2_TINST_POLE_POS} (+) vs {FIG2_TINST_POLE_NEG} (−)")
+    print(f"t_post  poles: {FIG2_TPOST_POLE_POS} (+) vs {FIG2_TPOST_POLE_NEG} (−)")
+    mu_harmful_tinst  = acts_center(FIG2_TINST_POLE_POS, "tinst")
+    mu_harmless_tinst = acts_center(FIG2_TINST_POLE_NEG, "tinst")
+    mu_refused_tpost  = acts_center(FIG2_TPOST_POLE_POS, "tpostinst")
+    mu_accepted_tpost = acts_center(FIG2_TPOST_POLE_NEG, "tpostinst")
+    _missing = [n for n, v in [
+        (f"{FIG2_TINST_POLE_POS}_tinst", mu_harmful_tinst),
+        (f"{FIG2_TINST_POLE_NEG}_tinst", mu_harmless_tinst),
+        (f"{FIG2_TPOST_POLE_POS}_tpostinst", mu_refused_tpost),
+        (f"{FIG2_TPOST_POLE_NEG}_tpostinst", mu_accepted_tpost),
+    ] if v is None]
+    if _missing:
         raise FileNotFoundError(
-            "Missing acts_refused_harmful_tpostinst.pt / acts_accepted_harmless_tpostinst.pt "
-            "— run 01_extract_directions.py first."
+            f"Missing pole activations {_missing} — add these buckets to "
+            "config.EXTRACT_CATEGORIES and re-run 01_extract_directions.py."
         )
 
     n_layers = mu_harmful_tinst.shape[0]

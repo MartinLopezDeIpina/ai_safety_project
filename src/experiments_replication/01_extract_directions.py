@@ -39,7 +39,8 @@ import torch
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import (
-    RESULTS_DIR, N_TRAIN, POS_TINST, POS_TPOSTINST, SRC_DIR, TPOST_FIRST_GEN_TOKEN
+    RESULTS_DIR, N_TRAIN, POS_TINST, POS_TPOSTINST, SRC_DIR, TPOST_FIRST_GEN_TOKEN,
+    EXTRACT_CATEGORIES,
 )
 from model_utils import load_model, extract_hidden_states
 
@@ -103,72 +104,67 @@ def main():
     print("Loading behaviors …")
     behaviors = load_behaviors(n_per_cat=N_TRAIN)
 
-    # Merge refused and accepted across categories for the refusal-axis clusters
-    refused_all  = behaviors["refused_harmful"]  + behaviors["refused_harmless"]
-    accepted_all = behaviors["accepted_harmful"] + behaviors["accepted_harmless"]
-
     print("\nLoading model …")
     model, tokenizer = load_model()
 
     # ------------------------------------------------------------------
-    # Extract at tinst (POS_TINST = [-5] = <|im_end|>)
+    # Extract every configured bucket (config.EXTRACT_CATEGORIES) at BOTH positions,
+    # capped at N_TRAIN each. acts[(cat, pos)] -> [n_layers, N, window, hidden].
     # ------------------------------------------------------------------
-    print("\n--- Extracting at tinst ---")
-    acts_refused_harmful_tinst   = extract_for_category(model, tokenizer, behaviors["refused_harmful"],  "refused_harmful",  "tinst", POS_TINST)
-    acts_accepted_harmless_tinst = extract_for_category(model, tokenizer, behaviors["accepted_harmless"], "accepted_harmless","tinst", POS_TINST)
-    acts_accepted_harmful_tinst  = extract_for_category(model, tokenizer, behaviors["accepted_harmful"],  "accepted_harmful", "tinst", POS_TINST)
-    acts_refused_harmless_tinst  = extract_for_category(model, tokenizer, behaviors["refused_harmless"],  "refused_harmless", "tinst", POS_TINST)
+    acts = {}
+    for pos_name, positions in (("tinst", POS_TINST), ("tpostinst", POS_TPOSTINST)):
+        print(f"\n--- Extracting at {pos_name} ---")
+        for cat in EXTRACT_CATEGORIES:
+            data = behaviors.get(cat, [])
+            if not data:
+                print(f"  {cat}: empty — skipped")
+                continue
+            acts[(cat, pos_name)] = extract_for_category(
+                model, tokenizer, data, cat, pos_name, positions)
 
     # ------------------------------------------------------------------
-    # Extract at tpost-inst (POS_TPOSTINST = [-1])
-    # ------------------------------------------------------------------
-    print("\n--- Extracting at tpost-inst ---")
-    acts_refused_harmful_tpostinst   = extract_for_category(model, tokenizer, behaviors["refused_harmful"],  "refused_harmful",  "tpostinst", POS_TPOSTINST)
-    acts_accepted_harmless_tpostinst = extract_for_category(model, tokenizer, behaviors["accepted_harmless"], "accepted_harmless","tpostinst", POS_TPOSTINST)
-    acts_accepted_harmful_tpostinst  = extract_for_category(model, tokenizer, behaviors["accepted_harmful"],  "accepted_harmful", "tpostinst", POS_TPOSTINST)
-    acts_refused_harmless_tpostinst  = extract_for_category(model, tokenizer, behaviors["refused_harmless"],  "refused_harmless", "tpostinst", POS_TPOSTINST)
-
-    # ------------------------------------------------------------------
-    # Cluster centers
+    # Standard cluster centers + directions (consumed by 03-08). Guarded so a
+    # re-routed config that omits a standard bucket doesn't crash 01.
     # ------------------------------------------------------------------
     print("\n--- Computing cluster centers ---")
-    μ_refused_harmful_tinst   = cluster_center(acts_refused_harmful_tinst)   # [n_layers, hidden_dim]
-    μ_accepted_harmless_tinst = cluster_center(acts_accepted_harmless_tinst)
 
-    # Refusal-axis clusters use BOTH refused categories at tpost-inst
-    if len(behaviors["refused_harmless"]) > 0:
-        refused_tpost_all = torch.cat([acts_refused_harmful_tpostinst, acts_refused_harmless_tpostinst], dim=1)
-    else:
-        refused_tpost_all = acts_refused_harmful_tpostinst
-    if len(behaviors["accepted_harmful"]) > 0:
-        accepted_tpost_all = torch.cat([acts_accepted_harmless_tpostinst, acts_accepted_harmful_tpostinst], dim=1)
-    else:
-        accepted_tpost_all = acts_accepted_harmless_tpostinst
+    def center(cat, pos):
+        t = acts.get((cat, pos))
+        return cluster_center(t) if t is not None else None
 
-    μ_refused_tpostinst  = cluster_center(refused_tpost_all)
-    μ_accepted_tpostinst = cluster_center(accepted_tpost_all)
+    def pooled_center(cats, pos):
+        ts = [acts[(c, pos)] for c in cats if (c, pos) in acts]
+        return cluster_center(torch.cat(ts, dim=1)) if ts else None
 
-    # Save all four cluster centers
+    μ_refused_harmful_tinst   = center("refused_harmful",   "tinst")
+    μ_accepted_harmless_tinst = center("accepted_harmless", "tinst")
+    # Refusal-axis (pooled) clusters use BOTH refused / BOTH accepted at tpost-inst.
+    μ_refused_tpostinst  = pooled_center(["refused_harmful", "refused_harmless"],   "tpostinst")
+    μ_accepted_tpostinst = pooled_center(["accepted_harmless", "accepted_harmful"], "tpostinst")
+
     for name, tensor in [
         ("refused_harmful_tinst",   μ_refused_harmful_tinst),
         ("accepted_harmless_tinst", μ_accepted_harmless_tinst),
         ("refused_tpostinst",       μ_refused_tpostinst),
         ("accepted_tpostinst",      μ_accepted_tpostinst),
     ]:
-        p = os.path.join(RESULTS_DIR, f"cluster-{name}.pt")
-        torch.save(tensor, p)
+        if tensor is None:
+            print(f"  cluster-{name}: SKIPPED (source bucket empty)")
+            continue
+        torch.save(tensor, os.path.join(RESULTS_DIR, f"cluster-{name}.pt"))
         print(f"  cluster-{name}: {tensor.shape}")
 
     # ------------------------------------------------------------------
     # Directions
     # ------------------------------------------------------------------
-    dir_hf     = μ_refused_harmful_tinst - μ_accepted_harmless_tinst
-    dir_refuse = μ_refused_tpostinst       - μ_accepted_tpostinst
-
-    torch.save(dir_hf,     os.path.join(RESULTS_DIR, "dir-hf.pt"))
-    torch.save(dir_refuse, os.path.join(RESULTS_DIR, "dir-refuse.pt"))
-    print(f"\ndir_hf shape:     {dir_hf.shape}")
-    print(f"dir_refuse shape: {dir_refuse.shape}")
+    if μ_refused_harmful_tinst is not None and μ_accepted_harmless_tinst is not None:
+        dir_hf = μ_refused_harmful_tinst - μ_accepted_harmless_tinst
+        torch.save(dir_hf, os.path.join(RESULTS_DIR, "dir-hf.pt"))
+        print(f"\ndir_hf shape:     {dir_hf.shape}")
+    if μ_refused_tpostinst is not None and μ_accepted_tpostinst is not None:
+        dir_refuse = μ_refused_tpostinst - μ_accepted_tpostinst
+        torch.save(dir_refuse, os.path.join(RESULTS_DIR, "dir-refuse.pt"))
+        print(f"dir_refuse shape: {dir_refuse.shape}")
     print("\nAll outputs saved to results/")
 
 
