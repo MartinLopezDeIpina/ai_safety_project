@@ -22,9 +22,9 @@ RESULTS_DIR = os.path.join(_HERE, "results")
 # Model
 # ---------------------------------------------------------------------------
 
-#MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
-#MODEL_TYPE = "qwen"
-#MODEL_SIZE = "7b"
+MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
+MODEL_TYPE = "qwen"
+MODEL_SIZE = "7b"
 MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
 MODEL_TYPE = "qwen"
 MODEL_SIZE = "1.5b"
@@ -142,6 +142,13 @@ N_JAILBREAK  = 50    # jailbreak samples per type for Figure 6
 N_TRAIN      = 100   # samples per category for cluster centers / direction extraction
 N_BEHAVIOR   = 100   # (legacy) default per-dataset cap, still used by older callers
 N_TEST       = 30    # samples per category for evaluation
+#N_HARMFUL    = 1
+#N_HARMLESS   = 1
+#XSTEST_N     = 1
+#N_JAILBREAK  = 1
+#N_TRAIN      = 1
+#N_BEHAVIOR   = 1
+#N_TEST       = 1
 
 # ---------------------------------------------------------------------------
 # Dataset -> bucket routing (stage 00)   [config-driven; edit here, not the code]
