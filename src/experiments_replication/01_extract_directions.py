@@ -39,7 +39,7 @@ import torch
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import (
-    RESULTS_DIR, N_TRAIN, POS_TINST, POS_TPOSTINST, SRC_DIR
+    RESULTS_DIR, N_TRAIN, POS_TINST, POS_TPOSTINST, SRC_DIR, TPOST_FIRST_GEN_TOKEN
 )
 from model_utils import load_model, extract_hidden_states
 
@@ -76,7 +76,12 @@ def extract_for_category(model, tokenizer, data_dicts, cat_name, pos_name, posit
         return torch.load(save_path, weights_only=True)
 
     print(f"  Extracting {cat_name} at {pos_name} ({len(data_dicts)} samples) …")
-    _, all_acts = extract_hidden_states(model, tokenizer, data_dicts, positions=positions)
+    if pos_name == "tpostinst" and TPOST_FIRST_GEN_TOKEN:
+        from model_utils import extract_first_gen_token_states
+        print("    (t_post = FIRST GENERATED token)")
+        all_acts = extract_first_gen_token_states(model, tokenizer, data_dicts)
+    else:
+        _, all_acts = extract_hidden_states(model, tokenizer, data_dicts, positions=positions)
     torch.save(all_acts, save_path)
     return all_acts
 

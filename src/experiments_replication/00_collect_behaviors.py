@@ -53,6 +53,11 @@ MAX_NEW_TOKENS = 80
 # Accumulates every sample the judge reclassified from accepted->refused, across all
 # datasets, so main() can write a report (results/judge_report.json).
 JUDGE_MOVED = []
+# Accumulates EVERY judged sample (not just moved) with the judge's 3-way label
+# (ACCEPT / REJECT / NULL) and full raw response (thinking trace + verdict), so the
+# report can show what the judge actually did — including NULLs where it ran out of
+# thinking budget before emitting a verdict.
+JUDGE_ALL = []
 
 
 def run_inference(model, tokenizer, data_dicts, max_new_tokens=MAX_NEW_TOKENS):
@@ -130,14 +135,26 @@ def _judge_reclassify(behaviors):
     judge_model, judge_tok = load_judge_model()
     print(f"Judging {len(candidates)} accepted-harmful responses "
           f"(batch_size={JUDGE_BATCH_SIZE}) …")
-    verdicts = judge_accepted_batch(
+    details = judge_accepted_batch(
         judge_model, judge_tok,
         [(e["text"], e["response"]) for e in candidates],
         max_new_tokens=JUDGE_MAX_NEW_TOKENS,
         batch_size=JUDGE_BATCH_SIZE,
         thinking=JUDGE_THINKING,
+        return_details=True,
     )
 
+    # Log every judged sample (label + full raw trace) for the report.
+    for e, d in zip(candidates, details):
+        JUDGE_ALL.append({
+            "dataset": e["dataset"],
+            "text": e["text"],
+            "response": e["response"],
+            "judge_label": d["label"],   # ACCEPT / REJECT / NULL
+            "judge_raw": d["raw"],       # full judge output incl. <think>…</think>
+        })
+
+    verdicts = [d["accepted"] for d in details]
     moved_ids = {id(e) for e, ok in zip(candidates, verdicts) if not ok}
     if not moved_ids:
         print("  judge moved 0 accepted->refused")
@@ -301,25 +318,32 @@ def main():
     # ------------------------------------------------------------------
     if JUDGE:
         from collections import Counter
+        label_counts = Counter(e["judge_label"] for e in JUDGE_ALL)   # ACCEPT/REJECT/NULL
         by_ds = Counter(e["dataset"] for e in JUDGE_MOVED)
         report_path = os.path.join(RESULTS_DIR, "judge_report.json")
         with open(report_path, "w") as f:
             json.dump({
+                "total_judged": len(JUDGE_ALL),
+                "label_counts": dict(label_counts),
                 "total_moved": len(JUDGE_MOVED),
                 "moved_by_dataset": dict(sorted(by_ds.items())),
-                "moved": JUDGE_MOVED,
+                # Every judged sample, with its 3-way label and full judge response
+                # (thinking trace + verdict). REJECT ones are the moved ones; NULL =
+                # judge emitted no verdict (e.g. ran out of thinking budget).
+                "judged": JUDGE_ALL,
             }, f, indent=2, ensure_ascii=False)
 
-        print(f"\n=== Judge report: {len(JUDGE_MOVED)} responses moved accepted->refused ===")
+        print(f"\n=== Judge report: {len(JUDGE_ALL)} judged "
+              f"({dict(label_counts)}), {len(JUDGE_MOVED)} moved accepted->refused ===")
         for ds, c in sorted(by_ds.items()):
-            print(f"  {ds:32s}: {c}")
-        for e in JUDGE_MOVED[:5]:
+            print(f"  moved {ds:28s}: {c}")
+        for e in JUDGE_ALL[:5]:
             resp = " ".join(e["response"].split())
-            print(f"\n  [{e['dataset']}] Q: {e['text'][:90]}")
-            print(f"      R: {resp[:180]}{'…' if len(resp) > 180 else ''}")
-        if len(JUDGE_MOVED) > 5:
-            print(f"\n  … +{len(JUDGE_MOVED) - 5} more in {report_path}")
-        print(f"\nSaved judge report to {report_path}")
+            raw = " ".join(e["judge_raw"].split())
+            print(f"\n  [{e['judge_label']:6s}] Q: {e['text'][:80]}")
+            print(f"      R:     {resp[:120]}{'…' if len(resp) > 120 else ''}")
+            print(f"      judge: {raw[:160]}{'…' if len(raw) > 160 else ''}")
+        print(f"\nSaved full judge report ({len(JUDGE_ALL)} examples) to {report_path}")
 
 
 if __name__ == "__main__":

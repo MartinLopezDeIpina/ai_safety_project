@@ -22,12 +22,12 @@ RESULTS_DIR = os.path.join(_HERE, "results")
 # Model
 # ---------------------------------------------------------------------------
 
-MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
-MODEL_TYPE = "qwen"
-MODEL_SIZE = "7b"
-#MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+#MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
 #MODEL_TYPE = "qwen"
-#MODEL_SIZE = "1.5b"
+#MODEL_SIZE = "7b"
+MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+MODEL_TYPE = "qwen"
+MODEL_SIZE = "1.5b"
 
 # ---------------------------------------------------------------------------
 # LLM-judge verification of accepted-harmful classifications
@@ -46,7 +46,7 @@ MODEL_SIZE = "7b"
 # by 00_collect_behaviors.py when JUDGE is on. Set it to whatever you want to
 # judge with, e.g. a larger or a "thinking" model.
 JUDGE = True
-JUDGE_MODEL_NAME = "Qwen/Qwen3.5-9B"   # judge model (may differ from MODEL_NAME)
+JUDGE_MODEL_NAME = "Qwen/Qwen3.5-4B"   # judge model (may differ from MODEL_NAME)
 JUDGE_THINKING = True                   # judge emits <think>…</think>; parse the answer after it
 # Thinking judges need room to reason before the verdict; non-thinking judges only
 # need to emit ACCEPT / REFUSE.
@@ -54,6 +54,25 @@ JUDGE_MAX_NEW_TOKENS = 512 if JUDGE_THINKING else 5
 # Judge generation batch size. Keep small for big judges on a 16GB GPU — the 4B
 # Qwen3.5 (hybrid linear-attention) OOMs at 32. Raise for small judges / big GPUs.
 JUDGE_BATCH_SIZE = 8
+
+# Judge generation parameters — abstracted here so they can be tuned without editing
+# model_utils. These are Qwen3's recommended THINKING-mode params for precise tasks
+# (temp 0.6 / top_p 0.95 / top_k 20 / min_p 0), plus penalties to break the thinking
+# judge's self-repetition ("Wait… Wait…") loop that otherwise never closes </think>.
+#
+# NOTE: transformers (5.x) has NO native `presence_penalty`; judge_accepted_batch
+# applies it via a custom logits processor (OpenAI semantics: subtract the penalty
+# from the logit of any token already present in the GENERATED continuation). All
+# other keys go straight to model.generate().
+JUDGE_GEN = {
+    "do_sample": True,
+    "temperature": 0.6,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "repetition_penalty": 1.0,   # native (multiplicative)
+    "presence_penalty": 1.5,     # custom processor (additive, generated tokens only)
+}
 
 # ---------------------------------------------------------------------------
 # Figure 2 faithful replication — harmful bucket sourcing
@@ -94,6 +113,15 @@ FAITHFUL_HARMFUL_BUCKETS = True
 INST_TOKEN_LEN = 5       # offset of the last instruction token from the sequence end
 POS_TINST      = [-INST_TOKEN_LEN]   # [-5] → last instruction content token
 POS_TPOSTINST  = [-1]                # [-1] → "assistant" (last input token before generation)
+
+# t_post position experiment (§3.5 investigation).
+# The default t_post = the pre-generation "assistant" token (POS_TPOSTINST=[-1]),
+# which encodes the prompt's refusal-PROPENSITY rather than the realised accept/refuse
+# decision. When True, t_post instead = the FIRST GENERATED token: we greedily generate
+# one response token, append it, and read the hidden state AT that token — where the
+# accept/refuse decision actually manifests. Only affects the t_post extraction in 01
+# (tinst is unchanged). See extract_first_gen_token_states in model_utils.
+TPOST_FIRST_GEN_TOKEN = False
 
 # ---------------------------------------------------------------------------
 # Data files
