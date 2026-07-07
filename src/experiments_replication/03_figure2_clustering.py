@@ -41,16 +41,26 @@ import torch.nn.functional as F
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import (
-    RESULTS_DIR, FIG2_TEST_CATEGORIES,
+    RESULTS_DIR, FIG2_TINST_TEST_CATEGORIES, FIG2_TPOST_TEST_CATEGORIES,
     FIG2_TINST_POLE_POS, FIG2_TINST_POLE_NEG, FIG2_TPOST_POLE_POS, FIG2_TPOST_POLE_NEG,
 )
 
-
-CATS = list(FIG2_TEST_CATEGORIES)
 _PALETTE = ["#e41a1c", "#4daf4a", "#377eb8", "#984ea3", "#ff7f00"]
-CAT_LABELS = {c: c.replace("_", " ").title() for c in CATS}
-CAT_COLORS = {c: _PALETTE[i % len(_PALETTE)] for i, c in enumerate(CATS)}
-CAT_STYLE = {c: "-" for c in CATS}
+
+
+def canon(cat):
+    """Canonical name for label/colour: position-specific variants share the base styling
+    (e.g. `accepted_harmful_tinst` renders as the same red 'Accepted Harmful' line as
+    `accepted_harmful`)."""
+    return cat[:-len("_tinst")] if cat.endswith("_tinst") else cat
+
+
+# Union of both panels' test-line categories (stable order), coloured/labelled by canonical
+# name so the t_inst and t_post red lines look identical in the figure.
+CATS = list(dict.fromkeys([*FIG2_TINST_TEST_CATEGORIES, *FIG2_TPOST_TEST_CATEGORIES]))
+_CANON = list(dict.fromkeys(canon(c) for c in CATS))
+CAT_COLORS = {c: _PALETTE[i % len(_PALETTE)] for i, c in enumerate(_CANON)}
+CAT_LABELS = {c: c.replace("_", " ").title() for c in _CANON}
 
 
 def load_acts(cat, pos_name):
@@ -98,14 +108,12 @@ def plot_sl(ax, layers, sl_dict, title):
     ax.axhspan(0, 1e3,  facecolor="#e41a1c", alpha=0.08, zorder=0)  # red above 0
     ax.axhspan(-1e3, 0, facecolor="#4daf4a", alpha=0.08, zorder=0)  # green below 0
 
-    for cat in CATS:
-        if cat not in sl_dict:
-            continue
-        sl = sl_dict[cat]
+    for cat, sl in sl_dict.items():
+        cc = canon(cat)
         ax.plot(layers, sl,
-                label=CAT_LABELS[cat],
-                color=CAT_COLORS[cat],
-                linestyle=CAT_STYLE[cat],
+                label=CAT_LABELS[cc],
+                color=CAT_COLORS[cc],
+                linestyle="-",
                 linewidth=2.0)
 
     ax.axhline(0, color="gray", linewidth=0.8, linestyle="--")
@@ -166,12 +174,14 @@ def main():
     sl_tinst  = {}
     sl_tpost  = {}
 
-    for cat in CATS:
+    # Per-panel test lines (Appendix B): the t_inst red line uses the no-post-inst
+    # accepted-harmful set, the t_post red line uses the full-template one.
+    for cat in FIG2_TINST_TEST_CATEGORIES:
         acts_t = load_acts(cat, "tinst")
-        acts_p = load_acts(cat, "tpostinst")
-
         if acts_t is not None:
             sl_tinst[cat] = compute_sl_per_sample(acts_t, mu_harmful_tinst, mu_harmless_tinst)
+    for cat in FIG2_TPOST_TEST_CATEGORIES:
+        acts_p = load_acts(cat, "tpostinst")
         if acts_p is not None:
             sl_tpost[cat] = compute_sl_per_sample(acts_p, mu_refused_tpost, mu_accepted_tpost)
 

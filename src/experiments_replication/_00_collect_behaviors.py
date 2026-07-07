@@ -38,14 +38,36 @@ sys.path.insert(0, _HERE)
 from config import (
     RESULTS_DIR, DATASET_ROUTING, JUDGE_BUCKET, JUDGE_MOVE_TO,
     JUDGE, JUDGE_MODEL_NAME, JUDGE_THINKING, JUDGE_MAX_NEW_TOKENS, JUDGE_BATCH_SIZE,
+    TINST_ACCEPTED_NO_POSTINST, TINST_ACCEPTED_SOURCES, POLE_HARMFUL_SOURCES,
 )
 from model_utils import (
     load_model, load_judge_model, load_data, tokenize_fn, is_refusal,
-    judge_accepted_batch,
+    judge_accepted_batch, format_prompt_no_postinst,
 )
 
 
 MAX_NEW_TOKENS = 80
+
+
+def _interleave_by_dataset(items, priority_sources):
+    """Reorder `items` so the priority-source datasets are round-robin interleaved at the
+    front (balanced across sources), followed by every other dataset in original order.
+
+    Used so a first-N_TRAIN slice is balanced across the priority corpora rather than
+    dominated by whichever one is most numerous (e.g. keeps the μ_harmful pole a mix of
+    advbench+jbb instead of all-advbench, and holds sorry-badq out of the pole slice).
+    """
+    from collections import deque
+    groups = {s: deque(it for it in items if it["dataset"] == s)
+              for s in sorted(priority_sources)}
+    queues = [q for q in groups.values() if q]
+    out = []
+    while any(queues):
+        for q in queues:
+            if q:
+                out.append(q.popleft())
+    out.extend(it for it in items if it["dataset"] not in priority_sources)
+    return out
 
 # Accumulates every sample the judge reclassified from accepted->refused, across all
 # datasets, so main() can write a report (results/judge_report.json).
@@ -57,8 +79,14 @@ JUDGE_MOVED = []
 JUDGE_ALL = []
 
 
-def run_inference(model, tokenizer, data_dicts, max_new_tokens=MAX_NEW_TOKENS):
-    """Generate a response for each prompt; returns list of response strings."""
+def run_inference(model, tokenizer, data_dicts, max_new_tokens=MAX_NEW_TOKENS,
+                  no_postinst=False):
+    """Generate a response for each prompt; returns list of response strings.
+
+    no_postinst=True formats prompts WITHOUT the post-instruction tokens
+    (format_prompt_no_postinst) — used for the §3.1 / Table 1 regime where refusal
+    collapses, to harvest the accepted-harmful set for the Figure 2 t_inst panel.
+    """
     gen_cfg = GenerationConfig(
         max_new_tokens=max_new_tokens,
         do_sample=False,
@@ -66,7 +94,11 @@ def run_inference(model, tokenizer, data_dicts, max_new_tokens=MAX_NEW_TOKENS):
     )
     responses = []
     for d in data_dicts:
-        inputs = tokenize_fn(tokenizer, [d])
+        if no_postinst:
+            inputs = tokenizer([format_prompt_no_postinst(d)],
+                               padding=True, return_tensors="pt")
+        else:
+            inputs = tokenize_fn(tokenizer, [d])
         with torch.no_grad():
             out = model.generate(
                 input_ids=inputs.input_ids.to(model.device),
@@ -78,10 +110,12 @@ def run_inference(model, tokenizer, data_dicts, max_new_tokens=MAX_NEW_TOKENS):
     return responses
 
 
-def collect(model, tokenizer, path, key, n, dataset_name):
+def collect(model, tokenizer, path, key, n, dataset_name, no_postinst=False):
     """
     Run inference on `n` examples from `path` (key=`key`) and split by the substring
     refusal classifier. Returns (refused, accepted) lists of {text, response, dataset}.
+
+    no_postinst=True prompts without the post-instruction tokens (Figure 2 t_inst set).
 
     NO judging happens here. To avoid holding the inference model AND the (larger)
     judge model on the GPU at once, judging is deferred: main() unloads the inference
@@ -89,12 +123,12 @@ def collect(model, tokenizer, path, key, n, dataset_name):
     accepted-harmful sample (see _judge_reclassify).
     """
     data = load_data(path, key=key, n=n)
-    responses = run_inference(model, tokenizer, data)
+    responses = run_inference(model, tokenizer, data, no_postinst=no_postinst)
     refused, accepted = [], []
     for d, resp in zip(data, responses):
         text = d.get(key, d.get("instruction", d.get("prompt", "")))
         entry = {"text": text, "response": resp, "dataset": dataset_name}
-        if not resp.strip():
+        if not resp.strip() or resp.strip() == ".":
             continue
         (refused if is_refusal(resp) else accepted).append(entry)
     print(f"  {dataset_name}: {len(refused)} refused / {len(accepted)} accepted "
@@ -180,7 +214,8 @@ def main():
     # and downstream stages expect (so they always exist even if empty).
     behaviors = {b: [] for _n, _p, _k, _nn, rb, ab in DATASET_ROUTING for b in (*rb, *ab)}
     for b in ("refused_harmful", "accepted_harmful", "refused_harmless", "accepted_harmless",
-              "jailbreak_template", "jailbreak_adversarial", "jailbreak_persuasion"):
+              "jailbreak_template", "jailbreak_adversarial", "jailbreak_persuasion",
+              "accepted_harmful_tinst"):
         behaviors.setdefault(b, [])
 
     # ------------------------------------------------------------------
@@ -198,6 +233,25 @@ def main():
             print(f"  (dropped {len(refused)} '{name}' refusals — not routed to any bucket)")
         if not accepted_buckets and accepted:
             print(f"  (dropped {len(accepted)} '{name}' accepts — not routed to any bucket)")
+
+    # ------------------------------------------------------------------
+    # Position-specific accepted-harmful set for the Figure 2 t_inst panel (Appendix B).
+    # Re-decode the harmful accepted-sources WITHOUT post-instruction tokens (§3.1 /
+    # Table 1): refusal collapses, so strongly-harmful Advbench/JBB prompts get accepted
+    # and enter the t_inst red line. Substring-labelled; NOT judged (paper convention —
+    # a false-accept still has a genuinely-harmful t_inst vector, so judging is moot here).
+    # ------------------------------------------------------------------
+    if TINST_ACCEPTED_NO_POSTINST:
+        tinst_sources = [(name, path, key, n)
+                         for name, path, key, n, _rb, ab in DATASET_ROUTING
+                         if "accepted_harmful" in ab
+                         and (TINST_ACCEPTED_SOURCES is None or name in TINST_ACCEPTED_SOURCES)]
+        print(f"\n[t_inst] no-post-inst accepted-harmful pass over "
+              f"{[s[0] for s in tinst_sources]} …")
+        for name, path, key, n in tinst_sources:
+            _refused, accepted = collect(model, tokenizer, path, key, n=n,
+                                         dataset_name=name, no_postinst=True)
+            behaviors["accepted_harmful_tinst"].extend(accepted)
 
     # ------------------------------------------------------------------
     # All inference done. Free the inference model BEFORE loading the judge so the
@@ -221,6 +275,17 @@ def main():
     import random
     random.seed(0)
     random.shuffle(behaviors["accepted_harmful"])
+    # Same rationale for the t_inst set: its natural order is advbench → jbb → sorry, so an
+    # unshuffled first-100 (what 01 extracts) could exclude sources. Shuffle for a mix.
+    random.shuffle(behaviors["accepted_harmful_tinst"])
+
+    # Lead refused_harmful with the pole sources (advbench+jbb) so the first-N_TRAIN slice
+    # 01 averages into μ_harmful / μ_refuse is advbench+jbb only — Sorry-Bench and any
+    # judge-moved samples are held out of the centroids (Appendix B). Runs AFTER the judge
+    # so judge-moved accepts (appended to refused_harmful) are ordered too.
+    if POLE_HARMFUL_SOURCES is not None:
+        behaviors["refused_harmful"] = _interleave_by_dataset(
+            behaviors["refused_harmful"], POLE_HARMFUL_SOURCES)
 
     # ------------------------------------------------------------------
     # Summary

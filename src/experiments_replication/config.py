@@ -25,9 +25,9 @@ RESULTS_DIR = os.path.join(_HERE, "results")
 MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
 MODEL_TYPE = "qwen"
 MODEL_SIZE = "7b"
-MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
-MODEL_TYPE = "qwen"
-MODEL_SIZE = "1.5b"
+#MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+#MODEL_TYPE = "qwen"
+#MODEL_SIZE = "1.5b"
 
 # ---------------------------------------------------------------------------
 # LLM-judge verification of accepted-harmful classifications
@@ -46,7 +46,7 @@ MODEL_SIZE = "1.5b"
 # by 00_collect_behaviors.py when JUDGE is on. Set it to whatever you want to
 # judge with, e.g. a larger or a "thinking" model.
 JUDGE = True
-JUDGE_MODEL_NAME = "Qwen/Qwen3.5-4B"   # judge model (may differ from MODEL_NAME)
+JUDGE_MODEL_NAME = "Qwen/Qwen3.5-9B"   # judge model (may differ from MODEL_NAME)
 JUDGE_THINKING = True                   # judge emits <think>…</think>; parse the answer after it
 # Thinking judges need room to reason before the verdict; non-thinking judges only
 # need to emit ACCEPT / REFUSE.
@@ -184,13 +184,59 @@ JUDGE_BUCKET   = "accepted_harmful"
 JUDGE_MOVE_TO  = "refused_harmful"
 
 # ---------------------------------------------------------------------------
+# Position-specific accepted-harmful set for the Figure 2 t_inst panel
+# ---------------------------------------------------------------------------
+# Paper Appendix B builds the accepted-harmful set DIFFERENTLY per token position:
+#   • t_post panel: acceptance under the FULL template → Advbench/JBB almost all refuse,
+#     so the set is ~all (mild) Sorry-Bench. That is the `accepted_harmful` bucket above.
+#   • t_inst panel: "we can more easily find accepted harmful examples at the t_inst
+#     position because the refusal rate drops greatly when prompting WITHOUT post-
+#     instruction tokens" (§3.1 / Table 1). Stripping the post-inst tokens collapses
+#     refusal, so strongly-harmful Advbench/JBB prompts now count as accepted and enter
+#     the red line — and their t_inst hidden states read positive (harmful).
+#
+# When True, stage 00 runs an EXTRA decode pass over the harmful accepted-sources under
+# the no-post-inst template (format_prompt_no_postinst) and routes the substring-accepted
+# responses into a separate `accepted_harmful_tinst` bucket used ONLY by the top panel.
+# The t_inst hidden state of a prompt is identical with or without post-inst tokens
+# (causal attention), so this pass only changes WHICH prompts are labelled accepted; the
+# vectors are still extracted from the normal full template at POS_TINST=[-5] in stage 01.
+# This set is substring-labelled and NOT judged (paper convention; a false-accept still
+# has a genuinely-harmful t_inst vector, so judging is unnecessary here).
+TINST_ACCEPTED_NO_POSTINST = True
+
+# Datasets that feed the t_inst accepted-harmful red line (the no-post-inst pass). Appendix
+# B aggregates Advbench+JBB+Sorry-Bench for accepted-harmful, but states Sorry-Bench is
+# needed specifically for the T_POST panel (Advbench/JBB almost all refuse there); at
+# t_inst Advbench/JBB are the abundant accepted source once post-inst tokens are removed.
+# On Qwen2-7B the mild Sorry-Bench acceptances read harmless at t_inst (they sit on the
+# alpaca pole), so restricting the t_inst red line to advbench+jbb keeps it genuinely
+# harmful. Sorry-Bench still drives the T_POST red line (`accepted_harmful`). Set to None
+# to use every accepted_harmful source.
+TINST_ACCEPTED_SOURCES = {"advbench", "jbb"}
+
+# Datasets whose refusals form the harmfulness/refusal cluster CENTERS (μ_harmful,
+# μ_refuse). Appendix B: "We sample 100 harmful instructions refused ... from Advbench and
+# JBB to compute the center of the harmfulness cluster μ_harmful and the refusal cluster
+# μ_refuse" — Sorry-Bench is HELD OUT from centroid computation. refused_harmful pools all
+# harmful refusals (incl. sorry-badq and judge-moved samples); stage 00 reorders it so
+# these pole sources lead, and the first-N_TRAIN slice 01 averages into the poles is
+# advbench+jbb only. Set to None to disable the reorder (pole = whatever leads naturally).
+POLE_HARMFUL_SOURCES = {"advbench", "jbb"}
+
+# ---------------------------------------------------------------------------
 # Figure 2 poles & test lines (stages 01 extract these; 03 plots them)
 # ---------------------------------------------------------------------------
 # Buckets to extract hidden states for in stage 01 (at BOTH t_inst and t_post),
 # capped at N_TRAIN each. Must include every pole and test-line bucket named below.
 EXTRACT_CATEGORIES = [
     "refused_harmful", "accepted_harmless", "accepted_harmful", "refused_harmless",
+    "accepted_harmful_tinst",
 ]
+
+# Buckets extracted at t_inst ONLY (stage 01 skips the t_post pass for these). The
+# no-post-inst accepted set has no post-instruction tokens, so t_post is meaningless for it.
+EXTRACT_TINST_ONLY = {"accepted_harmful_tinst"}
 
 # Figure 2 axis poles (bucket names). Paper §3.2 uses the SAME diagonal poles at both
 # positions: Cl_refused_harmful vs Cl_accepted_harmless. t_inst axis reads as
@@ -203,8 +249,11 @@ FIG2_TPOST_POLE_NEG = "accepted_harmless"    # accepted pole @ t_post
 #  — e.g. add "refused_sorry"/"accepted_sorry" buckets via DATASET_ROUTING +
 #  EXTRACT_CATEGORIES and point the two t_post poles at them.)
 
-# The misbehaving categories plotted as the two lines.
-FIG2_TEST_CATEGORIES = ["accepted_harmful", "refused_harmless"]
+# The misbehaving categories plotted as the two lines — position-specific (Appendix B).
+# Top panel (t_inst) uses the no-post-inst accepted set so the red line carries genuinely
+# harmful Advbench/JBB content; bottom panel (t_post) uses the full-template accepted set.
+FIG2_TINST_TEST_CATEGORIES = ["accepted_harmful_tinst", "refused_harmless"]
+FIG2_TPOST_TEST_CATEGORIES = ["accepted_harmful", "refused_harmless"]
 
 # ---------------------------------------------------------------------------
 # Activation extraction

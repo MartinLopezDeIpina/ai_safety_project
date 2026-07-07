@@ -40,7 +40,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import (
     RESULTS_DIR, N_TRAIN, POS_TINST, POS_TPOSTINST, SRC_DIR, TPOST_FIRST_GEN_TOKEN,
-    EXTRACT_CATEGORIES,
+    EXTRACT_CATEGORIES, EXTRACT_TINST_ONLY,
 )
 from model_utils import load_model, extract_hidden_states
 
@@ -115,6 +115,10 @@ def main():
     for pos_name, positions in (("tinst", POS_TINST), ("tpostinst", POS_TPOSTINST)):
         print(f"\n--- Extracting at {pos_name} ---")
         for cat in EXTRACT_CATEGORIES:
+            # t_inst-only buckets (e.g. the no-post-inst accepted-harmful set) have no
+            # post-instruction tokens, so t_post is meaningless for them — skip it.
+            if pos_name == "tpostinst" and cat in EXTRACT_TINST_ONLY:
+                continue
             data = behaviors.get(cat, [])
             if not data:
                 print(f"  {cat}: empty — skipped")

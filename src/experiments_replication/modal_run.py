@@ -9,7 +9,7 @@ app = modal.App("ai_safety")
 image = (
     modal.Image.debian_slim()
     .pip_install("torch", "transformers", "accelerate", "openai", "numpy")
-    .add_local_python_source("config", "model_utils", "_00_collect_behaviors", "utils", "template_inversion")
+    .add_local_python_source("config", "model_utils", "_00_collect_behaviors", "utils", "template_inversion", "inference")
 )
 
 hf_cache = modal.Volume.from_name("hf-hub-cache", create_if_missing=True)
@@ -20,7 +20,7 @@ data_vol = modal.Volume.from_name("behavior-datasets", create_if_missing=True)
     image=image,
     gpu="A100",
     volumes={"/cache": hf_cache, "/root/results": results_vol, "/data": data_vol},
-    timeout=3600,
+    timeout=15000,
 )
 
 def run_collection():
