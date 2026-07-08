@@ -147,15 +147,15 @@ def _judge_reclassify(behaviors):
     appended to refused_harmful, whereas jailbreak-only refusals are dropped (matching
     the paper's handling of refused jailbreaks). Populates JUDGE_MOVED for the report.
     """
-    # Candidates = every accepted sample on a harmful source. persuasion entries are
-    # the same objects already in accepted_harmful; the adversarial/template jailbreak
-    # accepts are the only extra ones. harmful_ids marks the harmful-pool members so
-    # their refusals route to refused_harmful (jailbreak-only ones are just dropped).
+    # Candidates = the naive accepted_harmful pool ONLY. Jailbreak categories are NOT judged:
+    # for Figure 6 / Table 3 a "jailbreak" means the model's REFUSAL was bypassed (it was
+    # substring-accepted), regardless of whether it then fully complied — judging them for full
+    # compliance is stricter than the paper and discards genuine refusal-bypass cases (it wiped
+    # the GCG adv-suffix category from 5→1 in an earlier run). The judge only cleans the naive
+    # harmful set (task-restate-then-refuse false-accepts).
     harmful_ids = {id(e) for e in behaviors[JUDGE_BUCKET]}
     candidates, seen = [], set()
-    for e in (behaviors[JUDGE_BUCKET]
-              + behaviors["jailbreak_adversarial"]
-              + behaviors["jailbreak_template"]):
+    for e in behaviors[JUDGE_BUCKET]:
         if id(e) not in seen:
             seen.add(id(e))
             candidates.append(e)
@@ -263,7 +263,15 @@ def main():
     torch.cuda.empty_cache()
 
     if JUDGE:
-        _judge_reclassify(behaviors)
+        # Non-fatal: a judge load/inference failure (e.g. an unsupported model architecture on
+        # this transformers version) must NOT lose the whole collection — fall back to the
+        # substring labels and continue so behaviors.json is still written.
+        try:
+            _judge_reclassify(behaviors)
+        except Exception as e:
+            import traceback as _tb
+            print(f"WARNING: judge step failed — keeping substring labels. {type(e).__name__}: {e}")
+            _tb.print_exc()
 
     # ------------------------------------------------------------------
     # Deterministically shuffle accepted_harmful so a first-N slice (01 uses the first

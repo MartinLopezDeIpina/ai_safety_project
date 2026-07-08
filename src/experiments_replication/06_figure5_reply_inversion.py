@@ -111,12 +111,24 @@ def baseline_harmless_rate(model, tokenizer, data_dicts, tok_fn_inv):
     return 100 * n_harmless / len(data_dicts)
 
 
-def sweep_layers(model, tokenizer, data_dicts, direction_norm, coeff, tok_fn_inv, desc=""):
+def sweep_layers(model, tokenizer, data_dicts, direction_norm, coeff, tok_fn_inv,
+                 context_only, desc=""):
     """
     Per-layer steering sweep using complete_with_intervention() (pre-hooks).
     Returns list of % harmless-judgment per layer.
     direction_norm: [1, n_layers, hidden] — already unit-normalized.
     coeff: positive or negative to add/subtract the direction.
+    context_only: Appendix E.1 token-application protocol —
+        True  (harmfulness dir): steer only the context tokens BEFORE the inversion
+              question (intervene_context_only=1). Steering the inversion question tokens
+              too would let the direction leak into the answer format rather than the
+              model's reading of the instruction.
+        False (refusal dir): steer ALL input tokens (positions = whole prompt).
+        Both apply at PREFILL only (iv.DECODING_STEP=1, set in main) — never to the
+        generated tokens — matching the paper's complete_intervene.sh
+        (--max_decode_step_while_intervene 1). This is the fix that makes the §3.5
+        dissociation hold: refusal-on-all-tokens elicits refusal cues, while
+        harmfulness-on-context-only genuinely re-judges the instruction.
     """
     n_layers = len(model.model.layers)
 
@@ -124,8 +136,8 @@ def sweep_layers(model, tokenizer, data_dicts, direction_norm, coeff, tok_fn_inv
         'add_coef_intervene': coeff,
         'max_token_generate': MAX_NEW_TOKENS,
         'arg_key_prompt': 'instruction',
-        'intervene_all': True,
-        'intervene_context_only': False,
+        'intervene_all': False,                    # use positions (not the whole tensor)
+        'intervene_context_only': context_only,    # True→pre-inversion tokens; False→all input tokens
         'inversion_prompt_idx': 1,
         'record_probs': False,
     }
@@ -159,7 +171,11 @@ def main():
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
     iv.MODEL = 'qwen'
-    iv.DECODING_STEP = -1
+    # Appendix E.1 / complete_intervene.sh: steer at PREFILL only (the input tokens),
+    # not across generation. With intervene_context_only the pre-hook indexes prompt
+    # positions, which only exist at the prefill forward (KV-cached decode steps are
+    # length-1), so DECODING_STEP must be 1 here — NOT -1.
+    iv.DECODING_STEP = 1
 
     print("Loading model …")
     model, tokenizer = load_model()
@@ -197,14 +213,16 @@ def main():
     # ------------------------------------------------------------------
     print(f"\n--- 5a: Harmless instructions ---")
 
-    print(f"  +dir_hf (coeff=+{STEERING_COEFF}) …")
+    print(f"  +dir_hf (coeff=+{STEERING_COEFF}, context-only) …")
     rates_5a_hf = sweep_layers(
-        model, tokenizer, harmless, dir_hf_norm, +STEERING_COEFF, tok_fn_inv, "+hf"
+        model, tokenizer, harmless, dir_hf_norm, +STEERING_COEFF, tok_fn_inv,
+        context_only=True, desc="+hf"
     )
 
-    print(f"  +dir_refuse (coeff=+{STEERING_COEFF}) …")
+    print(f"  +dir_refuse (coeff=+{STEERING_COEFF}, all input tokens) …")
     rates_5a_refuse = sweep_layers(
-        model, tokenizer, harmless, dir_ref_norm, +STEERING_COEFF, tok_fn_inv, "+refuse"
+        model, tokenizer, harmless, dir_ref_norm, +STEERING_COEFF, tok_fn_inv,
+        context_only=False, desc="+refuse"
     )
 
     # ------------------------------------------------------------------
@@ -214,14 +232,16 @@ def main():
     # ------------------------------------------------------------------
     print(f"\n--- 5b: Harmful instructions ---")
 
-    print(f"  -dir_hf (coeff=-{STEERING_COEFF}) …")
+    print(f"  -dir_hf (coeff=-{STEERING_COEFF}, context-only) …")
     rates_5b_hf = sweep_layers(
-        model, tokenizer, harmful, dir_hf_norm, -STEERING_COEFF, tok_fn_inv, "-hf"
+        model, tokenizer, harmful, dir_hf_norm, -STEERING_COEFF, tok_fn_inv,
+        context_only=True, desc="-hf"
     )
 
-    print(f"  -dir_refuse (coeff=-{STEERING_COEFF}) …")
+    print(f"  -dir_refuse (coeff=-{STEERING_COEFF}, all input tokens) …")
     rates_5b_refuse = sweep_layers(
-        model, tokenizer, harmful, dir_ref_norm, -STEERING_COEFF, tok_fn_inv, "-refuse"
+        model, tokenizer, harmful, dir_ref_norm, -STEERING_COEFF, tok_fn_inv,
+        context_only=False, desc="-refuse"
     )
 
     # ------------------------------------------------------------------

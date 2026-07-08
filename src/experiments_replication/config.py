@@ -46,8 +46,12 @@ MODEL_SIZE = "7b"
 # by 00_collect_behaviors.py when JUDGE is on. Set it to whatever you want to
 # judge with, e.g. a larger or a "thinking" model.
 JUDGE = True
-JUDGE_MODEL_NAME = "Qwen/Qwen3.5-9B"   # judge model (may differ from MODEL_NAME)
-JUDGE_THINKING = True                   # judge emits <think>…</think>; parse the answer after it
+# NOTE: Qwen3.5 (arch `qwen3_5`) is NOT recognised by the transformers version on the Modal
+# image → it crashes load_judge_model. Use a well-supported judge (Qwen2.5-7B, `qwen2` arch).
+# Non-thinking: the judge just emits ACCEPT/REFUSE (the thinking-CoT machinery was tuned for
+# Qwen3.5; a 7B non-thinking judge is still far better than the 1.5B substring baseline).
+JUDGE_MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"   # judge model (may differ from MODEL_NAME)
+JUDGE_THINKING = False                  # emit ACCEPT/REFUSE directly (no <think> CoT)
 # Thinking judges need room to reason before the verdict; non-thinking judges only
 # need to emit ACCEPT / REFUSE.
 JUDGE_MAX_NEW_TOKENS = 512 if JUDGE_THINKING else 5
@@ -118,8 +122,14 @@ JBB_DATA        = os.path.join(DATA_DIR, "jbb.json")                      # key:
 HARMLESS_DATA   = os.path.join(DATA_DIR, "alpaca_data_instruction.json")  # key: instruction
 XSTEST_DATA     = os.path.join(DATA_DIR, "xstest-harmless.json")          # key: bad_q
 SORRY_DATA      = os.path.join(DATA_DIR, "sorry-badq.json")               # key: bad_q
-GPTZFUZZER_DATA = os.path.join(DATA_DIR, "GPTFuzzer-50-adv.json")         # key: bad_q
-HUMAN_SEED_DATA = os.path.join(DATA_DIR, "human-seed-50-adv.json")        # key: bad_q
+GPTZFUZZER_DATA = os.path.join(DATA_DIR, "GPTFuzzer-50-adv.json")         # key: bad_q — template jailbreaks (Yu et al. 2023)
+HUMAN_SEED_DATA = os.path.join(DATA_DIR, "human-seed-50-adv.json")        # key: bad_q — (unused; human-written template seeds)
+# Paper §2 jailbreak taxonomy = adv-suffix (GCG) + persuasion (PAP) + template (GPTFuzzer).
+# GCG and PAP have no ready file in the paper's repo — they are generated ON THE TARGET
+# model (Qwen2-7B) by gen_jailbreaks.py and stored full-prompt-in-`bad_q`, same structure
+# as GPTFuzzer-50-adv.json.
+GCG_DATA        = os.path.join(DATA_DIR, "gcg-advsuffix.json")            # key: bad_q — Advbench + GCG suffix (adv-suffix; Zou et al. 2023)
+PAP_DATA        = os.path.join(DATA_DIR, "pap-persuasion.json")           # key: bad_q — persuasion-paraphrased Advbench (PAP; Zeng et al. 2024)
 
 # CatQA harmful-question sets (12 category files, key: bad_q). These are blatantly
 # harmful direct questions; any the model accepts land in accepted_harmful with a
@@ -135,13 +145,17 @@ CATQA_DATA = sorted(
 # Harmful behavior collection: run the FULL harmful sets so more prompts get a chance
 # to be accepted (advbench ~3% / sorry-badq ~15% acceptance on Qwen2.5-1.5B), growing
 # accepted_harmful well beyond the ~18 we got at N=100. None = use all rows in the file.
-N_HARMFUL    = None  # advbench (520) + sorry-badq (440) + catqa (12×50) in full
+# Trimmed for a faster, preemption-tolerant run: cap each harmful source at 250 (was None =
+# full ~960) so stage 00 finishes in ~20-25 min (fits inside a Modal preemption window); still
+# yields plenty of accepted_harmful (~15% of Sorry-Bench) and refused_sorry for the augmented
+# Latent-Guard centroid. Set back to None for the full-fidelity sample.
+N_HARMFUL    = 250   # per harmful source (advbench / jbb / sorry-badq)
 N_HARMLESS   = 150   # alpaca rows for accepted_harmless (already plentiful)
 XSTEST_N     = 250   # all xstest prompts — the sole over-refusal (refused_harmless) source
 N_JAILBREAK  = 50    # jailbreak samples per type for Figure 6
 N_TRAIN      = 100   # samples per category for cluster centers / direction extraction
 N_BEHAVIOR   = 100   # (legacy) default per-dataset cap, still used by older callers
-N_TEST       = 30    # samples per category for evaluation
+N_TEST       = 20    # samples per category for steering evaluation (was 30; speeds up 05/06)
 #N_HARMFUL    = 1
 #N_HARMLESS   = 1
 #XSTEST_N     = 1
@@ -149,6 +163,29 @@ N_TEST       = 30    # samples per category for evaluation
 #N_TRAIN      = 1
 #N_BEHAVIOR   = 1
 #N_TEST       = 1
+
+# ---------------------------------------------------------------------------
+# Llama Guard 3 baseline for Table 3 (§5) — used by 08b_llama_guard_baseline.py
+# ---------------------------------------------------------------------------
+# The paper's Table 3 compares Latent Guard against Llama Guard 3 8B. We load it via
+# transformers (GATED: needs an HF token with the Llama license accepted, read from
+# HF_TOKEN / HUGGING_FACE_HUB_TOKEN). 08b classifies the SAME per-category samples that
+# Latent Guard scored (counts read from table3.json) and merges accuracy back in. If the
+# model is inaccessible, 08b records it as unavailable rather than failing the pipeline.
+LLAMA_GUARD_BASELINE = True
+LLAMA_GUARD_MODEL    = "meta-llama/Llama-Guard-3-8B"
+
+# Latent Guard centroid (§5 / Appendix B). The base μ_harmful is the Fig-2/3 harmfulness
+# pole (Advbench/JBB refused). The paper reports that for the Latent Guard specifically it
+# ALSO adds "harmful instructions accepted at t_post from Advbench/JBB, OR refused harmful
+# examples from Sorry-Bench" to the μ_harmful sampling pool, which improves detection of the
+# mild Sorry-Bench accepts (that otherwise read harmless at t_inst on Qwen2-7B). When True,
+# 08 builds an AUGMENTED μ_harmful = mean over t_inst of {refused_harmful ∪ refused_sorry ∪
+# accepted_harmful-from-AUGMENT_SOURCES} and uses it as the primary Latent-Guard pole
+# (falling back to the base pole if the extra activations are absent). Fig-2/3 poles are
+# unchanged — this only affects Table 3.
+LATENT_GUARD_AUGMENT         = True
+LATENT_GUARD_AUGMENT_SOURCES = {"advbench", "jbb"}   # which accepted_harmful sources to add
 
 # ---------------------------------------------------------------------------
 # Dataset -> bucket routing (stage 00)   [config-driven; edit here, not the code]
@@ -167,14 +204,24 @@ N_TEST       = 30    # samples per category for evaluation
 # buckets (refused_harmful / accepted_harmful) by behaviour — NOT advbench-only (that
 # was a prior modification, not the paper). NOTE: JBB (JailbreakBench) is NOT in data/;
 # add its file + a row here to fully match the paper.
+# NOTE on the jailbreak taxonomy (Figure 6 / Table 3): the paper's three methods map to
+#   jailbreak_adversarial ← GCG adv-suffix  (gcg-advsuffix.json)
+#   jailbreak_persuasion  ← PAP persuasion  (pap-persuasion.json)
+#   jailbreak_template    ← GPTFuzzer templates (GPTFuzzer-50-adv.json)
+# Only ACCEPTED responses feed the jailbreak_* buckets, so these datasets must contain
+# prompts that actually jailbreak Qwen2-7B → they are generated on the target model.
+# sorry-badq now feeds ONLY accepted_harmful (naive Sorry-Bench harmful; it is NOT
+# persuasion — that was a prior mislabel). human-seed is dropped (it is a second template
+# set, redundant with GPTFuzzer).
 DATASET_ROUTING = [
     # name          path             key            n           refused_buckets        accepted_buckets
     ("advbench",   HARMFUL_DATA,    "bad_q",       N_HARMFUL,   ["refused_harmful"],   ["accepted_harmful"]),
     ("jbb",        JBB_DATA,        "bad_q",       N_HARMFUL,   ["refused_harmful"],   ["accepted_harmful"]),
-    ("sorry-badq", SORRY_DATA,      "bad_q",       N_HARMFUL,   ["refused_harmful"],   ["accepted_harmful", "jailbreak_persuasion"]),
+    ("sorry-badq", SORRY_DATA,      "bad_q",       N_HARMFUL,   ["refused_harmful", "refused_sorry"], ["accepted_harmful"]),
     ("alpaca",     HARMLESS_DATA,   "instruction", N_HARMLESS,  [],                    ["accepted_harmless"]),  # alpaca "refusals" are artifacts → drop
     ("xstest",     XSTEST_DATA,     "bad_q",       XSTEST_N,    ["refused_harmless"],  ["accepted_harmless"]),
-    ("human-seed", HUMAN_SEED_DATA, "bad_q",       N_JAILBREAK, [],                    ["jailbreak_adversarial"]),
+    ("gcg",        GCG_DATA,        "bad_q",       N_JAILBREAK, [],                    ["jailbreak_adversarial"]),
+    ("pap",        PAP_DATA,        "bad_q",       N_JAILBREAK, [],                    ["jailbreak_persuasion"]),
     ("gptzfuzzer", GPTZFUZZER_DATA, "bad_q",       N_JAILBREAK, [],                    ["jailbreak_template"]),
 ]
 
@@ -232,11 +279,13 @@ POLE_HARMFUL_SOURCES = {"advbench", "jbb"}
 EXTRACT_CATEGORIES = [
     "refused_harmful", "accepted_harmless", "accepted_harmful", "refused_harmless",
     "accepted_harmful_tinst",
+    "refused_sorry",   # Sorry-Bench refusals — t_inst only, for the §5 augmented Latent-Guard centroid
 ]
 
 # Buckets extracted at t_inst ONLY (stage 01 skips the t_post pass for these). The
-# no-post-inst accepted set has no post-instruction tokens, so t_post is meaningless for it.
-EXTRACT_TINST_ONLY = {"accepted_harmful_tinst"}
+# no-post-inst accepted set has no post-instruction tokens, so t_post is meaningless for it;
+# refused_sorry is only used to augment the t_inst harmfulness centroid for Latent Guard.
+EXTRACT_TINST_ONLY = {"accepted_harmful_tinst", "refused_sorry"}
 
 # Figure 2 axis poles (bucket names). Paper §3.2 uses the SAME diagonal poles at both
 # positions: Cl_refused_harmful vs Cl_accepted_harmless. t_inst axis reads as
