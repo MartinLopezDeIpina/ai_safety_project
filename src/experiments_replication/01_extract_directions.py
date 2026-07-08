@@ -39,10 +39,10 @@ import torch
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import (
-    RESULTS_DIR, N_TRAIN, POS_TINST, POS_TPOSTINST, SRC_DIR, TPOST_FIRST_GEN_TOKEN,
+    RESULTS_DIR, N_TRAIN, SRC_DIR, TPOST_FIRST_GEN_TOKEN,
     EXTRACT_CATEGORIES, EXTRACT_TINST_ONLY,
 )
-from model_utils import load_model, extract_hidden_states
+from model_utils import load_model, extract_hidden_states, get_token_positions
 
 sys.path.insert(0, SRC_DIR)
 
@@ -106,6 +106,10 @@ def main():
 
     print("\nLoading model …")
     model, tokenizer = load_model()
+
+    # Derive t_inst / t_post-inst positions from the active model's template (config
+    # POST_INST_SUFFIX) — adapts automatically when MODEL_TYPE changes.
+    POS_TINST, POS_TPOSTINST = get_token_positions(tokenizer)
 
     # ------------------------------------------------------------------
     # Extract every configured bucket (config.EXTRACT_CATEGORIES) at BOTH positions,

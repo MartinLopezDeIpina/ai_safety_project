@@ -15,8 +15,10 @@ SRC_DIR = os.path.join(REPO_ROOT, "src")
 # Raw data files
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 
-# All outputs go here (.pt tensors, .json results, .png plots)
-RESULTS_DIR = os.path.join(_HERE, "results")
+# All outputs go here (.pt tensors, .json results, .png plots).
+# Defaults to ./results next to this file; override with REPL_RESULTS_DIR (e.g. to route a
+# per-model run into its own dir). Model-agnostic — local runs with the env unset are unaffected.
+RESULTS_DIR = os.environ.get("REPL_RESULTS_DIR") or os.path.join(_HERE, "results")
 
 # ---------------------------------------------------------------------------
 # Model
@@ -25,6 +27,14 @@ RESULTS_DIR = os.path.join(_HERE, "results")
 MODEL_NAME = "Qwen/Qwen2-7B-Instruct"
 MODEL_TYPE = "qwen"
 MODEL_SIZE = "7b"
+# --- Option: Llama-3-8B-Instruct (gated → needs HF_TOKEN; modal_run.py injects it).
+#     Uncomment this block to switch. Token positions auto-derive from MODEL_TYPE via
+#     model_utils.get_token_positions (POST_INST_SUFFIX below), and model_utils.load_model
+#     loads MODEL_NAME directly for the "8b" size. Everything else is model-agnostic. ---
+#MODEL_NAME = "meta-llama/Meta-Llama-3-8B-Instruct"
+#MODEL_TYPE = "llama3"
+#MODEL_SIZE = "8b"
+# --- Option: Qwen2.5-1.5B-Instruct (fits a 16GB GPU) ---
 #MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
 #MODEL_TYPE = "qwen"
 #MODEL_SIZE = "1.5b"
@@ -79,30 +89,27 @@ JUDGE_GEN = {
 }
 
 # ---------------------------------------------------------------------------
-# Token positions
+# Token positions  (derived per-model — see model_utils.get_token_positions)
 # ---------------------------------------------------------------------------
-# The prompt built by utils.formatInp_llama_persuasion(model='qwen') is:
-#   <|im_start|>user\n{instruction}<|im_end|>\n<|im_start|>assistant
-# There is NO trailing "\n" after "assistant", so the post-instruction suffix is
-# 4 tokens: <|im_end|>, \n, <|im_start|>, assistant.
+# t_inst and t_post-inst are model-specific because they depend on how many tokens the
+# prompting template appends AFTER the instruction. Rather than hardcoding offsets (valid
+# for only one model family), we keep the post-instruction SUFFIX string per family here as
+# the single source of truth, and model_utils.get_token_positions(tokenizer) tokenizes it:
+#   n = len(tokenizer(suffix, add_special_tokens=False))
+#   POS_TINST     = [-(n+1)]   # last instruction content token, just before the suffix
+#   POS_TPOSTINST = [-1]       # last input token before generation (last suffix token)
+# So switching MODEL_TYPE (e.g. qwen -> llama3) re-derives the positions automatically — no
+# manual editing. Mirrors src/extract_hidden.py's per-model inst_token logic exactly.
 #
-# Tokenizing the full prompt, the last tokens are:
-#   ...  {last instruction token}  <|im_end|>  \n  <|im_start|>  assistant
-#         -5                        -4          -3   -2           -1
-#
-# tinst     = position -5 = the last token of the instruction content
-#             (the paper's "last instruction token"; it is NOT <|im_end|>).
-# tpost-inst = position -1 = the "assistant" token, the last input token before the
-#             model starts generating (there is no trailing \n to land on).
-#
-# These match the original extract_hidden.py exactly: with inst_token
-# '<|im_end|>\n<|im_start|>assistant' (4 tokens) and NUM_TOKEN_HIDDEN=2, its 'hf' mode
-# reads merged[NUM_TOKEN_HIDDEN-1] = position -5, and its 'refuse' mode reads
-# merged[-1] = position -1.  Do not change these values without re-deriving the offsets.
-
-INST_TOKEN_LEN = 5       # offset of the last instruction token from the sequence end
-POS_TINST      = [-INST_TOKEN_LEN]   # [-5] → last instruction content token
-POS_TPOSTINST  = [-1]                # [-1] → "assistant" (last input token before generation)
+# Worked examples (n verified by tokenizing):
+#   qwen  : "<|im_end|>\n<|im_start|>assistant"                          -> 4 tok -> POS_TINST=[-5]
+#   llama3: "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n"  -> 5 tok -> POS_TINST=[-6]
+POST_INST_SUFFIX = {
+    "llama3": "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n",
+    "qwen":   "<|im_end|>\n<|im_start|>assistant",
+    "vicuna": "ASSISTANT:\n",
+}
+DEFAULT_POST_INST_SUFFIX = "[/INST]"   # llama2 / any unlisted family
 
 # t_post position experiment (§3.5 investigation).
 # The default t_post = the pre-generation "assistant" token (POS_TPOSTINST=[-1]),

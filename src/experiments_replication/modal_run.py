@@ -1,5 +1,9 @@
 """
-Run the replication pipeline on Modal (A100) for Qwen2-7B.
+Run the replication pipeline on Modal (A100) for whatever model config.py selects
+(Qwen2-7B by default; uncomment the Llama-3-8B block in config.py to switch). Gated models
+authenticate via an HF_TOKEN Secret read from the repo-root .env (see _read_hf_token) —
+unused for the ungated Qwen default. Token positions adapt to the model automatically
+(config.POST_INST_SUFFIX / model_utils.get_token_positions), so no other change is needed.
 
 Path convention (unchanged from the original stage-00 runner): every script is flattened
 into /root, so config.py sits at /root/config.py → REPO_ROOT="/" → DATA_DIR="/data"
@@ -32,6 +36,36 @@ _SRC = os.path.abspath(os.path.join(_REPL, ".."))           # .../src
 # src/ modules the numbered scripts import (copied flat into /root)
 _SRC_MODULES = ["utils.py", "inference.py", "extract_hidden.py",
                 "intervention.py", "eval.py", "template_inversion.py"]
+
+
+def _read_hf_token():
+    """Parse HF_TOKEN from the repo-root .env so the GPU functions can download a GATED
+    model (e.g. meta-llama/Meta-Llama-3-8B-Instruct when config.py is switched to Llama-3).
+    Harmless/unused for the default Qwen models (ungated).
+
+    Read only on the LOCAL machine at app-build time and bound into the submitted app; this
+    module is re-imported inside the container (where no .env exists), so returns None there
+    instead of raising. Handles both the main checkout and a .claude/worktrees/<name> checkout
+    (the worktree has no .env of its own — fall back to the main root)."""
+    root = os.path.abspath(os.path.join(_REPL, "..", ".."))          # repo/worktree root
+    candidates = [root]
+    if "/.claude/worktrees/" in root:
+        candidates.append(root.split("/.claude/worktrees/")[0])      # main checkout root
+    for d in candidates:
+        p = os.path.join(d, ".env")
+        if not os.path.exists(p):
+            continue
+        with open(p) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("HF_TOKEN="):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return None
+
+
+# Gated-model auth: real token bound locally at build; empty placeholder in-container.
+_hf_token = _read_hf_token()
+hf_secret = modal.Secret.from_dict({"HF_TOKEN": _hf_token} if _hf_token else {})
 
 image = (
     modal.Image.debian_slim()
@@ -114,7 +148,7 @@ def check():
     print("PREFLIGHT OK — all stage files present, paths and imports resolve.")
 
 
-@app.function(image=image, gpu="A100", volumes=VOLUMES, timeout=18000)
+@app.function(image=image, gpu="A100", volumes=VOLUMES, secrets=[hf_secret], timeout=18000)
 def gen_jailbreaks(gcg_n: int = 20, gcg_steps: int = 80, pap_n: int = 50):
     os.environ["HF_HUB_CACHE"] = "/cache"
     os.chdir("/root")
@@ -160,7 +194,7 @@ def clear_results():
     print(f"Cleared {removed} stale files from behavior-results.")
 
 
-@app.function(image=image, gpu="A100", volumes=VOLUMES, timeout=18000)
+@app.function(image=image, gpu="A100", volumes=VOLUMES, secrets=[hf_secret], timeout=18000)
 def run_pipeline(stages: list[str], resume: bool = True):
     os.environ["HF_HUB_CACHE"] = "/cache"
     os.chdir("/root")

@@ -39,8 +39,7 @@ import torch.nn.functional as F
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from config import RESULTS_DIR, N_JAILBREAK
-from model_utils import load_model, extract_hidden_states
-from config import POS_TINST, POS_TPOSTINST
+from model_utils import load_model, extract_hidden_states, get_token_positions
 
 
 JB_CATS = ["jailbreak_template", "jailbreak_adversarial", "jailbreak_persuasion"]
@@ -138,10 +137,13 @@ def main():
     )
 
     model = tokenizer = None
+    POS_TINST = POS_TPOSTINST = None
     if needs_model:
         print("Loading model for jailbreak extraction …")
         from model_utils import load_model as _load
         model, tokenizer = _load()
+        # Positions derived from the active model's template (adapts to MODEL_TYPE).
+        POS_TINST, POS_TPOSTINST = get_token_positions(tokenizer)
 
     # ------------------------------------------------------------------
     # Jailbreak categories

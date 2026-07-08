@@ -91,6 +91,28 @@ def format_prompt(d):
     return formatInp_llama_persuasion(d, model=MODEL_TYPE, use_template=True)
 
 
+def get_token_positions(tokenizer):
+    """Derive (POS_TINST, POS_TPOSTINST) for the active MODEL_TYPE by tokenizing its
+    post-instruction suffix, so switching MODEL_TYPE in config auto-updates the
+    extraction positions — no manual re-derivation. Mirrors the per-model inst_token
+    logic in src/extract_hidden.py:370-381.
+
+    The suffix is the tokens the template appends AFTER the instruction. With n suffix
+    tokens: POS_TINST=[-(n+1)] is the last instruction content token (just before the
+    suffix) and POS_TPOSTINST=[-1] is the last input token before generation.
+    Returns Qwen's known-good [-5]/[-1] for 'qwen' and [-6]/[-1] for 'llama3'.
+    """
+    from config import POST_INST_SUFFIX, DEFAULT_POST_INST_SUFFIX
+    suffix = POST_INST_SUFFIX.get(MODEL_TYPE, DEFAULT_POST_INST_SUFFIX)
+    ids = tokenizer(suffix, add_special_tokens=False).input_ids
+    n = len(ids)
+    pos_tinst, pos_tpostinst = [-(n + 1)], [-1]
+    print(f"[get_token_positions] MODEL_TYPE={MODEL_TYPE!r} suffix={suffix!r} "
+          f"decoded={tokenizer.decode(ids)!r} n_tokens={n} "
+          f"POS_TINST={pos_tinst} POS_TPOSTINST={pos_tpostinst}")
+    return pos_tinst, pos_tpostinst
+
+
 def tokenize_fn(tokenizer, instructions):
     """
     Tokenize a list of instruction dicts/strings into a BatchEncoding.
