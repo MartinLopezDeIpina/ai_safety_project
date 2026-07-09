@@ -106,7 +106,8 @@ def get_mean_activations_fwd_hook(
         Hook function that collects activations
     """
     def hook_fn(module: torch.nn.Module, input: Tuple[Tensor, ...], output: Tuple[Tensor, ...]) -> None:
-        activation = output[0].half()
+        # transformers >=5 returns a bare tensor here instead of a tuple.
+        activation = (output[0] if isinstance(output, (tuple, list)) else output).half()
         seq_len = activation.shape[1]
         
         if whole_seq:
@@ -250,6 +251,9 @@ def get_mean_diff(
         print('mean_activations_harmful shape', mean_activations_harmful.shape)
         print('mean_activations_harmless shape', mean_activations_harmless.shape)
     else:
+        # extract_only: harmful acts were del'd above; reload them (mirrors the branch above).
+        mean_activations_harmful = torch.load('output/tmp_mean_activations_harmful.pt')
+        full_activations_harmful = torch.load('output/tmp_full_activations_harmful.pt')
         mean_activations_harmless = None
         full_activations_harmless = None
 
@@ -276,7 +280,7 @@ def generate_directions(
         Mean difference tensor or None if computation fails
     """
     def tokenize_instructions_fn(instructions: List[str], use_persuade: bool = False, use_sys: bool = False) -> dict:
-        inps = [formatInp_llama_persuasion(i, use_persuade, use_ss=use_sys, use_template=True) for i in instructions]
+        inps = [formatInp_llama_persuasion(i, use_persuade, use_ss=use_sys, use_template=True, model=MODEL) for i in instructions]
         return tokenizer(inps, padding=True, return_tensors="pt")
 
     model_block_modules = model_base.model.layers
@@ -310,6 +314,7 @@ def main() -> None:
     """Run the full pipeline."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default='llama', type=str, help="Model type")
+    parser.add_argument("--model_size", default='7b', type=str, help="Model size (e.g. 7b, 0.5b)")
     parser.add_argument("--harmful_pth", default='data/medcq.json', type=str, help="Path to harmful examples")
     parser.add_argument("--harmless_pth", default='data/medcq.json', type=str, help="Path to harmless examples")
     parser.add_argument("--output_pth_harmful", default='output/mean_diff.pt', type=str, help="Output path for harmful activations")
@@ -364,8 +369,12 @@ def main() -> None:
         )
         tokenizer.pad_token = tokenizer.eos_token
     elif MODEL == 'qwen':
-        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-7B-Instruct", trust_remote_code=True, cache_dir='models/qwen')
-        model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-7B-Instruct", device_map="auto", trust_remote_code=True, cache_dir='models/qwen')
+        if params['model_size'] == '0.5b':
+            tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-0.5B-Instruct", trust_remote_code=True)
+            model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-0.5B-Instruct", device_map="auto", trust_remote_code=True)
+        else:
+            tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-7B-Instruct", trust_remote_code=True, cache_dir='models/qwen')
+            model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-7B-Instruct", device_map="auto", trust_remote_code=True, cache_dir='models/qwen')
 
     if params['extract_hidden_inst_token']:
         inst_token = "[/INST]"
@@ -400,7 +409,8 @@ def main() -> None:
         json.dump({'harmful': harmful_train, 'harmless': harmless_train}, f, indent=4)
 
     candidate_directions = generate_directions(model, tokenizer, harmful_train, harmless_train, params)
-    print(candidate_directions.shape)
+    if candidate_directions is not None:
+        print(candidate_directions.shape)
 
 if __name__ == "__main__":
     main()
