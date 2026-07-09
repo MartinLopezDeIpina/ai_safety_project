@@ -223,6 +223,9 @@ def load_model_and_tokenizer(model_type: str, model_size: str, load_checkpoint: 
             elif model_size == '14b':
                 model_path = "Qwen/Qwen2.5-14B-Instruct"
                 #cache_dir = 'models/qwen-14b'
+            elif model_size == '0.5b':
+                model_path = "Qwen/Qwen2-0.5B-Instruct"
+                # cache_dir = 'models/qwen-14b'
             else:
                 raise ValueError(f"Unsupported model size: {model_size}")
                 
