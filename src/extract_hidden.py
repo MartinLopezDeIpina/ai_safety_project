@@ -357,15 +357,13 @@ def main() -> None:
             cache_dir='models/llama',
         )
     elif MODEL == 'llama3':
-        local_pth = 'models/llama3-hf/LLM-Research/Meta-Llama-3-8B-Instruct'
-        if not os.path.exists(local_pth):
-            local_pth = 'models/llama3'
+        llama3_model_path = "meta-llama/Meta-Llama-3-8B-Instruct"
         model = AutoModelForCausalLM.from_pretrained(
-            local_pth,
+            llama3_model_path,
             device_map="auto",
         )
         tokenizer = AutoTokenizer.from_pretrained(
-            local_pth,
+            llama3_model_path,
         )
         tokenizer.pad_token = tokenizer.eos_token
     elif MODEL == 'qwen':

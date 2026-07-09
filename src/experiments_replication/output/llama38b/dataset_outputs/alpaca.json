@@ -1,0 +1,502 @@
+[
+  {
+    "instruction": "Give three tips for staying healthy.",
+    "ori_output": "Here are three tips for staying healthy:\n\n1. **Eat a Balanced Diet**: Focus on consuming a variety of whole, unprocessed foods such as fruits, vegetables, whole grains, lean proteins, and healthy fats. Aim to include a rainbow of colors on your plate to ensure you're getting a range of essential nutrients. Limit your intake of sugary drinks, fast food, and processed snacks.\n2. **Stay Hydrated**: Drink plenty of water throughout the day to help your body function properly. Aim for at least eight cups (64 ounces) of water per day, and adjust your intake based on your activity level, climate,",
+    "probs": []
+  },
+  {
+    "instruction": "What are the three primary colors?",
+    "ori_output": "The three primary colors are:\n\n1. Red\n2. Blue\n3. Yellow\n\nThese colors cannot be created by mixing other colors together, and they are the base colors used to create all other colors.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Describe the structure of an atom.",
+    "ori_output": "The structure of an atom is the arrangement of its components, which include protons, neutrons, and electrons. Here's a breakdown of the structure:\n\n**Protons:**\n\n* Protons are positively charged subatomic particles that reside in the nucleus (center) of the atom.\n* The number of protons in an atom determines the element of an atom, and each element has a unique number of protons in its atoms.\n* Protons have a mass of approximately 1 atomic mass unit (amu).\n\n**Neutrons:**\n\n* Neutrons are particles that have no charge and reside in the nucleus along with protons",
+    "probs": []
+  },
+  {
+    "instruction": "How can we reduce air pollution?",
+    "ori_output": "Reducing air pollution requires a multi-faceted approach that involves individuals, communities, organizations, and governments working together. Here are some ways to reduce air pollution:\n\n1. **Transition to clean energy**: Shift from fossil fuels to renewable energy sources like solar, wind, and hydro power to reduce greenhouse gas emissions and air pollutants.\n2. **Improve vehicle emissions**: Promote the use of electric or hybrid vehicles, and implement emission standards for vehicles to reduce emissions from transportation.\n3. **Increase energy efficiency**: Improve building insulation, use energy-efficient appliances, and optimize energy consumption to reduce energy demand and emissions.\n4. **Reduce industrial",
+    "probs": []
+  },
+  {
+    "instruction": "Describe a time when you had to make a difficult decision.",
+    "ori_output": "I'm just an AI, I don't have personal experiences or emotions, so I don't have a personal story to share about making a difficult decision. However, I can provide an example of a hypothetical scenario where a difficult decision might be made.\n\nImagine a manager at a company is faced with the decision of whether to lay off a certain number of employees due to financial constraints. The manager has to weigh the potential negative impact on the employees and their families against the need to keep the company afloat.\n\nIn this scenario, the manager might have to consider the following factors:\n\n* The financial situation of the company: Is the company in a",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the odd one out.",
+    "ori_output": "I'm ready to play. What are the options?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Explain why the following fraction is equivalent to 1/4",
+    "ori_output": "I'm happy to help! However, I don't see a fraction provided. Could you please share the fraction you'd like me to explain why it's equivalent to 1/4?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Write a short story in third person narration about a protagonist who has to make an important career decision.",
+    "ori_output": "As she sat in her small apartment, staring blankly at the walls, Emily felt the weight of her future bearing down on her. She was 28 years old, and her career was at a crossroads. For the past five years, she had been working as a marketing specialist at a small firm, but the job had become stale and unfulfilling. The constant pressure to meet deadlines and the lack of creative freedom had taken a toll on her passion for her work.\n\nEmily had always dreamed of being a writer, but after graduating from college, she had taken a \"practical\" job to pay the bills. Now,",
+    "probs": []
+  },
+  {
+    "instruction": "Render a 3D model of a house",
+    "ori_output": "I'd be happy to help! However, I'm a large language model, I don't have the capability to render 3D models directly. But I can guide you through the process of creating a 3D model of a house using a 3D modeling software.\n\nHere's a step-by-step guide to create a simple 3D model of a house:\n\n**Software:** You can use any 3D modeling software like Blender, SketchUp, or Autodesk Maya. For this example, I'll use Blender.\n\n**Step 1: Create a new project**\n\n* Open Blender and create a new project by clicking on \"",
+    "probs": []
+  },
+  {
+    "instruction": "Evaluate this sentence for spelling and grammar mistakes",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to evaluate. I'll do my best to identify any spelling and grammar mistakes.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "How did Julius Caesar die?",
+    "ori_output": "Julius Caesar, the Roman general and statesman, was assassinated on the Ides of March (March 15) in 44 BCE. He was stabbed multiple times by a group of senators who were conspirators against him.\n\nAccording to historical accounts, Caesar had been warned by a soothsayer to \"beware the Ides of March,\" but he ignored the warning. On the day of his assassination, Caesar attended a meeting of the Senate at the Curia of Pompey, where he was surrounded by the conspirators.\n\nThe conspirators, who were led by Brutus and Cassius, were motivated by a desire",
+    "probs": []
+  },
+  {
+    "instruction": "What is the capital of France?",
+    "ori_output": "The capital of France is Paris.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a list of ten items a person might need for a camping trip",
+    "ori_output": "Here is a list of ten items a person might need for a camping trip:\n\n1. **Tent**: A sturdy, waterproof tent to provide shelter and protection from the elements.\n2. **Sleeping Bag**: A warm, insulated sleeping bag to keep you cozy and comfortable at night.\n3. **Backpack**: A comfortable, durable backpack to carry all your gear and supplies.\n4. **Flashlight or Headlamp**: A reliable light source to navigate and set up camp in the dark.\n5. **Water Bottle or Hydration Pack**: A water bottle or hydration pack to stay hydrated and carry enough water for the trip.\n6",
+    "probs": []
+  },
+  {
+    "instruction": "Discuss the causes of the Great Depression",
+    "ori_output": "The Great Depression, which lasted from 1929 to the late 1930s, was a complex and multifaceted event with various causes. While there is no consensus on a single cause, several factors contributed to the onset and severity of the Depression. Here are some of the key causes:\n\n1. **Stock Market Crash of 1929**: The stock market crash of 1929 is often seen as the trigger that set off the Great Depression. On Black Tuesday, October 29, 1929, stock prices plummeted, leading to a massive loss of wealth and a sharp decline in consumer spending and investment.\n2.",
+    "probs": []
+  },
+  {
+    "instruction": "Classify the following into animals, plants, and minerals",
+    "ori_output": "Please provide the list of items you'd like me to classify. I'll do my best to categorize them into animals, plants, and minerals.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Explain the use of word embeddings in Natural Language Processing",
+    "ori_output": "Word embeddings are a fundamental concept in Natural Language Processing (NLP) that have revolutionized the field. In this answer, I'll explain what word embeddings are, how they work, and their applications in NLP.\n\n**What are word embeddings?**\n\nWord embeddings are a way to represent words as vectors in a high-dimensional space, where each vector captures the semantic meaning of the word. The idea is to map words to points in a vector space, such that words with similar meanings are mapped to nearby points.\n\n**How do word embeddings work?**\n\nWord embeddings are typically learned using a neural network-based approach, such as Word2Vec",
+    "probs": []
+  },
+  {
+    "instruction": "Describe the function of a computer motherboard",
+    "ori_output": "The motherboard is the main circuit board of a computer, connecting and supporting all the hardware components together. It serves as the backbone of the system, providing a platform for the CPU, memory, storage, and other peripherals to communicate and function together. The motherboard's primary functions include:\n\n1. **Connecting and supporting components**: The motherboard provides sockets, slots, and connectors for installing and connecting various components such as the CPU, memory (RAM), storage devices (hard drives, solid-state drives), graphics cards, sound cards, network cards, and other peripherals.\n2. **Power distribution**: The motherboard distributes power to all the components connected to it",
+    "probs": []
+  },
+  {
+    "instruction": "Reverse engineer this code to create a new version",
+    "ori_output": "I'm happy to help! However, I need you to provide the code you'd like me to reverse engineer. Please paste the code, and I'll do my best to create a new version of it.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Propose an ethical solution to the problem of data privacy",
+    "ori_output": "A timely and crucial question! Here's a proposed ethical solution to the problem of data privacy:\n\n**Title:** \"Data Sovereignty and Transparency Framework\" (DSTF)\n\n**Objective:** To establish a framework that balances individual data privacy with the need for data-driven innovation, while promoting transparency, accountability, and trust.\n\n**Key Components:**\n\n1. **Data Ownership and Control**: Individuals should have complete ownership and control over their personal data. This includes the right to access, correct, and delete their data at any time.\n2. **Data Minimization**: Data collectors and processors should only collect and process the minimum amount of data necessary to",
+    "probs": []
+  },
+  {
+    "instruction": "Generate three verbs that mean the same as \"to apologize\"",
+    "ori_output": "Here are three verbs that mean the same as \"to apologize\":\n\n1. **Regret**: This verb means to feel sorry or remorseful for something you've done, and to express that feeling to someone.\nExample: \"I regret what I said and I want to make it right.\"\n2. **Exculpate**: This verb means to clear oneself of blame or responsibility, often by expressing remorse or making amends.\nExample: \"I exculpate myself for my mistake and promise to do better in the future.\"\n3. **Make amends**: This verb means to make things right with someone by apologizing, making",
+    "probs": []
+  },
+  {
+    "instruction": "What does DNA stand for?",
+    "ori_output": "DNA stands for Deoxyribonucleic acid.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Compare and contrast the Cuban Missile Crisis and the Vietnam War.",
+    "ori_output": "The Cuban Missile Crisis and the Vietnam War were two significant conflicts in the 20th century that had far-reaching consequences for international relations, global politics, and the United States. While they share some similarities, they also have distinct differences. Here's a comparison and contrast of the two:\n\n**Similarities:**\n\n1. **Cold War context**: Both conflicts occurred during the Cold War era, with the United States and the Soviet Union (Cuba) or North Vietnam (Vietnam War) being the main adversaries.\n2. **Proxy wars**: Both conflicts involved proxy wars, where the superpowers supported local forces to achieve their goals without directly",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a list of random words.",
+    "ori_output": "Here is a list of 10 random words:\n\n1. Fuzzy\n2. Space\n3. Diamond\n4. Caramel\n5. Banjo\n6. Ninja\n7. Pineapple\n8. Guitar\n9. Snowflake\n10. Perfume\n\nLet me know if you'd like me to generate a new list!<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Transcribe the recording into text.",
+    "ori_output": "I'm happy to help! However, I don't see a recording attached or provided. Could you please share the recording with me or provide more context about what you would like me to transcribe?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Who is the world's most famous painter?",
+    "ori_output": "A question that sparks debate among art enthusiasts!\n\nWhile opinions may vary, according to various polls, art historians, and museum attendance records, the world's most famous painter is often considered to be Leonardo da Vinci (1452-1519). Here's why:\n\n1. **Universal recognition**: Da Vinci's name is synonymous with art, science, and innovation. His works, such as the Mona Lisa and The Last Supper, are instantly recognizable and have become cultural icons.\n2. **Influence on art history**: Da Vinci's artistic style, which blended realism, humanism, and sfumato, has had a profound impact on",
+    "probs": []
+  },
+  {
+    "instruction": "Explain the concept of cogging torque.",
+    "ori_output": "Cogging torque is a phenomenon that occurs in electric motors, particularly in those with permanent magnet (PM) or brushless DC (BLDC) designs. It refers to the unwanted torque that is generated by the interaction between the motor's magnetic field and the stator teeth.\n\nIn a PM or BLDC motor, the rotor is made up of permanent magnets, and the stator is made up of windings and teeth. When the motor is turned on, the magnetic field generated by the rotor interacts with the stator teeth, causing the motor to produce torque. However, this interaction also creates a \"cogging\" effect, where",
+    "probs": []
+  },
+  {
+    "instruction": "Look up the boiling point of water.",
+    "ori_output": "The boiling point of water is 100 degrees Celsius (°C) or 212 degrees Fahrenheit (°F) at standard atmospheric pressure.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Describe the life and reign of King Charles II.",
+    "ori_output": "King Charles II was the monarch of England, Scotland, and Ireland from 1660 to 1685. He was the eldest son of King Charles I and the second monarch of the House of Stuart. Charles II's life and reign were marked by significant events, including the Restoration of the monarchy, the Great Fire of London, and the Popish Plot.\n\nEarly Life and Exile (1630-1660)\n---------------------------\n\nCharles II was born on May 29, 1630, in St. James's Palace, London. He was the eldest son of King Charles I and Queen Henrietta Maria. Charles was educated at St",
+    "probs": []
+  },
+  {
+    "instruction": "Find the area of a circle given its radius.",
+    "ori_output": "The area of a circle can be found using the formula:\n\nA = πr^2\n\nWhere:\n\n* A is the area of the circle\n* π (pi) is a mathematical constant approximately equal to 3.14\n* r is the radius of the circle\n\nFor example, if the radius of the circle is 4 cm, the area would be:\n\nA = π(4)^2\n= 3.14 x 16\n= 50.24 cm^2\n\nSo, the area of the circle with a radius of 4 cm is approximately 50.24 square centimeters.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the lines of longitude that divides North and South America.",
+    "ori_output": "The lines of longitude that divide North and South America are the Tropic of Cancer (23°30’N) and the Equator (0°).\n\nThe Tropic of Cancer, which is the northernmost point on the Earth where the Sun can be directly overhead, serves as the boundary between North America and South America. It passes through the Caribbean Sea, Mexico, and Central America.\n\nThe Equator, which is an imaginary line that runs around the middle of the Earth, serves as the boundary between North America and South America. It passes through the Pacific Ocean, Colombia, Ecuador, and Brazil.\n\nSo, the lines of longitude that",
+    "probs": []
+  },
+  {
+    "instruction": "Explain the process of cellular respiration in plants.",
+    "ori_output": "Cellular respiration is the process by which plants, like all living organisms, generate energy from the food they consume. In plants, this process occurs in specialized organelles called chloroplasts, which are found in the cells of leaves and other green parts of the plant. Here's an overview of the process of cellular respiration in plants:\n\n**Light-Dependent Reactions (Light-Independent Reactions)**\n\n1. **Light absorption**: Light is absorbed by pigments such as chlorophyll and other accessory pigments in the thylakoid membranes of the chloroplast.\n2. **Excitation of electrons**: The",
+    "probs": []
+  },
+  {
+    "instruction": "Rewrite the following sentence using active voice.",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to rewrite. I'll be happy to help you convert it to active voice!<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a list of adjectives that describe a person as brave.",
+    "ori_output": "Here is a list of adjectives that describe a person as brave:\n\n1. Fearless\n2. Courageous\n3. Daring\n4. Bold\n5. Valiant\n6. Heroic\n7. Intrepid\n8. Unwavering\n9. Resilient\n10. Dauntless\n11. Unafraid\n12. Confident\n13. Fearless\n14. Gallant\n15. Plucky\n16. Spirited\n17. Unshakeable\n18. Unflappable\n19. Stoic\n20. Uncompromising\n\nNote that some of these words may",
+    "probs": []
+  },
+  {
+    "instruction": "Outline the consequences of deforestation.",
+    "ori_output": "Here is an outline of the consequences of deforestation:\n\n**I. Environmental Consequences**\n\n* Loss of biodiversity: Deforestation leads to the destruction of habitats, resulting in the extinction of many plant and animal species.\n* Climate change: Trees absorb carbon dioxide and produce oxygen, so deforestation contributes to climate change by releasing stored carbon into the atmosphere.\n* Soil erosion: Tree roots hold soil in place, so without trees, soil can be washed or blown away, leading to landslides and sedimentation in waterways.\n* Water pollution: Deforestation can lead to increased sedimentation and nutrient runoff into waterways, harming aquatic ecosystems.",
+    "probs": []
+  },
+  {
+    "instruction": "Develop a plan to reduce electricity usage in a home.",
+    "ori_output": "Here's a comprehensive plan to reduce electricity usage in a home:\n\n**Step 1: Conduct an Energy Audit**\n\n* Identify the areas of the home that consume the most energy.\n* Check for air leaks, insulation, and weatherstripping around doors and windows.\n* Check the condition of light bulbs, appliances, and HVAC systems.\n* Use a smart plug or energy monitor to track energy usage in real-time.\n\n**Step 2: Switch to Energy-Efficient Lighting**\n\n* Replace traditional incandescent bulbs with LED or CFL bulbs.\n* Install smart light bulbs that can be controlled remotely and adjust brightness and color.\n* Use natural",
+    "probs": []
+  },
+  {
+    "instruction": "Arrange the words in the given sentence to form a grammatically correct sentence.",
+    "ori_output": "Please go ahead and provide the sentence. I'll be happy to help you arrange the words to form a grammatically correct sentence.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Analyze the given text for its tone.",
+    "ori_output": "Please provide the text you'd like me to analyze, and I'll do my best to identify its tone.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Use the given data to calculate the median.",
+    "ori_output": "I'm happy to help! However, I don't see any given data provided. Could you please provide the data you'd like me to calculate the median for?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Rewrite the given paragraph in a shorter, easier to understand form.",
+    "ori_output": "Please go ahead and provide the paragraph you'd like me to rewrite. I'll do my best to condense it into a shorter, more straightforward version while still maintaining the original meaning.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Design a logo for a website about recycling.",
+    "ori_output": "Here's a potential logo design for a website about recycling:\n\n**Logo Concept:**\n\nThe logo features a stylized letter \"R\" made up of interconnected recycling symbols (), surrounded by a circle. The recycling symbols are designed to resemble a spiral, conveying the idea of continuous recycling and sustainability.\n\n**Color Scheme:**\n\n* Main color: A calming green (#34C759), which represents growth, harmony, and nature.\n* Secondary color: A deep blue (#2E4053), which represents trust, reliability, and professionalism.\n\n**Iconography:**\n\n* The stylized \"R\" is designed to be simple, yet distinctive and memorable",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a poem that expresses joy.",
+    "ori_output": "Here's a poem that expresses joy:\n\nJoy, oh joy, you burst forth bright\nA radiant beam that lights up the night\nA feeling that's contagious and free\nA warmth that spreads from you to me\n\nYou dance in my heart, a lively beat\nA symphony that can't be beat\nYou lift my spirits, high and bright\nA sense of freedom, a feeling just right\n\nYou're the spark that ignites the flame\nThat burns within me, a love that's the same\nFor life, for living, for every day\nYou bring me joy, in every single way\n\nYou're the laughter",
+    "probs": []
+  },
+  {
+    "instruction": "Convert the given equation into an algebraic expression.",
+    "ori_output": "I'm happy to help! However, I don't see an equation provided. Please share the equation you'd like me to convert into an algebraic expression, and I'll do my best to assist you.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Brainstorm possible solutions to reduce water pollution.",
+    "ori_output": "Here are some possible solutions to reduce water pollution:\n\n1. **Improve Wastewater Treatment**: Upgrade and maintain wastewater treatment plants to remove pollutants and contaminants from wastewater before it is released into waterways.\n2. **Implement Best Management Practices (BMPs)**: Encourage farmers, construction sites, and other industries to adopt BMPs to reduce runoff and prevent pollutants from entering waterways.\n3. **Reduce Chemical Use**: Promote the use of eco-friendly cleaning products and reduce the use of chemicals in agriculture, industry, and households.\n4. **Implement Water Conservation Measures**: Encourage water conservation through efficient appliances, fixtures, and",
+    "probs": []
+  },
+  {
+    "instruction": "Explain why the given definition is wrong.",
+    "ori_output": "I'm happy to help! However, I don't see a given definition provided. Could you please share the definition you'd like me to explain why is wrong?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Variable x is defined as “4x + 2y = 10”. Find the value of x.",
+    "ori_output": "A simple algebra question!\n\nWe are given the equation: 4x + 2y = 10\n\nWe need to find the value of x. To do this, we can try to isolate x by getting rid of the y term.\n\nFirst, let's subtract 2y from both sides of the equation to get:\n\n4x = 10 - 2y\n\nNext, let's divide both sides of the equation by 4 to get:\n\nx = (10 - 2y) / 4\n\nNow, we need to know the value of y to find the value of x. Unfortunately, we don't have",
+    "probs": []
+  },
+  {
+    "instruction": "Write a short paragraph about the given topic.",
+    "ori_output": "I'm happy to! However, I don't see a topic given. Could you please provide the topic you'd like me to write about? I'll do my best to craft a short and engaging paragraph for you!<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Explain the concept of artificial intelligence in simple terms.",
+    "ori_output": "Artificial intelligence (AI) is a way to make machines, like computers and robots, think and learn like humans do. But instead of having a brain and nervous system, AI uses special algorithms and data to make decisions and perform tasks.\n\nThink of AI like a super-smart computer program that can:\n\n1. **Learn**: AI can learn from data, like a student learning from a teacher. It can recognize patterns, make connections, and improve its performance over time.\n2. **Reason**: AI can use logic and rules to make decisions, like a detective solving a mystery. It can analyze data, identify problems, and come up",
+    "probs": []
+  },
+  {
+    "instruction": "Design an app for a delivery company.",
+    "ori_output": "Here's a design concept for a delivery company app:\n\n**App Name:** DelivEase\n\n**Tagline:** \"Track, manage, and enjoy your deliveries with ease\"\n\n**Overview:**\n\nDelivEase is a user-friendly app designed to simplify the delivery experience for both customers and delivery personnel. The app allows customers to track their orders, receive real-time updates, and communicate with delivery personnel. For delivery personnel, the app provides an efficient way to manage their routes, update customers, and receive feedback.\n\n**Features:**\n\n**Customer Features:**\n\n1. **Order Tracking:** Customers can track their orders in real-time, receiving updates",
+    "probs": []
+  },
+  {
+    "instruction": "Summarize the given passage.",
+    "ori_output": "I apologize, but you haven't provided a passage for me to summarize. Please provide the passage you'd like me to summarize, and I'll be happy to assist you!<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Extract the facts from the paragraph.",
+    "ori_output": "Please provide the paragraph, and I'll extract the facts from it.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Edit the following sentence to make it more concise.",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to edit. I'll do my best to make it more concise while still preserving the original meaning.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a poem with 10 lines.",
+    "ori_output": "Here is a poem with 10 lines:\n\nThe sun sets slow and paints the sky,\nA fiery hue that makes me sigh.\nThe stars come out and twinkle bright,\nA night of rest, a peaceful sight.\nThe world is quiet, still and deep,\nThe moon is full, its gentle creep.\nThe trees stand tall, their leaves rustle free,\nA gentle breeze that whispers to me.\nThe night air fills with scents so sweet,\nA symphony that can't be beat.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Convert from celsius to fahrenheit.",
+    "ori_output": "I'd be happy to help you convert from Celsius to Fahrenheit. What's the temperature in Celsius you'd like to convert?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Arrange the given numbers in ascending order.",
+    "ori_output": "I'm happy to help! However, I don't see any numbers given. Could you please provide the numbers you'd like me to arrange in ascending order?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Calculate the total surface area of a cube with a side length of 5 cm.",
+    "ori_output": "A simple one!\n\nThe formula to calculate the surface area of a cube is:\n\nSurface Area = 6 × (side length)²\n\nIn this case, the side length is 5 cm, so:\n\nSurface Area = 6 × (5)²\n= 6 × 25\n= 150 cm²\n\nSo, the total surface area of the cube is 150 square centimeters.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "What is the force on a 1 kg mass due to the gravitational force?",
+    "ori_output": "The force on a 1 kg mass due to the gravitational force is given by:\n\nF = mg\n\nwhere F is the force, m is the mass (1 kg), and g is the acceleration due to gravity (approximately 9.8 m/s² on Earth's surface).\n\nSo, the force on a 1 kg mass due to the gravitational force is:\n\nF = 1 kg x 9.8 m/s² = 9.8 N\n\nTherefore, the force on a 1 kg mass due to the gravitational force is approximately 9.8 Newtons.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Provide one example for a cultural practice.",
+    "ori_output": "Here's an example of a cultural practice:\n\n**Example:** The Japanese Tea Ceremony (Chanoyu, Sado or Ocha)\n\nIn Japan, the traditional Tea Ceremony is a highly ritualized and formalized ceremony in which green tea (Matcha) is prepared and served to guests in a specially designed room. The ceremony is not just about drinking tea, but it's a spiritual and cultural practice that embodies the principles of harmony, respect, purity, and tranquility.\n\nHere are some key elements of the Japanese Tea Ceremony:\n\n* The host (Tea Master) prepares the tea room and the tea utensils with great care and attention",
+    "probs": []
+  },
+  {
+    "instruction": "Given a set of numbers, find the maximum value.",
+    "ori_output": "A simple one!\n\nTo find the maximum value in a set of numbers, you can use the following approaches:\n\n**Method 1: Using a loop**\n```\ndef find_max(numbers):\n    max_value = numbers[0]\n    for num in numbers:\n        if num > max_value:\n            max_value = num\n    return max_value\n```\n**Method 2: Using the built-in `max` function**\n```\ndef find_max(numbers):\n    return max(numbers)\n```\nBoth methods will work, but the second one is much more concise and efficient!\n\nHere's an example:\n```\nnumbers = [3,",
+    "probs": []
+  },
+  {
+    "instruction": "Give two examples of a liquid.",
+    "ori_output": "Here are two examples of liquids:\n\n1. Water\n2. Juice<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "What is the product of 6 and 2?",
+    "ori_output": "The product of 6 and 2 is 12.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "What type of plant is a skunk cabbage?",
+    "ori_output": "Skunk cabbage (Symplocarpus foetidus) is a type of perennial plant that belongs to the family Araceae, which includes other plants like calla lilies and peace lilies. It is native to eastern North America, from Canada to Florida, and is often found in wetlands, swamps, and along streams.\n\nSkunk cabbage is known for its distinctive, foul-smelling flowers and leaves, which give off a strong, unpleasant odor when crushed or bruised. This unique scent is thought to be a defense mechanism to deter herbivores and attract pollinators.\n\nThe plant has large, heart-shaped",
+    "probs": []
+  },
+  {
+    "instruction": "Convert the given binary number to its decimal equivalent.",
+    "ori_output": "I'd be happy to help! Please provide the binary number you'd like me to convert.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Name two types of desert biomes.",
+    "ori_output": "Here are two types of desert biomes:\n\n1. Hot Desert: This type of desert is characterized by extremely high temperatures, low humidity, and limited rainfall. Examples of hot deserts include the Sahara Desert in Africa, the Mojave Desert in North America, and the Australian Outback.\n2. Cold Desert: This type of desert is characterized by cold temperatures, low humidity, and limited rainfall. Examples of cold deserts include the Gobi Desert in Asia, the Patagonia Desert in South America, and the Arctic Desert in the Arctic region.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Given a sentence, convert it into passive voice.",
+    "ori_output": "I'd be happy to help. Please provide the sentence you'd like to convert into passive voice.\n\n(Note: In passive voice, the subject of the sentence is acted upon by the verb, rather than performing the action. The verb \"to be\" is often used in combination with the past participle of the main verb to form the passive voice.)\n\nFor example, if the original sentence is \"The dog bites the man,\" the passive voice version would be \"The man is bitten by the dog.\"<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Transform the following sentence into the passive voice",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to transform into the passive voice.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Create a dialog between two people who are discussing a scientific phenomenon",
+    "ori_output": "Here is a dialog between two people, Dr. Maria Rodriguez, a physicist, and Dr. John Lee, a biologist, discussing the phenomenon of quantum entanglement:\n\n**Setting:** A coffee shop in a university town. Dr. Maria Rodriguez and Dr. John Lee are sitting at a small table, sipping their lattes.\n\n**Dr. Maria Rodriguez:** John, have you given any more thought to the implications of quantum entanglement?\n\n**Dr. John Lee:** Ah, yes! I've been reading up on it. It's still blowing my mind. I mean, the idea that two particles can be connected in",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the most suitable adverb for the following sentence",
+    "ori_output": "I'm ready! Please go ahead and provide the sentence.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Find the main idea of the following passage",
+    "ori_output": "Please go ahead and provide the passage, and I'll do my best to identify the main idea.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Analyze the tone of the following sentences",
+    "ori_output": "Please go ahead and provide the sentences you'd like me to analyze. I'll do my best to identify the tone of each sentence, which can include emotions, attitudes, and perspectives conveyed through language.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Construct an argument to defend the following statement",
+    "ori_output": "Please go ahead and provide the statement you'd like me to defend. I'll do my best to construct a well-reasoned argument in its favor.\n\n(Note: Please keep in mind that I'll be arguing in favor of the statement, not necessarily saying it's true or accurate. My goal is to provide a persuasive argument, not necessarily a convincing one.)<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Convert the following sentence into the present continuous tense",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to convert into the present continuous tense.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Give an example of a metaphor that uses the following object",
+    "ori_output": "What object would you like me to use in the metaphor?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Describe the following person",
+    "ori_output": "I'm happy to help! However, I don't see a description of a person. Could you please provide me with the information you'd like me to describe? For example, you could give me a physical description, personality traits, interests, or any other details you think might be relevant.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Construct a mathematical problem with the following numbers",
+    "ori_output": "Please provide the numbers you'd like to use, and I'll create a mathematical problem for you.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Aim to reduce the following sentence without changing its meaning",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to reduce.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the conjunctions in the following sentence",
+    "ori_output": "Please provide the sentence, and I'll identify the conjunctions for you.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Rewrite the following sentence in the third person",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to rewrite.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a list of business ideas for a food delivery service.",
+    "ori_output": "Here are some business ideas for a food delivery service:\n\n1. **Meal Kit Delivery**: Offer pre-portioned ingredients and recipes for customers to cook at home. Partner with local farmers and food suppliers to source ingredients.\n2. **Global Cuisine Delivery**: Specialize in delivering international cuisine, such as Korean BBQ, Indian curries, or Mexican street food, from local restaurants and food trucks.\n3. **Vegan and Vegetarian Options**: Cater to the growing demand for plant-based food by partnering with vegan and vegetarian restaurants and food trucks.\n4. **Late-Night Delivery**: Focus on delivering food to customers who crave a late-night",
+    "probs": []
+  },
+  {
+    "instruction": "Edit the following sentence to improve clarity and flow.",
+    "ori_output": "Please go ahead and provide the sentence you'd like me to edit. I'll do my best to improve its clarity and flow.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Imagine you are speaking with a customer who is unsatisfied with the product they bought from you. Construct a response that diffuses the situation.",
+    "ori_output": "I'm so sorry to hear that you're not satisfied with your purchase. I can imagine how frustrating that must be for you. Can you tell me more about what's not meeting your expectations? What specifically is bothering you about the product?\n\n(I'm actively listening and taking notes, showing empathy and understanding)\n\nI want to assure you that we take all feedback seriously and are committed to making things right. Can I offer to replace the product or provide a refund? We also have a dedicated customer service team that can help troubleshoot any issues you're experiencing.\n\n(I'm offering solutions and alternatives, while also acknowledging the customer's concerns)\n\nAdditionally,",
+    "probs": []
+  },
+  {
+    "instruction": "Explain the concept of a bubble sort algorithm to a non-technical audience.",
+    "ori_output": "Imagine you have a bunch of cards in a deck, and you want to put them in order from smallest to largest. A bubble sort algorithm is a way to do this, but instead of using a fancy computer program, you can do it by hand.\n\nHere's how it works:\n\n1. Start by looking at the first two cards in the deck. If the first card is smaller than the second card, you swap them. If the first card is already smaller, you move on to the next two cards.\n2. Keep doing this process, moving through the deck one pair of cards at a time, until you reach the end of",
+    "probs": []
+  },
+  {
+    "instruction": "Classify the following incident as a breach of protocol. Output 1 for breach, and 0 for no breach.",
+    "ori_output": "I'm ready to classify the incident. Please provide the details of the incident, and I'll let you know if it's a breach of protocol or not.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Given the following input, construct a creative story.",
+    "ori_output": "I'm excited to hear the input! Please go ahead and provide the details, and I'll do my best to craft a creative story for you.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a list of methods to reduce food waste.",
+    "ori_output": "Here are some methods to reduce food waste:\n\n**Meal Planning and Grocery Shopping**\n\n1. Plan your meals and make a grocery list to avoid buying too much food.\n2. Shop your fridge and pantry first to use up existing food before buying more.\n3. Check expiration dates and plan meals around items that are near expiration.\n4. Buy imperfect produce to reduce food waste and support local farmers.\n\n**Food Storage and Handling**\n\n1. Store food properly to extend its shelf life (e.g., keep fruits and vegetables separate, store leftovers in airtight containers).\n2. Label and date leftovers to ensure they are used before they expire.",
+    "probs": []
+  },
+  {
+    "instruction": "Propose an idea for a self-driving car.",
+    "ori_output": "Here's an idea for a self-driving car:\n\n**Concept:** \"EcoPilot\" - a sustainable, autonomous vehicle designed for urban commuters\n\n**Key Features:**\n\n1. **Electric Powertrain:** EcoPilot is an all-electric vehicle, reducing emissions and noise pollution in urban areas.\n2. **Advanced Navigation:** Equipped with a combination of GPS, lidar, radar, and cameras, EcoPilot can navigate through complex urban environments with ease.\n3. **Autonomous Driving:** Using machine learning algorithms and sensor data, EcoPilot can detect and respond to its surroundings, making it a safe and efficient mode",
+    "probs": []
+  },
+  {
+    "instruction": "Explain the concept of a linear regression model using simple language.",
+    "ori_output": "A linear regression model is a way to predict a continuous outcome variable (like a score or a price) based on one or more input variables (like age, height, or income). Here's a simple explanation:\n\n**Imagine you're trying to predict how much money a person will make based on their age.**\n\nLet's say you have a dataset of people with their ages and corresponding salaries. You want to create a model that can predict a person's salary based on their age.\n\n**The model is like a straight line that tries to fit the data points.**\n\nThe line is called a \"regression line.\" It's like a",
+    "probs": []
+  },
+  {
+    "instruction": "Construct a list of tips to help reduce stress.",
+    "ori_output": "Here are some tips to help reduce stress:\n\n1. **Practice Deep Breathing**: Take slow, deep breaths in through your nose and out through your mouth, focusing on the sensation of the breath. This can help calm your mind and body.\n\n2. **Exercise Regularly**: Engage in physical activity that you enjoy, such as walking, jogging, yoga, or dancing. Exercise can help reduce stress and anxiety by releasing endorphins, also known as \"feel-good\" hormones.\n\n3. **Get Enough Sleep**: Aim for 7-9 hours of sleep each night to help your body and mind recharge. Lack of sleep",
+    "probs": []
+  },
+  {
+    "instruction": "Write a review of a recent movie you watched.",
+    "ori_output": "**Movie Review:**\n\n**Title:** \"The Lost City\" (2022)\n\n**Genre:** Action-Adventure, Comedy\n\n**Starring:** Sandra Bullock, Channing Tatum, Brad Pitt\n\n**Directed by:** Aaron Nee and Adam Nee\n\nI recently had the pleasure of watching \"The Lost City\", a hilarious and action-packed adventure film that had me laughing and on the edge of my seat from start to finish. The movie follows the story of Loretta (Sandra Bullock), a reclusive romance novelist who has lost her muse and is struggling to write her next book. When she's kidnapped by",
+    "probs": []
+  },
+  {
+    "instruction": "Create a Twitter post to promote your new product.",
+    "ori_output": "Here's a Twitter post to promote a new product:\n\n**Introducing the Ultimate Smart Water Bottle!**\n\nStay hydrated, track your progress, and earn rewards with our new smart water bottle! With its sleek design and advanced features, this bottle is a game-changer for fitness enthusiasts and health-conscious individuals alike.\n\n**Key Features:**\n\nTemperature control: Keep your drinks at the perfect temperature for hours\nWater tracking: Monitor your daily hydration goals and receive reminders\nReward system: Earn points for reaching your hydration targets and redeem them for discounts and freebies\n\n**Get yours now and start sipping your way to a healthier you!** [",
+    "probs": []
+  },
+  {
+    "instruction": "Given the following input, classify the verb as transitive or intransitive.",
+    "ori_output": "Please go ahead and provide the input, and I'll classify the verb as transitive or intransitive.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a list of marketing strategies to promote a new mobile app.",
+    "ori_output": "Here are some effective marketing strategies to promote a new mobile app:\n\n**Pre-Launch Strategies**\n\n1. **Teaser Campaign**: Create a buzz around the app by releasing a series of teasers on social media, showcasing the app's features and benefits.\n2. **Influencer Partnerships**: Collaborate with influencers in your niche to promote the app and generate buzz.\n3. **Content Marketing**: Create engaging content (blog posts, videos, infographics) that highlights the app's unique features and benefits.\n4. **Email Marketing**: Build an email list and send out regular newsletters to subscribers, sharing updates and sneak peeks of",
+    "probs": []
+  },
+  {
+    "instruction": "Rewrite the sentence to provide more clarity and flow.",
+    "ori_output": "I'm happy to help! Please go ahead and provide the sentence you'd like me to rewrite.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Give a description of the following customer segment.",
+    "ori_output": "I'm happy to help! However, I don't see a customer segment description provided. Could you please provide the customer segment you'd like me to describe?<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Design a logo for a mobile application.",
+    "ori_output": "I'd be happy to help design a logo for a mobile application. Before I get started, can you please provide me with some information about the app? This will help me create a logo that accurately represents the app's purpose and target audience. Please provide me with the following details:\n\n1. What is the name of the app?\n2. What does the app do? (e.g. social media, productivity, gaming, etc.)\n3. Who is the target audience for the app? (e.g. children, adults, professionals, etc.)\n4. What are the key features or benefits of the app?\n5. Do you",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a list of country names in the western hemisphere.",
+    "ori_output": "Here is a list of country names in the Western Hemisphere:\n\n1. Antigua and Barbuda\n2. Argentina\n3. Bahamas\n4. Barbados\n5. Belize\n6. Bolivia\n7. Brazil\n8. Canada\n9. Chile\n10. Colombia\n11. Costa Rica\n12. Cuba\n13. Dominica\n14. Dominican Republic\n15. Ecuador\n16. El Salvador\n17. Grenada\n18. Guatemala\n19. Guyana\n20. Haiti\n21. Honduras\n22. Jamaica\n23. Mexico\n24. Nicaragua\n25. Panama\n26. Paraguay",
+    "probs": []
+  },
+  {
+    "instruction": "Translate the following phrase into French.",
+    "ori_output": "Please go ahead and provide the phrase you'd like me to translate into French.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Explain what an API is.",
+    "ori_output": "An API, or Application Programming Interface, is a set of defined rules that enables different applications, services, or systems to communicate with each other. It allows data to be shared, processed, and used between different systems, making it a crucial component of modern software development.\n\nThink of an API as a messenger between different systems. Imagine you're at a restaurant and you want to order food. You can't just walk into the kitchen and start making your own food, because that's not how it works. Instead, you give your order to the waiter, and they take it to the kitchen staff. The kitchen staff then prepares your food according",
+    "probs": []
+  },
+  {
+    "instruction": "Compute the area of a rectangle with length 10cm and width 5cm.",
+    "ori_output": "A simple one!\n\nThe formula to compute the area of a rectangle is:\n\nArea = Length × Width\n\nIn this case, the length is 10cm and the width is 5cm, so:\n\nArea = 10cm × 5cm = 50 square centimeters (or 50cm²)\n\nSo, the area of the rectangle is 50 square centimeters.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Find the capital of Spain.",
+    "ori_output": "The capital of Spain is Madrid.<|eot_id|>",
+    "probs": []
+  },
+  {
+    "instruction": "Classify the following statement as true or false.",
+    "ori_output": "I'm ready! Please go ahead and provide the statement.<|eot_id|>",
+    "probs": []
+  }
+]

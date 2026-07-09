@@ -205,7 +205,7 @@ def load_model_and_tokenizer(model_type: str, model_size: str, load_checkpoint: 
             )
             
         elif model_type == 'llama3':
-            model_path = "unsloth/Meta-Llama-3.1-8B-Instruct"
+            model_path = "meta-llama/Meta-Llama-3-8B-Instruct"
             model = AutoModelForCausalLM.from_pretrained(
                 model_path,
                 #cache_dir='models/llama3',

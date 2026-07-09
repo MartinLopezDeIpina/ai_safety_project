@@ -17,14 +17,22 @@ def _load_module(filename, name):
 
 
 plot_figure2 = _load_module("_02_3.1_figure2.py", "figure2").plot_figure2
+plot_figure3 = _load_module("_03_3.2_figure3.py", "figure3").plot_figure3
 
-MODEL = "qwen"
-MODEL_SIZE = "0.5b"
-LEFT = 0
-RIGHT = 10
+def main(model="qwen", model_size="0.5b", left=0, right=10,
+         stages=("infer", "eval", "acts", "fig")):
+    """Run the pipeline for one model/config. `stages` selects which stages run."""
+    if "infer" in stages:
+        run_all_inference(model, model_size, left, right)
+    if "eval" in stages:
+        evaluate(model, model_size)
+    if "acts" in stages:
+        compute_all_activations(model, model_size)
+    if "fig" in stages:
+        plot_figure2(model, model_size)
+    if "fig3" in stages:
+        plot_figure3(model, model_size)
+
 
 if __name__ == "__main__":
-    # run_all_inference(MODEL, MODEL_SIZE, LEFT, RIGHT)  # already run
-    # evaluate(MODEL, MODEL_SIZE)  # already run
-    #compute_all_activations(MODEL, MODEL_SIZE)  # already run
-    plot_figure2(MODEL, MODEL_SIZE)
+    main("qwen", "0.5b", 0, 10, stages=("fig3",))
