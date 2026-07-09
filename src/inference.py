@@ -99,7 +99,15 @@ def extract_model_output(
     elif model_type == 'vicuna':
         return full_output.split('ASSISTANT:')[-1].replace('</s>', '').strip()
     elif model_type == 'qwen':
-        return full_output.split('assistant')[-1].replace('</s>', '').strip()
+        # tpost templates end with the assistant turn ("...<|im_start|>assistant"); the tinst
+        # template ("<|im_start|>user\n{q}") has no assistant token, so split('assistant') would
+        # leave the whole echoed prompt in the response. Strip the exact input prompt when present
+        # (mirrors the llama3 branch); fall back to the assistant split otherwise.
+        if input_prompt and input_prompt in full_output:
+            response = full_output.split(input_prompt)[-1]
+        else:
+            response = full_output.split('assistant')[-1]
+        return response.replace('</s>', '').strip()
     elif model_type == 'llama3':
         return full_output.split(input_prompt)[-1].strip()
     else:
