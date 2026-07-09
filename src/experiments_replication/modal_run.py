@@ -195,8 +195,14 @@ def clear_results():
 
 
 @app.function(image=image, gpu="A100", volumes=VOLUMES, secrets=[hf_secret], timeout=18000)
-def run_pipeline(stages: list[str], resume: bool = True):
+def run_pipeline(stages: list[str], resume: bool = True, env: str = ""):
     os.environ["HF_HUB_CACHE"] = "/cache"
+    # Optional per-run env passthrough ("K=V;K=V") — subprocess stages inherit os.environ,
+    # so this tunes e.g. STEER_COEFF / STEER_LAYERS / STEER_N for 05b without code edits.
+    for kv in env.split(";"):
+        if "=" in kv:
+            k, v = kv.split("=", 1)
+            os.environ[k.strip()] = v.strip()
     os.chdir("/root")
     data_vol.reload()     # pick up gcg/pap datasets committed by a prior gen_jailbreaks run
     results_vol.reload()
@@ -218,7 +224,7 @@ def _datasets_present():
 
 @app.local_entrypoint()
 def entry(stages: str = "", gen_only: bool = False, skip_gen: bool = False,
-          fresh: bool = False, gcg_n: int = 20, gcg_steps: int = 80, pap_n: int = 50):
+          fresh: bool = False, env: str = "", gcg_n: int = 20, gcg_steps: int = 80, pap_n: int = 50):
     # 1) (re)generate the GCG + PAP jailbreak datasets on the target model, unless skipped.
     #    NOTE: the datasets volume must already contain the source data (advbench.json and
     #    persuasion_taxonomy.jsonl) — run `python modal_data_setup.py` after adding the
@@ -236,7 +242,7 @@ def entry(stages: str = "", gen_only: bool = False, skip_gen: bool = False,
         chosen = [_SHORT.get(tok.strip(), tok.strip()) for tok in stages.split(",")]
     else:
         chosen = DEFAULT_STAGES
-    run_pipeline.remote(chosen)
+    run_pipeline.remote(chosen, env=env)
 
     # 3) pull results (and datasets) back locally
     import subprocess

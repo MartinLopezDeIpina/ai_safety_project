@@ -170,7 +170,10 @@ def sweep_layers(model, tokenizer, data_dicts, direction_norm, coeff, tok_fn_inv
 def main():
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    iv.MODEL = 'qwen'
+    # Must match the model family: intervention.py uses iv.MODEL both to size its per-layer
+    # cache (28 qwen / 32 else) AND to build the context-only boundary token (the inversion
+    # suffix + the family's post-instruction tokens). Hardcoding 'qwen' breaks Llama-3-8B.
+    iv.MODEL = MODEL_TYPE
     # Appendix E.1 / complete_intervene.sh: steer at PREFILL only (the input tokens),
     # not across generation. With intervene_context_only the pre-hook indexes prompt
     # positions, which only exist at the prefill forward (KV-cached decode steps are

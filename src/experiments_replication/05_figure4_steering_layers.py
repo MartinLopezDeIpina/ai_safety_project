@@ -35,7 +35,7 @@ import torch.nn.functional as F
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
-from config import RESULTS_DIR, STEERING_COEFF, N_TEST, SRC_DIR
+from config import RESULTS_DIR, STEERING_COEFF, N_TEST, SRC_DIR, MODEL_TYPE
 from model_utils import load_model, tokenize_fn, is_refusal
 from transformers import GenerationConfig
 
@@ -131,8 +131,10 @@ def sweep_layers(model, tokenizer, data_dicts, direction_norm, coeff, desc=""):
 def main():
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    # Set intervention globals before calling complete_with_intervention
-    iv.MODEL = 'qwen'
+    # Set intervention globals before calling complete_with_intervention.
+    # MODEL must match the model family: intervention.py uses it to size its per-layer cache
+    # (28 for qwen, 32 otherwise), so hardcoding 'qwen' breaks Llama-3-8B (32 layers).
+    iv.MODEL = MODEL_TYPE
     iv.DECODING_STEP = -1  # intervene on all decode steps
 
     print("Loading model …")
