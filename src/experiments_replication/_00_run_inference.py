@@ -1,5 +1,6 @@
 """Run all inference passes, then classify responses into the 6 category pools."""
 
+import json
 import os
 import subprocess
 import sys
@@ -8,6 +9,21 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.dirname(HERE)
 REPO_DIR = os.path.dirname(SRC_DIR)
 DATA_DIR = os.path.join(REPO_DIR, "data")
+
+
+def _read_rows(path):
+    """Read a list of records from either an indented JSON array or JSONL."""
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    if text.lstrip().startswith("["):
+        return json.loads(text)
+    return [json.loads(line) for line in text.splitlines() if line.strip()]
+
+
+def _write_pretty(path, rows):
+    """Write records as an indented JSON array (readable; still loadable by read_row)."""
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(rows, f, indent=2, ensure_ascii=False)
 
 
 def run_inference_on_dataset(
@@ -41,6 +57,9 @@ def run_inference_on_dataset(
     ]
     # cwd=SRC_DIR so inference.py's `from utils import ...` resolves.
     subprocess.run(cmd, check=True, cwd=SRC_DIR)
+
+    # inference.py writes JSONL; rewrite as an indented array for readability.
+    _write_pretty(output_file, _read_rows(output_file))
 
 
 def _out_dirs(model, model_size):
@@ -96,7 +115,6 @@ def evaluate(model, model_size):
     """Classify each response and route it into the 6 category pools."""
     sys.path.insert(0, SRC_DIR)
     from eval import easy_eval
-    from utils import read_row, store_row
 
     dataset_out_dir, buckets_dir = _out_dirs(model, model_size)
     os.makedirs(buckets_dir, exist_ok=True)
@@ -104,7 +122,7 @@ def evaluate(model, model_size):
     # Classify every dataset output once; cache scored items per output name.
     scored = {}
     for _, out_name, _ in RUNS:
-        data = read_row(os.path.join(dataset_out_dir, out_name))
+        data = _read_rows(os.path.join(dataset_out_dir, out_name))
         labels = easy_eval(data, tag="ori_output", mode="refusal")
         scored[out_name] = list(zip(data, labels))
 
@@ -115,5 +133,5 @@ def evaluate(model, model_size):
             for item, label in scored[name]
             if label == keep_label
         ]
-        store_row(os.path.join(buckets_dir, pool_name + ".json"), pool)
+        _write_pretty(os.path.join(buckets_dir, pool_name + ".json"), pool)
         print(f"{pool_name}: {len(pool)} items")

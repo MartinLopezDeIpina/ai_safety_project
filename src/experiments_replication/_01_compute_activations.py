@@ -6,6 +6,7 @@ activations per call. The saved tensor (output_pth_harmful) holds activations at
 t_inst and t_post positions.
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -70,26 +71,30 @@ def run_extract_hidden(
     # cwd=HERE so extract_hidden.py's relative 'output/tmp_*.pt' land here, not in src/.
     subprocess.run(cmd, check=True, cwd=HERE)
 
-    # extract_hidden.py always writes output_pth_harmless and an output_pth prompts-log;
-    # under extract_only neither is useful, so drop them.
-    for debris in (output_pth_harmless, output_pth.replace(".pt", "_prompts_used.json")):
-        if os.path.exists(debris):
-            os.remove(debris)
+    # extract_hidden.py leaves behind: output_pth_harmless (None under extract_only), an
+    # output_pth prompts-log, and internal scratch tmp_*.pt in cwd/output. None are useful.
+    debris = [
+        output_pth_harmless,
+        output_pth.replace(".pt", "_prompts_used.json"),
+        os.path.join(HERE, "output", "tmp_mean_activations_harmful.pt"),
+        os.path.join(HERE, "output", "tmp_full_activations_harmful.pt"),
+    ]
+    for path in debris:
+        if os.path.exists(path):
+            os.remove(path)
 
 
 def compute_all_activations(model, model_size):
     """Extract activations for each of the 6 buckets into buckets_activations/."""
-    sys.path.insert(0, SRC_DIR)
-    from utils import read_row
-
     buckets_dir, acts_dir = _dirs(model, model_size)
     os.makedirs(acts_dir, exist_ok=True)
 
     for name in BUCKET_NAMES:
         bucket_pth = os.path.join(buckets_dir, name + ".json")
-        if not read_row(bucket_pth):
-            print(f"{name}: empty bucket, skipping")
-            continue
+        with open(bucket_pth, encoding="utf-8") as f:
+            if not json.load(f):
+                print(f"{name}: empty bucket, skipping")
+                continue
         run_extract_hidden(
             harmful_pth=bucket_pth,
             harmless_pth=bucket_pth,  # read but unused under extract_only=1
