@@ -22,3 +22,4 @@ __pycache__/
 venv/
 .venv/
 **/buckets_activations/
+**/buckets_activations_v2/
