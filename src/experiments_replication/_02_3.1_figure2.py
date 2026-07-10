@@ -127,9 +127,13 @@ def _draw_score(
     ax.legend(loc="lower right", fontsize=15, framealpha=0.9, edgecolor="0.8")
 
 
-def plot_figure2(model, model_size):
-    """Build and save Figure 2 (t_inst and t_post as two panels of one PNG)."""
-    acts_dir = _acts_dir(model, model_size)
+def plot_figure2(model, model_size, acts_dir=None, out_path=None):
+    """Build and save Figure 2 (t_inst and t_post as two panels of one PNG).
+
+    acts_dir: override the buckets_activations directory (default: the model's dir).
+    out_path: override the output PNG path (default: output/<model><size>/figure2.png).
+    """
+    acts_dir = acts_dir or _acts_dir(model, model_size)
     out_dir = os.path.join(HERE, "output", f"{model}{model_size}")
 
     positions = list(BUCKETS)
@@ -169,7 +173,8 @@ def plot_figure2(model, model_size):
             print(f"{position}: refused_harmless empty -> green line omitted")
 
     fig.tight_layout()
-    save_path = os.path.join(out_dir, "figure2.png")
+    save_path = out_path or os.path.join(out_dir, "figure2.png")
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
     fig.savefig(save_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
-    print("figure2.png saved")
+    print(f"saved {save_path}")

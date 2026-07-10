@@ -86,10 +86,18 @@ RUNS = [
 
 # pool name -> (source output names, label to keep)
 # label: '5' = accepted, '0' = refused (easy_eval refusal mode).
+# NOTE (see EXPERIMENT_LOG.md): corrected, paper-faithful bucket sources for Figure 2:
+#  - tinst_accepted_harmful uses advbench+jbb only. Sorry-Bench's conversational prompts sit on the
+#    harmless side of the advbench/jbb harmfulness axis at tinst and reverse the coral line.
+#  - tpost_accepted_harmful uses Sorry-Bench only. advbench/jbb are ~98% refused at tpost, so their
+#    "accepted" examples are substring false-negatives (actually refusals) that poison the coral line.
+# For the definitive figures we instead re-bucket offline with `rebucket_store.py`, which also excludes
+# empty responses and lets the harmless anchor be Alpaca-only (removes the xstest self-similarity
+# confound that masks the tpost refusal flip).
 POOLS = {
-    "tinst_accepted_harmful": (["advbench_tinst.json", "jbb_tinst.json", "sorrybench_tinst.json"], "5"),
+    "tinst_accepted_harmful": (["advbench_tinst.json", "jbb_tinst.json"], "5"),
     "tinst_refused_harmful": (["advbench_tinst.json", "jbb_tinst.json"], "0"),
-    "tpost_accepted_harmful": (["advbench_tpost.json", "jbb_tpost.json", "sorrybench_tpost.json"], "5"),
+    "tpost_accepted_harmful": (["sorrybench_tpost.json"], "5"),
     "tpost_refused_harmful": (["advbench_tpost.json", "jbb_tpost.json"], "0"),
     "accepted_harmless": (["xstest.json", "alpaca.json"], "5"),
     "refused_harmless": (["xstest.json"], "0"),
