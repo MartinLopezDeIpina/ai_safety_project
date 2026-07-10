@@ -1,4 +1,13 @@
-"""Run all inference passes, then classify responses into the 6 category pools."""
+"""Run all inference passes and split each into accepted/refused generations.
+
+Two stages, both writing under output/<model><size>/datasets_outputs/:
+  run_all_inference -> generations/            one JSON per dataset x generation-config.
+  evaluate          -> classified_generations/ each generation split by refusal label.
+
+Bucket/cluster composition and train/test splits are intentionally NOT done here: they
+are a pure-CPU step in dynamic_bucket_formation.py, on top of the activations that
+_01_compute_activations.py extracts from classified_generations/.
+"""
 
 import json
 import os
@@ -63,54 +72,44 @@ def run_inference_on_dataset(
 
 
 def _out_dirs(model, model_size):
-    """Output dirs for a given model, e.g. output/qwen0.5b/{dataset_outputs,buckets}."""
-    out_dir = os.path.join(HERE, "output", f"{model}{model_size}")
-    return os.path.join(out_dir, "dataset_outputs"), os.path.join(out_dir, "buckets")
+    """The 3 stage dirs under output/<model><size>/datasets_outputs/.
+
+    Returns (generations, classified_generations, activations). The last is written by
+    _01_compute_activations.py but named here so all stages share one layout definition.
+    """
+    base = os.path.join(HERE, "output", f"{model}{model_size}", "datasets_outputs")
+    return (
+        os.path.join(base, "generations"),
+        os.path.join(base, "classified_generations"),
+        os.path.join(base, "activations"),
+    )
 
 
 # (dataset file, output name, do_not_use_last_inst_tok)
-# do_not_use_last_inst_tok: 1 = t_inst config, 0 = t_post config.
+# do_not_use_last_inst_tok: 1 = t_inst config, 0 = t_post config. The 'gen' in the output
+# name marks the generation prompt config (whether post-instruction tokens were removed).
 RUNS = [
-    # harmful x t_inst
-    ("advbench.json", "advbench_tinst.json", 1),
-    ("jbb.json", "jbb_tinst.json", 1),
-    ("sorry-badq.json", "sorrybench_tinst.json", 1),
-    # harmful x t_post
-    ("advbench.json", "advbench_tpost.json", 0),
-    ("jbb.json", "jbb_tpost.json", 0),
-    ("sorry-badq.json", "sorrybench_tpost.json", 0),
-    # harmless x t_post (single config)
+    # harmful x gen-t_inst
+    ("advbench.json", "advbench_gentinst.json", 1),
+    ("jbb.json", "jbb_gentinst.json", 1),
+    ("sorry-badq.json", "sorrybench_gentinst.json", 1),
+    # harmful x gen-t_post
+    ("advbench.json", "advbench_gentpost.json", 0),
+    ("jbb.json", "jbb_gentpost.json", 0),
+    ("sorry-badq.json", "sorrybench_gentpost.json", 0),
+    # harmless x gen-t_post (single config)
     ("xstest-harmless.json", "xstest.json", 0),
     ("alpaca_data_instruction.json", "alpaca.json", 0),
 ]
 
-# pool name -> (source output names, label to keep)
-# label: '5' = accepted, '0' = refused (easy_eval refusal mode).
-# NOTE (see EXPERIMENT_LOG.md): corrected, paper-faithful bucket sources for Figure 2:
-#  - tinst_accepted_harmful uses advbench+jbb only. Sorry-Bench's conversational prompts sit on the
-#    harmless side of the advbench/jbb harmfulness axis at tinst and reverse the coral line.
-#  - tpost_accepted_harmful uses Sorry-Bench only. advbench/jbb are ~98% refused at tpost, so their
-#    "accepted" examples are substring false-negatives (actually refusals) that poison the coral line.
-# For the definitive figures we instead re-bucket offline with `rebucket_store.py`, which also excludes
-# empty responses and lets the harmless anchor be Alpaca-only (removes the xstest self-similarity
-# confound that masks the tpost refusal flip).
-POOLS = {
-    "tinst_accepted_harmful": (["advbench_tinst.json", "jbb_tinst.json"], "5"),
-    "tinst_refused_harmful": (["advbench_tinst.json", "jbb_tinst.json"], "0"),
-    "tpost_accepted_harmful": (["sorrybench_tpost.json"], "5"),
-    "tpost_refused_harmful": (["advbench_tpost.json", "jbb_tpost.json"], "0"),
-    "accepted_harmless": (["xstest.json", "alpaca.json"], "5"),
-    "refused_harmless": (["xstest.json"], "0"),
-}
-
 
 def run_all_inference(model, model_size, left, right):
     """Generate responses for all 8 dataset/config combinations."""
-    dataset_out_dir, _ = _out_dirs(model, model_size)
+    generations_dir, _, _ = _out_dirs(model, model_size)
     for dataset_file, out_name, no_last_tok in RUNS:
         run_inference_on_dataset(
             input_file=os.path.join(DATA_DIR, dataset_file),
-            output_file=os.path.join(dataset_out_dir, out_name),
+            output_file=os.path.join(generations_dir, out_name),
             do_not_use_last_inst_tok=no_last_tok,
             model=model,
             model_size=model_size,
@@ -120,26 +119,22 @@ def run_all_inference(model, model_size, left, right):
 
 
 def evaluate(model, model_size):
-    """Classify each response and route it into the 6 category pools."""
+    """Split each generation into accepted/refused classified generations.
+
+    label: '5' = accepted, '0' = refused (easy_eval refusal mode). No cross-source
+    aggregation here; that is the job of dynamic_bucket_formation.py.
+    """
     sys.path.insert(0, SRC_DIR)
     from eval import easy_eval
 
-    dataset_out_dir, buckets_dir = _out_dirs(model, model_size)
-    os.makedirs(buckets_dir, exist_ok=True)
+    generations_dir, classified_dir, _ = _out_dirs(model, model_size)
+    os.makedirs(classified_dir, exist_ok=True)
 
-    # Classify every dataset output once; cache scored items per output name.
-    scored = {}
     for _, out_name, _ in RUNS:
-        data = _read_rows(os.path.join(dataset_out_dir, out_name))
+        data = _read_rows(os.path.join(generations_dir, out_name))
         labels = easy_eval(data, tag="ori_output", mode="refusal")
-        scored[out_name] = list(zip(data, labels))
-
-    for pool_name, (source_names, keep_label) in POOLS.items():
-        pool = [
-            item
-            for name in source_names
-            for item, label in scored[name]
-            if label == keep_label
-        ]
-        _write_pretty(os.path.join(buckets_dir, pool_name + ".json"), pool)
-        print(f"{pool_name}: {len(pool)} items")
+        stem = out_name[: -len(".json")]
+        for suffix, keep_label in (("accepted", "5"), ("refused", "0")):
+            split = [item for item, label in zip(data, labels) if label == keep_label]
+            _write_pretty(os.path.join(classified_dir, f"{stem}_{suffix}.json"), split)
+            print(f"{stem}_{suffix}: {len(split)} items")

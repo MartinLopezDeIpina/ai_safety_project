@@ -1,0 +1,171 @@
+"""CPU-only train/test bucket formation from the activation store (no GPU re-extraction).
+
+_01_compute_activations.py writes one activation tensor per classified generation under
+datasets_outputs/activations/<source>.pt, each of shape (L, N, T, H) holding both the
+t_inst (token index 1) and t_post (index -1) positions. This module composes those source
+tensors into single-token-position clusters used by the experiments, and splits every
+source into a train/test partition, entirely on CPU.
+
+Each cluster is tied to one token position, so a returned cluster tensor has shape
+(L, N, H) — the token axis is already sliced away. Composition is configurable:
+BUCKET_TRAIN / BUCKET_TEST map a cluster name to (its activation sources, token position).
+Experiments import build_splits and may override those lists (and test_ratio) to try
+different compositions without re-running any GPU work.
+
+Split rule (per source, deterministic for a given seed):
+  - source in BOTH train and test configs -> ratio split (train = first 1-test_ratio,
+    test = remaining test_ratio, over a fixed per-source permutation).
+  - source ONLY in train -> all its examples go to train.
+  - source ONLY in test  -> all its examples go to test.
+
+Usage: python dynamic_bucket_formation.py qwen 0.5b [test_ratio]
+"""
+
+import hashlib
+import os
+import sys
+
+import numpy as np
+import torch
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+# token position -> index into a source tensor's token axis (matches _02/_03).
+POSITION_INDEX = {"tinst": 1, "tpost": -1}
+
+# cluster name -> (activation source stems in datasets_outputs/activations/ without .pt,
+#                  token position to slice out).
+# Paper-faithful defaults (see EXPERIMENT_LOG.md / former rebucket_store.py):
+#  - harmful_*_tinst read the gentinst-config sources at t_inst; harmful_*_tpost read the
+#    gentpost-config sources at t_post.
+#  - accepted_harmful @ tinst uses advbench+jbb (Sorry-Bench sits on the harmless side of the
+#    advbench/jbb harmfulness axis at t_inst); accepted_harmful @ tpost uses Sorry-Bench
+#    (advbench/jbb are ~all refused at t_post).
+#  - harmless sources are generated in a single (gentpost) config but each tensor holds both
+#    token positions, so the same source feeds its _tinst and _tpost clusters. Anchored on
+#    Alpaca (accepted) / xstest (refused) to avoid the xstest self-similarity confound.
+BUCKET_TRAIN_ALT = [
+    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted"], "tinst"),
+    ("accepted_harmful_tpost",  ["sorrybench_gentpost_accepted"], "tpost"),
+    ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
+    ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
+    ("accepted_harmless_tinst", ["alpaca_accepted"], "tinst"),
+    ("accepted_harmless_tpost", ["alpaca_accepted"], "tpost"),
+    ("refused_harmless_tinst",  ["xstest_refused"], "tinst"),
+    ("refused_harmless_tpost",  ["xstest_refused"], "tpost"),
+]
+BUCKET_TRAIN_ALT = [
+    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted"], "tinst"),
+    ("accepted_harmful_tpost",  ["sorrybench_gentpost_accepted"], "tpost"),
+    ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
+    ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
+    ("accepted_harmless_tinst", ["alpaca_accepted"], "tinst"),
+    ("accepted_harmless_tpost", ["alpaca_accepted"], "tpost"),
+    ("refused_harmless_tinst",  ["xstest_refused"], "tinst"),
+    ("refused_harmless_tpost",  ["xstest_refused"], "tpost"),
+]
+
+BUCKET_TRAIN = [
+    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tinst"),
+    ("accepted_harmful_tpost",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tpost"),
+    ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
+    ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
+    ("accepted_harmless_tinst", ["alpaca_accepted", "xstest_accepted"], "tinst"),
+    ("accepted_harmless_tpost", ["alpaca_accepted", "xstest_accepted"], "tpost"),
+    # no refused harmless in train, held out
+    ("refused_harmless_tinst", [], "tinst"),
+    ("refused_harmless_tpost", [], "tpost"),
+]
+
+BUCKET_TEST = [
+    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tinst"),
+    ("accepted_harmful_tpost",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tpost"),
+    ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
+    ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
+    ("accepted_harmless_tinst", ["alpaca_accepted", "xstest_accepted"], "tinst"),
+    ("accepted_harmless_tpost", ["alpaca_accepted", "xstest_accepted"], "tpost"),
+    ("refused_harmless_tinst",  ["xstest_refused"], "tinst"),
+    ("refused_harmless_tpost",  ["xstest_refused"], "tpost"),
+]
+
+def _acts_dir(model, model_size):
+    return os.path.join(HERE, "output", f"{model}{model_size}", "datasets_outputs", "activations")
+
+
+def _sources(config):
+    """Flat set of every activation source referenced by a bucket config."""
+    return {s for _, sources, _ in config for s in sources}
+
+
+def _split_indices(n, test_ratio, seed, source):
+    """Deterministic (train_idx, test_idx) for a source's N examples.
+
+    Seeded per source so the same source splits identically on every call, independent of
+    the order sources are processed.
+    """
+    digest = hashlib.md5(source.encode("utf-8")).hexdigest()
+    rng = np.random.default_rng([seed, int(digest, 16) % (2**32)])
+    perm = rng.permutation(n)
+    n_test = int(round(n * test_ratio))
+    return perm[n_test:], perm[:n_test]  # train, test
+
+
+def build_splits(model, model_size, bucket_train=BUCKET_TRAIN, bucket_test=BUCKET_TEST,
+                 test_ratio=0.5, seed=0):
+    """Compose and split activations into train/test clusters.
+
+    Returns (train_acts, test_acts), each a dict cluster_name -> (L, N, H) tensor at the
+    cluster's token position. A cluster with no available source examples is omitted.
+    """
+    acts_dir = _acts_dir(model, model_size)
+    train_sources = _sources(bucket_train)
+    test_sources = _sources(bucket_test)
+
+    cache = {}  # source -> (tensor|None, train_idx, test_idx)
+
+    def load(source):
+        if source not in cache:
+            path = os.path.join(acts_dir, source + ".pt")
+            if not os.path.exists(path):
+                cache[source] = (None, None, None)
+            else:
+                tensor = torch.load(path, map_location="cpu").float()
+                train_idx, test_idx = _split_indices(tensor.shape[1], test_ratio, seed, source)
+                cache[source] = (tensor, train_idx, test_idx)
+        return cache[source]
+
+    def assemble(config, side):
+        other_sources = test_sources if side == "train" else train_sources
+        out = {}
+        for cluster, sources, position in config:
+            pidx = POSITION_INDEX[position]
+            slices = []
+            for source in sources:
+                tensor, train_idx, test_idx = load(source)
+                if tensor is None:
+                    continue
+                if source in other_sources:
+                    idx = train_idx if side == "train" else test_idx
+                else:
+                    idx = np.arange(tensor.shape[1])  # source only on this side -> all rows
+                if len(idx):
+                    slices.append(tensor[:, idx, pidx, :])  # (L, n, H) at this token position
+            if slices:
+                out[cluster] = torch.cat(slices, dim=1)
+        return out
+
+    return assemble(bucket_train, "train"), assemble(bucket_test, "test")
+
+
+if __name__ == "__main__":
+    model = sys.argv[1] if len(sys.argv) > 1 else "qwen"
+    model_size = sys.argv[2] if len(sys.argv) > 2 else "0.5b"
+    test_ratio = float(sys.argv[3]) if len(sys.argv) > 3 else 0.5
+
+    train_acts, test_acts = build_splits(model, model_size, test_ratio=test_ratio)
+    for side, acts in (("train", train_acts), ("test", test_acts)):
+        print(f"[{side}]")
+        for cluster, _, _ in BUCKET_TRAIN:
+            tensor = acts.get(cluster)
+            shape = tuple(tensor.shape) if tensor is not None else "EMPTY"
+            print(f"  {cluster:26s}: {shape}")

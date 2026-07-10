@@ -24,3 +24,4 @@ venv/
 **/buckets_activations/
 **/buckets_activations_v2/
 **/buckets_activations_original/
+**/activations/*

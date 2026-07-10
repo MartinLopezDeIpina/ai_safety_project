@@ -1,11 +1,13 @@
-"""Compute per-bucket activations by calling the paper's extract_hidden.py.
+"""Compute per-classified-generation activations by calling the paper's extract_hidden.py.
 
 extract_hidden.py computes a mean-diff over two files; with --extract_only 1 it only
-extracts (and saves) the first file's activations. We use that to grab one bucket's
-activations per call. The saved tensor (output_pth_harmful) holds activations at both
-t_inst and t_post positions.
+extracts (and saves) the first file's activations. We use that to grab one classified
+generation's activations per call. The saved tensor (output_pth_harmful) holds activations
+at both t_inst and t_post positions, regardless of the generation config the examples came
+from (extract_hidden.py always re-tokenizes with the full template).
 """
 
+import glob
 import json
 import os
 import subprocess
@@ -15,20 +17,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.dirname(HERE)
 EXTRACT_SCRIPT = os.path.join(SRC_DIR, "extract_hidden.py")
 
-BUCKET_NAMES = [
-    "tinst_accepted_harmful",
-    "tinst_refused_harmful",
-    "tpost_accepted_harmful",
-    "tpost_refused_harmful",
-    "accepted_harmless",
-    "refused_harmless",
-]
-
 
 def _dirs(model, model_size):
-    """buckets/ (input) and buckets_activations/ (output) for a given model."""
-    base = os.path.join(HERE, "output", f"{model}{model_size}")
-    return os.path.join(base, "buckets"), os.path.join(base, "buckets_activations")
+    """classified_generations/ (input) and activations/ (output) for a given model."""
+    base = os.path.join(HERE, "output", f"{model}{model_size}", "datasets_outputs")
+    return (
+        os.path.join(base, "classified_generations"),
+        os.path.join(base, "activations"),
+    )
 
 
 def run_extract_hidden(
@@ -85,19 +81,19 @@ def run_extract_hidden(
 
 
 def compute_all_activations(model, model_size):
-    """Extract activations for each of the 6 buckets into buckets_activations/."""
-    buckets_dir, acts_dir = _dirs(model, model_size)
+    """Extract activations for each classified generation into activations/."""
+    classified_dir, acts_dir = _dirs(model, model_size)
     os.makedirs(acts_dir, exist_ok=True)
 
-    for name in BUCKET_NAMES:
-        bucket_pth = os.path.join(buckets_dir, name + ".json")
-        with open(bucket_pth, encoding="utf-8") as f:
+    for src_pth in sorted(glob.glob(os.path.join(classified_dir, "*.json"))):
+        name = os.path.splitext(os.path.basename(src_pth))[0]
+        with open(src_pth, encoding="utf-8") as f:
             if not json.load(f):
-                print(f"{name}: empty bucket, skipping")
+                print(f"{name}: empty, skipping")
                 continue
         run_extract_hidden(
-            harmful_pth=bucket_pth,
-            harmless_pth=bucket_pth,  # read but unused under extract_only=1
+            harmful_pth=src_pth,
+            harmless_pth=src_pth,  # read but unused under extract_only=1
             output_pth_harmful=os.path.join(acts_dir, name + ".pt"),
             output_pth_harmless=os.path.join(acts_dir, "_unused_harmless.pt"),
             output_pth=os.path.join(acts_dir, "_unused_dir_" + name + ".pt"),
