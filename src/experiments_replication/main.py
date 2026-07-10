@@ -50,4 +50,4 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
 
 if __name__ == "__main__":
     # Regenerate the definitive Figure 2 for qwen7b from existing activations (no GPU):
-    main("qwen", "7b", stages=("rebucket", "fig_v2"))
+    main("qwen", "7b", stages=("fig"))
