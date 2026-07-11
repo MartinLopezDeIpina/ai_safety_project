@@ -67,6 +67,6 @@ if __name__ == "__main__":
     # Experiments-only smoke for qwen 0.5b (activations already computed). Uncomment the GPU
     # stages to regenerate generations/classified_generations/activations from scratch.
     # main("qwen", "0.5b", stages=("infer", "eval", "acts"))
-    main("qwen", "7b", stages=("gen_buckets", "fig", "fig3"),
+    main("qwen", "7b", stages=("fig", "fig3"),
          bucket_config="bucket_config_alt.json")
 
