@@ -149,7 +149,14 @@ def build_splits(model, model_size, bucket_train=BUCKET_TRAIN, bucket_test=BUCKE
                 else:
                     idx = np.arange(tensor.shape[1])  # source only on this side -> all rows
                 if len(idx):
-                    slices.append(tensor[:, idx, pidx, :])  # (L, n, H) at this token position
+                    sl = tensor[:, idx, pidx, :]  # (L, n, H) at this token position
+                    # drop corrupt rows whose vector is zero at this position in ANY layer (a zero
+                    # norm makes cos_sim 0/0 -> NaN downstream). Seen when an extraction run
+                    # offloads the model and zeroes some activations.
+                    keep = (sl.norm(dim=-1) > 0).all(dim=0)  # (n,)
+                    sl = sl[:, keep]
+                    if sl.shape[1]:
+                        slices.append(sl)
             if slices:
                 out[cluster] = torch.cat(slices, dim=1)
         return out
