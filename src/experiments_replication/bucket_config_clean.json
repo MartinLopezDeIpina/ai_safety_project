@@ -1,0 +1,22 @@
+{
+  "test_ratio": 0.2,
+  "seed": 0,
+  "bucket_train": [
+    ["accepted_harmful_tinst", ["advbench_gentinst_accepted", "jbb_gentinst_accepted"], "tinst"],
+    ["accepted_harmful_tpost", ["sorrybench_gentpost_accepted"], "tpost"],
+    ["refused_harmful_tinst", ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"],
+    ["refused_harmful_tpost", ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"],
+    ["accepted_harmless_tinst", ["alpaca_accepted"], "tinst"],
+    ["accepted_harmless_tpost", ["alpaca_accepted"], "tpost"]
+  ],
+  "bucket_test": [
+    ["accepted_harmful_tinst", ["advbench_gentinst_accepted", "jbb_gentinst_accepted"], "tinst"],
+    ["accepted_harmful_tpost", ["sorrybench_gentpost_accepted"], "tpost"],
+    ["refused_harmful_tinst", ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"],
+    ["refused_harmful_tpost", ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"],
+    ["accepted_harmless_tinst", ["alpaca_accepted"], "tinst"],
+    ["accepted_harmless_tpost", ["alpaca_accepted"], "tpost"],
+    ["refused_harmless_tinst", ["xstest_refused"], "tinst"],
+    ["refused_harmless_tpost", ["xstest_refused"], "tpost"]
+  ]
+}
