@@ -154,6 +154,10 @@ def build_splits(model, model_size, bucket_train=BUCKET_TRAIN, bucket_test=BUCKE
                     # norm makes cos_sim 0/0 -> NaN downstream). Seen when an extraction run
                     # offloads the model and zeroes some activations.
                     keep = (sl.norm(dim=-1) > 0).all(dim=0)  # (n,)
+                    if not bool(keep.all()):
+                        for did in np.asarray(idx)[~keep.numpy()]:
+                            print(f"[warning] dropped activation id {int(did)}, null "
+                                  f"(source={source}, pos={position})")
                     sl = sl[:, keep]
                     if sl.shape[1]:
                         slices.append(sl)
