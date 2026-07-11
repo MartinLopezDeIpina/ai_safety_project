@@ -175,11 +175,15 @@ def gen_buckets(model, model_size, bucket_config=None):
     bucket_config: path to a json config (resolved against HERE when relative). None -> module
     defaults. Each dict maps cluster_name -> (L, N, H) tensor at the cluster's token position.
     """
+    if bucket_config is not None:
+        path = bucket_config if os.path.isabs(bucket_config) else os.path.join(HERE, bucket_config)
+        if not os.path.exists(path):
+            print(f"[warning] {bucket_config} not found; using hard-coded default bucket config")
+            bucket_config = None
     if bucket_config is None:
         cfg = {"bucket_train": BUCKET_TRAIN, "bucket_test": BUCKET_TEST,
                "test_ratio": 0.5, "seed": 0}
     else:
-        path = bucket_config if os.path.isabs(bucket_config) else os.path.join(HERE, bucket_config)
         cfg = load_config(path)
 
     train_acts, test_acts = build_splits(
@@ -192,12 +196,10 @@ def gen_buckets(model, model_size, bucket_config=None):
 if __name__ == "__main__":
     model = sys.argv[1] if len(sys.argv) > 1 else "qwen"
     model_size = sys.argv[2] if len(sys.argv) > 2 else "0.5b"
-    test_ratio = float(sys.argv[3]) if len(sys.argv) > 3 else 0.5
 
-    train_acts, test_acts = build_splits(model, model_size, test_ratio=test_ratio)
-    for side, acts in (("train", train_acts), ("test", test_acts)):
+    bucket_config = "bucket_config.json"
+    buckets = gen_buckets(model, model_size, bucket_config)
+    for side in ("train", "test"):
         print(f"[{side}]")
-        for cluster, _, _ in BUCKET_TRAIN:
-            tensor = acts.get(cluster)
-            shape = tuple(tensor.shape) if tensor is not None else "EMPTY"
-            print(f"  {cluster:26s}: {shape}")
+        for cluster, tensor in buckets[side].items():
+            print(f"  {cluster:26s}: {tuple(tensor.shape)}")

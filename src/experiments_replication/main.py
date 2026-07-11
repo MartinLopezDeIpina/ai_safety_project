@@ -23,13 +23,18 @@ plot_figure3 = _load_module("_03_3.2_figure3.py", "figure3").plot_figure3
 
 
 def _fig_path(model, model_size, fig, bucket_config):
-    """output/<model><size>/<fig>[_<cfgstem>].png (cfg stem keeps parallel configs from clashing)."""
+    """output/<model><size>/<fig>[<suffix>].png (config suffix keeps parallel configs from clashing).
+
+    The suffix is the config stem past the shared "bucket_config" prefix, so the default
+    bucket_config.json adds nothing (figure2.png) and bucket_config_alt.json -> figure2_alt.png.
+    """
     out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "output", f"{model}{model_size}")
+    suffix = ""
     if bucket_config:
         stem = os.path.splitext(os.path.basename(bucket_config))[0]
-        return os.path.join(out_dir, f"{fig}_{stem}.png")
-    return os.path.join(out_dir, f"{fig}.png")
+        suffix = stem[len("bucket_config"):] if stem.startswith("bucket_config") else f"_{stem}"
+    return os.path.join(out_dir, f"{fig}{suffix}.png")
 
 
 def main(model="qwen", model_size="0.5b", left=0, right=10,
@@ -62,6 +67,6 @@ if __name__ == "__main__":
     # Experiments-only smoke for qwen 0.5b (activations already computed). Uncomment the GPU
     # stages to regenerate generations/classified_generations/activations from scratch.
     # main("qwen", "0.5b", stages=("infer", "eval", "acts"))
-    main("llama3", "8b", stages=("gen_buckets", "fig", "fig3"),
-         bucket_config="bucket_config.json")
+    main("qwen", "7b", stages=("gen_buckets", "fig", "fig3"),
+         bucket_config="bucket_config_alt.json")
 
