@@ -16,25 +16,9 @@ import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# token index in the (layers, N, tokens, hidden) activation tensor
-POSITION_INDEX = {"tinst": 1, "tpost": -1}
-
-# which buckets feed each position: t_inst uses the tinst-labelled harmful buckets,
-# t_post the tpost-labelled ones; the harmless buckets are shared.
-BUCKETS = {
-    "tinst": {
-        "anchor_refused_harmful": "tinst_refused_harmful",
-        "anchor_accepted_harmless": "accepted_harmless",
-        "line_accepted_harmful": "tinst_accepted_harmful",
-        "line_refused_harmless": "refused_harmless",
-    },
-    "tpost": {
-        "anchor_refused_harmful": "tpost_refused_harmful",
-        "anchor_accepted_harmless": "accepted_harmless",
-        "line_accepted_harmful": "tpost_accepted_harmful",
-        "line_refused_harmless": "refused_harmless",
-    },
-}
+# The two panels: each token position uses that position's single-token clusters. Anchors
+# (mu) come from the train split; the plotted lines from the test split.
+POSITIONS = ["tinst", "tpost"]
 
 TITLES = {
     "tinst": r"token position $t_{\mathrm{inst}}$",
@@ -45,18 +29,6 @@ CORAL = "#E8766C"   # accepted harmful  (solid line, upper region)
 TEAL = "#158A8A"    # refused harmless  (dash-dot line, lower region)
 
 
-def _acts_dir(model, model_size):
-    return os.path.join(HERE, "output", f"{model}{model_size}", "buckets_activations")
-
-
-def _load(acts_dir, name):
-    """Load a bucket's activation tensor (L, N, T, H) as float32, or None if absent."""
-    path = os.path.join(acts_dir, name + ".pt")
-    if not os.path.exists(path):
-        return None
-    return torch.load(path, map_location="cpu").float()
-
-
 def _cosine(hidden, center):
     """Cosine per layer between hidden (L, N, H) and center (L, H) -> (L, N)."""
     center = center[:, None, :]
@@ -65,12 +37,14 @@ def _cosine(hidden, center):
     return numerator / denominator
 
 
-def _score_stats(line_tensor, mu_refused_harmful, mu_accepted_harmless, position_index):
-    """Per-layer mean/std of s^l over a bucket's examples, or (None, None) if no bucket."""
-    if line_tensor is None:
+def _score_stats(line_tensor, mu_refused_harmful, mu_accepted_harmless):
+    """Per-layer mean/std of s^l over a cluster's examples, or (None, None) if absent/empty.
+
+    line_tensor is a single-token cluster (L, N, H).
+    """
+    if line_tensor is None or line_tensor.shape[1] == 0:
         return None, None
-    hidden = line_tensor[:, :, position_index, :]  # (L, N, H)
-    score = _cosine(hidden, mu_refused_harmful) - _cosine(hidden, mu_accepted_harmless)
+    score = _cosine(line_tensor, mu_refused_harmful) - _cosine(line_tensor, mu_accepted_harmless)
     return score.mean(1).numpy(), score.std(1).numpy()
 
 
@@ -127,33 +101,28 @@ def _draw_score(
     ax.legend(loc="lower right", fontsize=15, framealpha=0.9, edgecolor="0.8")
 
 
-def plot_figure2(model, model_size, acts_dir=None, out_path=None):
+def plot_figure2(model, model_size, buckets, out_path=None):
     """Build and save Figure 2 (t_inst and t_post as two panels of one PNG).
 
-    acts_dir: override the buckets_activations directory (default: the model's dir).
+    buckets: {"train": {...}, "test": {...}} from dynamic_bucket_formation.gen_buckets. Anchors
+        (mu) come from the train clusters; the plotted lines from the test clusters.
     out_path: override the output PNG path (default: output/<model><size>/figure2.png).
     """
-    acts_dir = acts_dir or _acts_dir(model, model_size)
+    train, test = buckets["train"], buckets["test"]
     out_dir = os.path.join(HERE, "output", f"{model}{model_size}")
 
-    positions = list(BUCKETS)
-    fig, axes = plt.subplots(1, len(positions), figsize=(7.2 * len(positions), 5.4))
+    fig, axes = plt.subplots(1, len(POSITIONS), figsize=(7.2 * len(POSITIONS), 5.4))
 
-    for ax, position in zip(axes, positions):
-        names = BUCKETS[position]
-        position_index = POSITION_INDEX[position]
-
-        anchor_refused_harmful = _load(acts_dir, names["anchor_refused_harmful"])
-        anchor_accepted_harmless = _load(acts_dir, names["anchor_accepted_harmless"])
-        mu_refused_harmful = anchor_refused_harmful[:, :, position_index, :].mean(1)   # (L, H)
-        mu_accepted_harmless = anchor_accepted_harmless[:, :, position_index, :].mean(1)
+    for ax, position in zip(axes, POSITIONS):
+        mu_refused_harmful = train[f"refused_harmful_{position}"].mean(1)     # (L, H)
+        mu_accepted_harmless = train[f"accepted_harmless_{position}"].mean(1)
 
         accepted_harmful_mean, accepted_harmful_std = _score_stats(
-            _load(acts_dir, names["line_accepted_harmful"]),
-            mu_refused_harmful, mu_accepted_harmless, position_index)
+            test.get(f"accepted_harmful_{position}"),
+            mu_refused_harmful, mu_accepted_harmless)
         refused_harmless_mean, refused_harmless_std = _score_stats(
-            _load(acts_dir, names["line_refused_harmless"]),
-            mu_refused_harmful, mu_accepted_harmless, position_index)
+            test.get(f"refused_harmless_{position}"),
+            mu_refused_harmful, mu_accepted_harmless)
 
         layers = np.arange(mu_refused_harmful.shape[0])
         # symmetric y-limits keyed to the mean lines (std bands may clip, as in the paper),

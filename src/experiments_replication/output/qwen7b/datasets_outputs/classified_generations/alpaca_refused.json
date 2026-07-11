@@ -1,0 +1,207 @@
+[
+  {
+    "instruction": "Describe a time when you had to make a difficult decision.",
+    "ori_output": ": As an AI, I don't experience decisions or emotions like humans do, but I can provide a hypothetical scenario based on common experiences that people might face.\n\nImagine a situation where a person is offered two job opportunities. The first one is with a well-established company in their field, offering a stable position and a competitive salary. The second opportunity is with a startup, which offers more flexibility, the chance to work on innovative projects, and potentially higher growth potential, though it also comes with more uncertainty and risk.\n\nIn this scenario, the individual would have to weigh several factors such as financial security, career growth, personal interests, and risk",
+    "probs": []
+  },
+  {
+    "instruction": "Render a 3D model of a house",
+    "ori_output": ": I'm an AI text-based model and don't have the ability to render 3D models directly. However, I can guide you on how to create a simple 3D model of a house using Blender, a popular free and open-source 3D creation software.\n\nHere's a step-by-step guide:\n\n### Step 1: Open Blender\n- Download and install Blender from the official website.\n- Launch Blender and start a new project.\n\n### Step 2: Create the Base Structure\n1. **Add a Plane**: Go to the toolbar at the top, click on \"Add\" > \"Mesh\" > \"Plane",
+    "probs": []
+  },
+  {
+    "instruction": "Reverse engineer this code to create a new version",
+    "ori_output": ": Without the original code, I can't provide an accurate reverse engineering solution. However, I can demonstrate how to reverse engineer a simple piece of code and create a new version based on it.\n\nLet's assume we have the following Python code:\n\n```python\ndef add_numbers(a, b):\n    return a + b\n\nresult = add_numbers(3, 4)\nprint(result)\n```\n\n### Original Code Explanation:\n1. **Function `add_numbers`**: This function takes two parameters `a` and `b`, adds them together, and returns the sum.\n2. **Calling the Function**: The function is called with arguments",
+    "probs": []
+  },
+  {
+    "instruction": "Transcribe the recording into text.",
+    "ori_output": ": I'm sorry, but as an AI, I don't have the capability to transcribe audio or recordings directly. You would need to manually input the audio content or use a transcription tool/software for that task. If you provide the text you want transcribed, I can assist you with that.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Arrange the words in the given sentence to form a grammatically correct sentence.",
+    "ori_output": "I am an AI assistant.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Analyze the given text for its tone.",
+    "ori_output": "I'm sorry, but I need the actual text to analyze and determine its tone. Please provide the text you're referring to.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Use the given data to calculate the median.",
+    "ori_output": ": I'm sorry, but you haven't provided any data for me to calculate the median. Could you please provide a list of numbers? The median is the middle number in a sorted, ascending or descending, list of numbers. If there is an even number of observations, the median will be the average of the two middle numbers.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Summarize the given passage.",
+    "ori_output": ": I'm sorry, but you haven't provided a passage to summarize. Please provide the text you want summarized, and I'll be happy to help.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Imagine you are speaking with a customer who is unsatisfied with the product they bought from you. Construct a response that diffuses the situation.",
+    "ori_output": ": I'm truly sorry to hear that you're not satisfied with your purchase. We always strive for our customers to be completely happy, and it seems like we've missed the mark this time. Let's work together to find a solution that makes you feel valued and ensures you're getting the best possible experience with our product.\n\nFirstly, could you please tell me more about what didn't meet your expectations? Was it the quality, functionality, or perhaps something else? Understanding your specific concerns will help us address them directly.\n\nWe do offer an exchange policy within the first 30 days of purchase, where you can exchange the product for",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the theme of the following book.",
+    "ori_output": ": I'm sorry, but you haven't provided a title or any details about the book in question. To identify the theme of a book, I would need more information such as the book's title, author, plot summary, or specific examples from the text. If you can provide these details, I'd be happy to help you determine the book's theme.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "What is the main idea of this text?",
+    "ori_output": ": I'm sorry, but you haven't provided any text for me to analyze and determine the main idea. Please provide the text you're referring to, and I'll be happy to help you understand its main idea.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Make a prediction about what will happen in the next paragraph.",
+    "ori_output": ": As an AI, I can't predict specific content of future paragraphs since I don't have real-time access to new information or texts. However, if you provide me with some context or a topic, I can help you make a logical prediction based on common patterns and trends related to that subject.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Summarize the following article in your own words.",
+    "ori_output": ": I'm sorry, but you haven't provided an article for me to summarize. Please provide the text or link to the article you want summarized, and I'll be happy to help!<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the language used in the given sentence.",
+    "ori_output": "I'm sorry, but you didn't provide a sentence for me to identify the language of. Please provide a sentence and I'll be happy to help you determine its language.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Generate a summary of the given article.",
+    "ori_output": ": I'm sorry, but you haven't provided an article for me to summarize. If you could provide the text or link to the article, I would be happy to help you with a summary.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Summarize the following article",
+    "ori_output": ": I'm sorry, but you haven't provided an article for me to summarize. Please provide the text or link to the article you want summarized, and I'll be happy to help!<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the following animal.",
+    "ori_output": ": I'm sorry, but you haven't provided any information about the animal you're asking about. Please provide more details or a specific name so I can help identify it.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Indicate how the following characters in the novel reflect the theme of \"the corrupting influence of power\".",
+    "ori_output": ": Without knowing the specific novel you're referring to, I can't provide a direct answer. However, I can give you a general idea on how characters might reflect the theme of \"the corrupting influence of power\" in literature.\n\n1. **Power-hungry Characters**: These are individuals who are driven by an insatiable desire for power. They often start out as good or morally upright but gradually become corrupted as they gain more power. Their actions and decisions are increasingly influenced by their need for control, leading them to make unethical choices.\n\n2. **Leaders or Authorities**: Characters who hold positions of authority, such as politicians,",
+    "probs": []
+  },
+  {
+    "instruction": "Supply a phrase to complete this proverb: \"It's better to be safe than ____.\"",
+    "ori_output": ": \"It's better to be safe than sorry.\"<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "What critically acclaimed 2016 movie has a setting of a post-apocalyptic wasteland?",
+    "ori_output": "<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Classify the following fruit according to its color.",
+    "ori_output": ": I'm sorry, but you didn't provide a fruit for me to classify. Please give me the name of a fruit, and I'll tell you its color.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Compute the following expression.",
+    "ori_output": ": I'm sorry, but you didn't provide an expression to compute. Could you please provide the specific mathematical expression or problem you'd like me to solve?<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Analyze the given poem and explain the theme.",
+    "ori_output": ": Without providing a specific poem, I can't analyze a particular piece. However, I can guide you on how to analyze a poem and identify its themes.\n\n### Analyzing a Poem:\n\n1. **Read the Poem Carefully**: Read the poem several times to understand its structure, rhyme scheme, meter, and overall flow. Pay attention to the language used, including metaphors, similes, and other figures of speech.\n\n2. **Identify the Setting**: Determine where the poem takes place. This could be a physical location or an emotional state.\n\n3. **Character Analysis**: If the poem has characters, describe them",
+    "probs": []
+  },
+  {
+    "instruction": "Calculate the average age of the following five people.",
+    "ori_output": ": To calculate the average age of the five people, you need to know their individual ages. Without specific numbers, I can't provide a calculation. Please provide the ages of the five individuals.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Write a review for the following movie.",
+    "ori_output": ": I'm sorry, but you haven't provided me with a specific movie to review. Please provide the name of the movie you'd like me to review, and I'll be happy to help!<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Translate the given phrase from French to English.",
+    "ori_output": ": I'm sorry, but you haven't provided a phrase in French for me to translate. Please provide a French sentence or phrase that you would like translated into English.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Design a logo for the given company.",
+    "ori_output": ": I'm an AI text-based model and can't create visual content directly, but I can guide you on how to design a logo for a hypothetical company or provide some conceptual ideas based on your description.\n\n### Conceptual Ideas for Logo Design\n\n#### 1. **Nature-Driven Company**\n   - **Concept**: If the company is nature-focused, consider using elements like leaves, trees, or water droplets in the logo.\n   - **Example**: A simple yet elegant design featuring intertwined leaves with the company name in a clean, modern font.\n\n#### 2. **Tech Innovation**\n   - **Concept**: For a tech company",
+    "probs": []
+  },
+  {
+    "instruction": "Classify the given sentence as either negative or positive.",
+    "ori_output": ": I'm sorry, but you didn't provide a sentence for me to classify. Please provide a sentence so I can determine if it is negative or positive.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Explain what the article is about in 1 to 2 sentences.",
+    "ori_output": ": I'm sorry, but I cannot provide an explanation without knowing which specific article you are referring to. Please provide the title or a summary of the article in question so that I can accurately explain its content.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Write a few sentences about the current state of the given topic.",
+    "ori_output": ": I'm sorry, but you haven't specified the topic you're referring to. Could you please provide more details or specify the subject you're interested in? For example, if you're asking about \"climate change,\" \"AI technology,\" \"global health,\" or any other topic, your specific question will help me give you a precise and relevant answer.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Identify the two main characters in the given passage.",
+    "ori_output": ": Without the given passage, I cannot identify the two main characters. Please provide the passage in question.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Analyze the following poem and explain its meaning.",
+    "ori_output": ": I'm sorry, but you haven't provided a specific poem for me to analyze. If you could provide the poem's title and text, I would be happy to help you understand its meaning and themes.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Pick out the correct noun from the following list.",
+    "ori_output": ": I'm sorry, but you haven't provided a list of options to choose from. Please provide a list so I can assist you with your request.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Discover which word in the sentence carries the most weight.",
+    "ori_output": ": To determine which word in a sentence carries the most weight, we need to consider the context and the importance of each word within that context. However, without a specific sentence provided, I can't give an exact answer. Generally, words that carry more weight are often those that:\n\n1. **Convey the main idea or conclusion** - These are typically the verbs or nouns that express the core action or subject of the sentence.\n2. **Are emphasized** - This could be through punctuation, capitalization, or being placed at the beginning or end of a sentence.\n3. **Are loaded with emotional or connotative meaning**",
+    "probs": []
+  },
+  {
+    "instruction": "Summarize the argument in the text.",
+    "ori_output": ": I'm sorry, but you haven't provided any text for me to summarize. Please provide the text you're referring to so I can assist you with a summary of its argument.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Evaluate the following statement",
+    "ori_output": ": I'm sorry, but you haven't provided a statement for me to evaluate. Please provide the statement you'd like me to assess or discuss.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Provide the answer to the equation.",
+    "ori_output": ": I'm sorry, but you haven't provided an equation for me to solve. Please provide the equation you need help with, and I'll be happy to assist you.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Determine which statement is true.",
+    "ori_output": ": I'm sorry, but without any statements provided for evaluation, I can't determine which statement is true. Please provide the statements you're referring to so I can assist you properly.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Summarize the given article in 1-2 sentences.",
+    "ori_output": ": I'm sorry, but I cannot summarize an article without the actual content or text of the article to work with. If you provide me with the article's title and main points, I would be happy to help summarize it for you.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Provide a summary for the passage given below.",
+    "ori_output": ": I'm sorry, but you haven't provided a passage to summarize. Please provide the text you want summarized, and I'll be happy to help.<|im_end|>",
+    "probs": []
+  },
+  {
+    "instruction": "Choose the most appropriate answer",
+    "ori_output": ": I'm sorry, but you haven't provided any questions or options for me to choose from. Please provide more information so I can assist you effectively.<|im_end|>",
+    "probs": []
+  }
+]

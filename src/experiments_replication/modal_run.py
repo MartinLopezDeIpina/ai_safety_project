@@ -68,15 +68,21 @@ def _name(model: str, model_size: str) -> str:
     return f"{model}{model_size}"
 
 
-def _key(model: str, model_size: str, left: int, right: int) -> str:
-    """Deterministic results-volume key for one run, so a detached run can be collected later
-    and two configs of the same model (differing left/right) don't collide."""
-    return f"{model}{model_size}-{left}-{right}"
+def _cfg_stem(config: str) -> str:
+    """Basename of a config path without extension, e.g. 'bucket_config.json' -> 'bucket_config'."""
+    return os.path.splitext(os.path.basename(config))[0] if config else "default"
+
+
+def _key(model: str, model_size: str, left: int, right: int, config: str = "") -> str:
+    """Deterministic results-volume key for one run, so a detached run can be collected later and
+    two configs of the same model (differing left/right or bucket config) don't collide."""
+    return f"{model}{model_size}-{left}-{right}-{_cfg_stem(config)}"
 
 
 @app.function(image=image, gpu="A100", volumes={"/cache": hf_cache, "/results": results_vol},
               secrets=[hf_secret], timeout=18000)
-def run_one(model: str, model_size: str, left: int, right: int, stages: str) -> tuple[str, str]:
+def run_one(model: str, model_size: str, left: int, right: int, stages: str,
+            config: str) -> tuple[str, str]:
     """Run main() for one model/config and persist its output tree to /results/<key>. Returns
     (name, key). Output is committed in a `finally` so a late-stage error (e.g. figure3) can't
     discard an otherwise-complete run — whatever main() produced is still saved."""
@@ -89,10 +95,11 @@ def run_one(model: str, model_size: str, left: int, right: int, stages: str) -> 
     sys.path.insert(0, "/root/src")
     os.chdir("/root/src/experiments_replication")
 
-    name, key = _name(model, model_size), _key(model, model_size, left, right)
+    name, key = _name(model, model_size), _key(model, model_size, left, right, config)
     try:
         from main import main
-        main(model, model_size, left, right, stages=tuple(stages.split(",")))
+        main(model, model_size, left, right, stages=tuple(stages.split(",")),
+             bucket_config=config)
     except Exception:
         print(f"### stage error in {key} — committing partial output:", flush=True)
         traceback.print_exc()
@@ -154,33 +161,35 @@ def _pull(name: str, key: str):
 
 @app.local_entrypoint()
 def entry(runs: str = "qwen:0.5b:0:10",
-          stages: str = "infer,eval,acts,fig,fig3",
+          stages: str = "infer,eval,acts,gen_buckets,fig,fig3",
+          config: str = "bucket_config.json",
           wait: bool = True,
           collect_only: bool = False):
     """Launch (and optionally collect) the runs in `runs`.
 
-    Interactive:  modal run modal_run.py --runs "..."
-        spawns every run in parallel, waits, and pulls each result locally.
+    Interactive:  modal run modal_run.py --runs "..." --config bucket_config.json
+        spawns every run in parallel, waits, and pulls each result locally. Launch different
+        bucket configs in parallel with separate invocations (each --config gets its own key).
 
     Detached (safe to close the laptop): run fire-and-forget, collect later.
         modal run --detach modal_run.py --runs "..." --no-wait
         # ...later, when back at the machine:
-        modal run modal_run.py --runs "..." --collect-only
-    Collect keys are deterministic (model+size+left+right), so the same --runs string
+        modal run modal_run.py --runs "..." --config bucket_config.json --collect-only
+    Collect keys are deterministic (model+size+left+right+config), so the same --runs/--config
     retrieves exactly the runs that were launched.
     """
     specs = _parse_runs(runs)
 
     if collect_only:
         for model, size, left, right in specs:
-            name, key = _name(model, size), _key(model, size, left, right)
+            name, key = _name(model, size), _key(model, size, left, right, config)
             try:
                 _pull(name, key)
             except subprocess.CalledProcessError:
                 print(f"  not ready on volume yet (skipped): {key}")
         return
 
-    handles = [(spec, run_one.spawn(*spec, stages)) for spec in specs]  # all launch in parallel
+    handles = [(spec, run_one.spawn(*spec, stages, config)) for spec in specs]  # launch in parallel
     if not wait:
         print("\nLaunched detached; results commit to the 'behavior-results' volume as each "
               "run finishes.\nCollect them later with:\n"

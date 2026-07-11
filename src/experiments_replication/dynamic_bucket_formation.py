@@ -22,6 +22,7 @@ Usage: python dynamic_bucket_formation.py qwen 0.5b [test_ratio]
 """
 
 import hashlib
+import json
 import os
 import sys
 
@@ -44,30 +45,13 @@ POSITION_INDEX = {"tinst": 1, "tpost": -1}
 #  - harmless sources are generated in a single (gentpost) config but each tensor holds both
 #    token positions, so the same source feeds its _tinst and _tpost clusters. Anchored on
 #    Alpaca (accepted) / xstest (refused) to avoid the xstest self-similarity confound.
-BUCKET_TRAIN_ALT = [
-    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted"], "tinst"),
-    ("accepted_harmful_tpost",  ["sorrybench_gentpost_accepted"], "tpost"),
-    ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
-    ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
-    ("accepted_harmless_tinst", ["alpaca_accepted"], "tinst"),
-    ("accepted_harmless_tpost", ["alpaca_accepted"], "tpost"),
-    ("refused_harmless_tinst",  ["xstest_refused"], "tinst"),
-    ("refused_harmless_tpost",  ["xstest_refused"], "tpost"),
-]
-BUCKET_TRAIN_ALT = [
-    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted"], "tinst"),
-    ("accepted_harmful_tpost",  ["sorrybench_gentpost_accepted"], "tpost"),
-    ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
-    ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
-    ("accepted_harmless_tinst", ["alpaca_accepted"], "tinst"),
-    ("accepted_harmless_tpost", ["alpaca_accepted"], "tpost"),
-    ("refused_harmless_tinst",  ["xstest_refused"], "tinst"),
-    ("refused_harmless_tpost",  ["xstest_refused"], "tpost"),
-]
-
+# "normal" config: accepted_harmful drawn from advbench+jbb+sorrybench gentinst_accepted at BOTH
+# positions (so its _tinst/_tpost clusters share sources and pair per-instruction in Figure 3);
+# harmless anchored on alpaca+xstest; refused_harmless is HELD OUT of train (empty) and appears only
+# in test. These module constants are the fallback default when no bucket_config json is passed.
 BUCKET_TRAIN = [
-    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tinst"),
-    ("accepted_harmful_tpost",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tpost"),
+    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_gentinst_accepted"], "tinst"),
+    ("accepted_harmful_tpost",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_gentinst_accepted"], "tpost"),
     ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
     ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
     ("accepted_harmless_tinst", ["alpaca_accepted", "xstest_accepted"], "tinst"),
@@ -78,8 +62,8 @@ BUCKET_TRAIN = [
 ]
 
 BUCKET_TEST = [
-    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tinst"),
-    ("accepted_harmful_tpost",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_getinst_accepted"], "tpost"),
+    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_gentinst_accepted"], "tinst"),
+    ("accepted_harmful_tpost",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted", "sorrybench_gentinst_accepted"], "tpost"),
     ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
     ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
     ("accepted_harmless_tinst", ["alpaca_accepted", "xstest_accepted"], "tinst"),
@@ -87,6 +71,22 @@ BUCKET_TEST = [
     ("refused_harmless_tinst",  ["xstest_refused"], "tinst"),
     ("refused_harmless_tpost",  ["xstest_refused"], "tpost"),
 ]
+
+# "ALT" config (paper-faithful anchors): accepted_harmful from advbench+jbb @tinst / sorrybench
+# @tpost; harmless anchored on alpaca (accepted) / xstest (refused) only; refused_harmless present in
+# both splits. Same composition for train and test (ratio-split each source).
+BUCKET_TRAIN_ALT = [
+    ("accepted_harmful_tinst",  ["advbench_gentinst_accepted", "jbb_gentinst_accepted"], "tinst"),
+    ("accepted_harmful_tpost",  ["sorrybench_gentpost_accepted"], "tpost"),
+    ("refused_harmful_tinst",   ["advbench_gentinst_refused", "jbb_gentinst_refused"], "tinst"),
+    ("refused_harmful_tpost",   ["advbench_gentpost_refused", "jbb_gentpost_refused"], "tpost"),
+    ("accepted_harmless_tinst", ["alpaca_accepted"], "tinst"),
+    ("accepted_harmless_tpost", ["alpaca_accepted"], "tpost"),
+    ("refused_harmless_tinst",  ["xstest_refused"], "tinst"),
+    ("refused_harmless_tpost",  ["xstest_refused"], "tpost"),
+]
+BUCKET_TEST_ALT = [(name, list(sources), pos) for name, sources, pos in BUCKET_TRAIN_ALT]
+
 
 def _acts_dir(model, model_size):
     return os.path.join(HERE, "output", f"{model}{model_size}", "datasets_outputs", "activations")
@@ -155,6 +155,38 @@ def build_splits(model, model_size, bucket_train=BUCKET_TRAIN, bucket_test=BUCKE
         return out
 
     return assemble(bucket_train, "train"), assemble(bucket_test, "test")
+
+
+def load_config(path):
+    """Load a bucket config json -> dict. Missing keys fall back to the module defaults."""
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    return {
+        "bucket_train": cfg.get("bucket_train", BUCKET_TRAIN),
+        "bucket_test": cfg.get("bucket_test", BUCKET_TEST),
+        "test_ratio": cfg.get("test_ratio", 0.5),
+        "seed": cfg.get("seed", 0),
+    }
+
+
+def gen_buckets(model, model_size, bucket_config=None):
+    """Compose train/test buckets for one model -> {"train": {...}, "test": {...}}.
+
+    bucket_config: path to a json config (resolved against HERE when relative). None -> module
+    defaults. Each dict maps cluster_name -> (L, N, H) tensor at the cluster's token position.
+    """
+    if bucket_config is None:
+        cfg = {"bucket_train": BUCKET_TRAIN, "bucket_test": BUCKET_TEST,
+               "test_ratio": 0.5, "seed": 0}
+    else:
+        path = bucket_config if os.path.isabs(bucket_config) else os.path.join(HERE, bucket_config)
+        cfg = load_config(path)
+
+    train_acts, test_acts = build_splits(
+        model, model_size,
+        bucket_train=cfg["bucket_train"], bucket_test=cfg["bucket_test"],
+        test_ratio=cfg["test_ratio"], seed=cfg["seed"])
+    return {"train": train_acts, "test": test_acts}
 
 
 if __name__ == "__main__":

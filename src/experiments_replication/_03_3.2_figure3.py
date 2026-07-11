@@ -17,21 +17,20 @@ import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# token index in the (layers, N, tokens, hidden) activation tensor
-POSITION_INDEX = {"tinst": 1, "tpost": -1}
-
-# anchors: name -> (buckets to combine, token position)
+# anchors (computed on the TRAIN split): name -> single-token clusters to combine. The clusters
+# already carry their token position (tinst for the harmful axis, tpost for the refusal axis).
 ANCHORS = {
-    "harmful": (["tinst_accepted_harmful", "tinst_refused_harmful"], "tinst"),
-    "harmless": (["accepted_harmless", "refused_harmless"], "tinst"),
-    "refused": (["tpost_refused_harmful", "refused_harmless"], "tpost"),
-    "accepted": (["tpost_accepted_harmful", "accepted_harmless"], "tpost"),
+    "harmful": ["accepted_harmful_tinst", "refused_harmful_tinst"],
+    "harmless": ["accepted_harmless_tinst", "refused_harmless_tinst"],
+    "refused": ["refused_harmful_tpost", "refused_harmless_tpost"],
+    "accepted": ["accepted_harmful_tpost", "accepted_harmless_tpost"],
 }
 
-# scatter points: legend category -> bucket (harmful uses the tinst-labelled buckets)
-POINT_BUCKETS = {
-    "accepted harmful": "tinst_accepted_harmful",
-    "refused harmful": "tinst_refused_harmful",
+# scatter points (from the TEST split): legend category -> cluster base name. Delta_harmful reads
+# <base>_tinst, Delta_refuse reads <base>_tpost.
+POINT_BASES = {
+    "accepted harmful": "accepted_harmful",
+    "refused harmful": "refused_harmful",
     "accepted harmless": "accepted_harmless",
     "refused harmless": "refused_harmless",
 }
@@ -49,18 +48,6 @@ STYLE = {
 ORDER = ["accepted harmful", "accepted harmless", "refused harmless", "refused harmful"]
 
 
-def _acts_dir(model, model_size):
-    return os.path.join(HERE, "output", f"{model}{model_size}", "buckets_activations")
-
-
-def _load(acts_dir, name):
-    """Load a bucket's activation tensor (L, N, T, H) as float32, or None if absent."""
-    path = os.path.join(acts_dir, name + ".pt")
-    if not os.path.exists(path):
-        return None
-    return torch.load(path, map_location="cpu").float()
-
-
 def _cosine(hidden, center):
     """Cosine per layer between hidden (L, N, H) and center (L, H) -> (L, N)."""
     center = center[:, None, :]
@@ -69,17 +56,18 @@ def _cosine(hidden, center):
     return numerator / denominator
 
 
-def _anchor_center(acts_dir, bucket_names, position):
-    """Combined per-layer mean over several buckets at one token position -> (L, H)."""
-    idx = POSITION_INDEX[position]
-    slices = [_load(acts_dir, n)[:, :, idx, :] for n in bucket_names]  # each (L, Ni, H)
+def _anchor_center(acts, cluster_names):
+    """Combined per-layer mean over several single-token clusters -> (L, H).
+
+    acts: a bucket dict cluster_name -> (L, N, H). Missing/empty clusters are skipped.
+    """
+    slices = [acts[n] for n in cluster_names if n in acts and acts[n].shape[1] > 0]
     return torch.cat(slices, dim=1).mean(1)  # (L, H)
 
 
-def _delta(point_tensor, position, mu_pos, mu_neg):
-    """Layer-averaged score s^l per instruction at one token position -> (N,)."""
-    hidden = point_tensor[:, :, POSITION_INDEX[position], :]  # (L, N, H)
-    score = _cosine(hidden, mu_pos) - _cosine(hidden, mu_neg)  # (L, N)
+def _delta(point_tensor, mu_pos, mu_neg):
+    """Layer-averaged score s^l per instruction of a single-token cluster (L, N, H) -> (N,)."""
+    score = _cosine(point_tensor, mu_pos) - _cosine(point_tensor, mu_neg)  # (L, N)
     return score.mean(0).numpy()  # average over layers -> (N,)
 
 
@@ -118,30 +106,39 @@ def plot_belief_correlation(
     return fig, ax
 
 
-def plot_figure3(model, model_size):
-    """Build and save Figure 3 (Delta_harmful vs Delta_refuse scatter)."""
-    acts_dir = _acts_dir(model, model_size)
+def plot_figure3(model, model_size, buckets, save_path=None):
+    """Build and save Figure 3 (Delta_harmful vs Delta_refuse scatter).
+
+    buckets: {"train": {...}, "test": {...}} from gen_buckets. The 4 mu anchors come from the train
+        clusters; the scatter points from the test clusters (Delta_harmful from <base>_tinst,
+        Delta_refuse from <base>_tpost, paired by instruction index).
+    """
+    train, test = buckets["train"], buckets["test"]
     out_dir = os.path.join(HERE, "output", f"{model}{model_size}")
 
-    mu = {name: _anchor_center(acts_dir, names, pos)
-          for name, (names, pos) in ANCHORS.items()}
+    mu = {name: _anchor_center(train, names) for name, names in ANCHORS.items()}
 
-    buckets = {}
-    for category, bucket in POINT_BUCKETS.items():
-        tensor = _load(acts_dir, bucket)
-        if tensor is None:
-            print(f"{category}: bucket '{bucket}' missing, skipping")
+    points = {}
+    for category, base in POINT_BASES.items():
+        tinst, tpost = test.get(f"{base}_tinst"), test.get(f"{base}_tpost")
+        if tinst is None or tpost is None or tinst.shape[1] == 0 or tpost.shape[1] == 0:
+            print(f"{category}: test cluster '{base}_tinst/_tpost' missing or empty, skipping")
             continue
-        delta_harmful = _delta(tensor, "tinst", mu["harmful"], mu["harmless"])
-        delta_refuse = _delta(tensor, "tpost", mu["refused"], mu["accepted"])
-        buckets[category] = (delta_harmful, delta_refuse)
+        delta_harmful = _delta(tinst, mu["harmful"], mu["harmless"])
+        delta_refuse = _delta(tpost, mu["refused"], mu["accepted"])
+        n = min(len(delta_harmful), len(delta_refuse))
+        if len(delta_harmful) != len(delta_refuse):
+            print(f"{category}: tinst/tpost counts differ "
+                  f"({len(delta_harmful)} vs {len(delta_refuse)}); pairing first {n}")
+        points[category] = (delta_harmful[:n], delta_refuse[:n])
 
     # data-driven limits (0.5B magnitudes differ from the paper's fixed defaults)
-    all_x = np.concatenate([dx for dx, _ in buckets.values()])
-    all_y = np.concatenate([dy for _, dy in buckets.values()])
+    all_x = np.concatenate([dx for dx, _ in points.values()])
+    all_y = np.concatenate([dy for _, dy in points.values()])
     xlim = (all_x.min() - 0.02, all_x.max() + 0.02)
     ylim = (all_y.min() - 0.03, all_y.max() + 0.06)  # extra top room for the legend
 
-    save_path = os.path.join(out_dir, "figure3.png")
-    plot_belief_correlation(buckets, xlim=xlim, ylim=ylim, save_path=save_path)
-    print("figure3.png saved")
+    save_path = save_path or os.path.join(out_dir, "figure3.png")
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    plot_belief_correlation(points, xlim=xlim, ylim=ylim, save_path=save_path)
+    print(f"saved {save_path}")
