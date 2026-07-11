@@ -22,7 +22,7 @@ import os
 import sys
 from collections import defaultdict
 
-from improved_classifier import classify, strip_special
+from src.experiments_replication.diagnose.improved_classifier import classify, strip_special
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
