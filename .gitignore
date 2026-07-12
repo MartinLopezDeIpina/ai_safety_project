@@ -26,3 +26,4 @@ venv/
 **/buckets_activations_original/
 **/activations/**
 
+*.zip

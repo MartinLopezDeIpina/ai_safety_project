@@ -24,5 +24,4 @@ tqdm==4.68.3
 numpy==2.5.0
 matplotlib==3.11.0
 protobuf==6.33.6
-openai
 requests
