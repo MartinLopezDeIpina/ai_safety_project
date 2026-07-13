@@ -16,40 +16,46 @@ COLLECT_DELAY=5
 
 echo "=== Collecting 1. Reverse harmfulness direction on advbench (less-harm) ==="
 modal run "$SCRIPT" --runs "$RUNS" \
-    --datasets "advbench" --vectors "hf" --reverse-intervention 1 --collect-only
+    --datasets "advbench" --vectors "hf" --reverse-intervention 1 \
+    --intervene-context-only 1 --intervene-all 0 --collect-only
 echo "Sleeping to avoid exceeding rate limit..."
 sleep "$COLLECT_DELAY"
 
 echo "=== Collecting 2. Reverse refusal direction on advbench (less-refusal) ==="
 modal run "$SCRIPT" --runs "$RUNS" \
-    --datasets "advbench" --vectors "refusal" --reverse-intervention 1 --collect-only
+    --datasets "advbench" --vectors "refusal" --reverse-intervention 1 \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
 echo "Sleeping to avoid exceeding rate limit..."
 sleep "$COLLECT_DELAY"
 
 echo "=== Collecting 3. Refusal direction on advbench (more-refusal) ==="
 modal run "$SCRIPT" --runs "$RUNS" \
-    --datasets "advbench" --vectors "refusal" --reverse-intervention 0 --collect-only
+    --datasets "advbench" --vectors "refusal" --reverse-intervention 0 \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
 echo "Sleeping to avoid exceeding rate limit..."
 sleep "$COLLECT_DELAY"
 
 echo "=== Collecting 4. Harmfulness direction on alpaca (more-harm) ==="
 modal run "$SCRIPT" --runs "$RUNS" \
     --datasets "alpaca_data_instruction" --vectors "hf" --reverse-intervention 0 \
-    --arg-key-prompt "instruction" --collect-only
+    --arg-key-prompt "instruction" \
+    --intervene-context-only 1 --intervene-all 0 --collect-only
 echo "Sleeping to avoid exceeding rate limit..."
 sleep "$COLLECT_DELAY"
 
 echo "=== Collecting 5. Refusal direction on alpaca (more-refusal) ==="
 modal run "$SCRIPT" --runs "$RUNS" \
     --datasets "alpaca_data_instruction" --vectors "refusal" --reverse-intervention 0 \
-    --arg-key-prompt "instruction" --collect-only
+    --arg-key-prompt "instruction" \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
 echo "Sleeping to avoid exceeding rate limit..."
 sleep "$COLLECT_DELAY"
 
 echo "=== Collecting 6. Reverse refusal direction on alpaca (less-refusal) ==="
 modal run "$SCRIPT" --runs "$RUNS" \
     --datasets "alpaca_data_instruction" --vectors "refusal" --reverse-intervention 1 \
-    --arg-key-prompt "instruction" --collect-only
+    --arg-key-prompt "instruction" \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
 
 echo ""
 echo "Done. Results are in src/experiments_replication/intervention_outputs/"

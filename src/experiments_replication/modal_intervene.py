@@ -224,8 +224,8 @@ def entry(
     datasets: str = "advbench",
     vectors: str = "hf",
     reverse_intervention: int = 1,
-    intervene_context_only: int = -1,
-    intervene_all: int = -1,
+    intervene_context_only: int = 0,
+    intervene_all: int = 0,
     arg_key_prompt: str = "bad_q",
     layer_s: int = 0,
     layer_e: int = 28,
@@ -241,27 +241,38 @@ def entry(
 ):
     """Launch (and optionally collect) intervention runs.
 
+    Token-scope flags (--intervene-context-only / --intervene-all) must be set explicitly.
+    Per Appendix E.1 of the paper:
+
+        hf vector      → --intervene-context-only 1 --intervene-all 0
+        refusal vector → --intervene-context-only 0 --intervene-all 1
+
     Interactive (defaults mirror slurm/intervene.slurm — advbench + hf vector, reverse=less-harm):
-        modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50"
+        modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" \\
+            --intervene-context-only 1 --intervene-all 0
         spawns the run, waits, and pulls the result JSON(s) locally.
 
     Multiple datasets / vectors in parallel (comma-separated, zipped with --runs):
         modal run src/experiments_replication/modal_intervene.py \\
             --runs "qwen:7b:0:50,qwen:7b:0:50" \\
-            --datasets "advbench,jbb" --vectors "hf,refusal"
+            --datasets "advbench,jbb" --vectors "hf,refusal" \\
+            --intervene-context-only 1 --intervene-all 0  # applies to all runs
 
     Detached (safe to close the laptop): run fire-and-forget, collect later.
-        modal run --detach src/experiments_replication/modal_intervene.py --runs "..." --no-wait
+        modal run --detach src/experiments_replication/modal_intervene.py --runs "..." \\
+            --intervene-context-only 1 --intervene-all 0 --no-wait
         # ...later, when back at the machine:
         modal run src/experiments_replication/modal_intervene.py --runs "..." --collect-only \\
-            --datasets "advbench" --vectors "hf" --reverse-intervention 1
+            --datasets "advbench" --vectors "hf" --reverse-intervention 1 \\
+            --intervene-context-only 1 --intervene-all 0
 
     Collect keys are deterministic (model+size+dataset+vector+direction+left+right), so the
     same --runs/--datasets/--vectors/--reverse-intervention retrieves exactly the runs launched.
 
     Flip to more-harm (amplify harmfulness) instead of less-harm:
         modal run src/experiments_replication/modal_intervene.py \\
-            --runs "qwen:7b:0:50" --reverse-intervention 0
+            --runs "qwen:7b:0:50" --reverse-intervention 0 \\
+            --intervene-context-only 1 --intervene-all 0
     """
     specs = _parse_runs(runs)
     dataset_list = [d.strip() for d in datasets.split(",") if d.strip()]
@@ -272,16 +283,8 @@ def entry(
     for i, (model, size, left, right) in enumerate(specs):
         ds = dataset_list[i] if i < len(dataset_list) else dataset_list[-1]
         vec = vector_list[i] if i < len(vector_list) else vector_list[-1]
-        is_refusal = vec == "refusal"
-        if intervene_context_only >= 0:
-            ctx = intervene_context_only
-        else:
-            ctx = 0 if is_refusal else 1
-        if intervene_all >= 0:
-            all_ = intervene_all
-        else:
-            all_ = 1 if is_refusal else 0
-        configs.append((model, size, left, right, ds, vec, ctx, all_))
+        configs.append((model, size, left, right, ds, vec,
+                        intervene_context_only, intervene_all))
 
     if collect_only:
         for model, size, left, right, ds, vec, ctx, all_ in configs:
