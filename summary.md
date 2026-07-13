@@ -124,6 +124,15 @@ modal run --detach src/experiments_replication/modal_intervene.py --runs "qwen:7
 modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --collect-only
 ```
 
+Experiment:
+
+```bash
+modal run --detach src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --no-wait
+modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --collect-only
+```
+
+Look for outputs in `src/experiments_replication/intervention_outputs/qwen7b-advbench-hf-lessharm-0-50/`.
+
 ### Reference
 Modeled after `src/experiments_replication/modal_run.py` (colleague's pipeline-runner), adapted for the intervention use case.
 

@@ -129,7 +129,7 @@ def run_intervention(
     vector_pth = f"/root/src/experiments_replication/steering_vectors/{name}/{vector}.pt"
     out_dir = f"/root/src/experiments_replication/intervention_outputs/{key}"
     os.makedirs(out_dir, exist_ok=True)
-    output_pth = f"{out_dir}/{dataset}_{'lessharm' if reverse_intervention else 'moreharm'}.json"
+    output_pth = f"{out_dir}/{dataset}-{'lessharm' if reverse_intervention else 'moreharm'}.json"
 
     cmd = [
         sys.executable, "-u", "/root/src/intervention.py",

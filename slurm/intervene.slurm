@@ -28,7 +28,7 @@ mkdir -p "$OUTPUT_DIR"
 
 python -u "$SLURM_SUBMIT_DIR/src/intervention.py" \
 	--test_data_pth "data/advbench.json" \
-	--output_pth "$OUTPUT_DIR/advbench_lessharm.json" \
+	--output_pth "$OUTPUT_DIR/advbench-lessharm.json" \
 	--intervention_vector "src/experiments_replication/steering_vectors/qwen-7b/hf.pt" \
 	--reverse_intervention 1 \
 	--intervene_context_only 1 \
