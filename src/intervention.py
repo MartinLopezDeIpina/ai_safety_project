@@ -333,15 +333,13 @@ def main():
             tokenizer.pad_token = tokenizer.eos_token 
         elif MODEL == 'qwen':
             tokenizer = AutoTokenizer.from_pretrained(
-                "Qwen/Qwen2-7B-Instruct", 
-                trust_remote_code=True, 
-                cache_dir='models/qwen'
+                "Qwen/Qwen2-7B-Instruct",
+                trust_remote_code=True,
             )
             model = AutoModelForCausalLM.from_pretrained(
-                "Qwen/Qwen2-7B-Instruct", 
-                device_map="auto", 
+                "Qwen/Qwen2-7B-Instruct",
+                device_map="auto",
                 trust_remote_code=True,
-                cache_dir='models/qwen'
             )
         else:
             raise ValueError(f"Unsupported model type: {MODEL}")

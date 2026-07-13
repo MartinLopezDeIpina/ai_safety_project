@@ -17,4 +17,6 @@ export PATH="$HOME/.local/bin:$PATH"
 SCRIPT_DIR="$SLURM_SUBMIT_DIR/src/experiments_replication"
 cd "$SCRIPT_DIR"
 
-python main.py
+export PYTHONUNBUFFERED=1
+export HF_HUB_OFFLINE=1
+python -u main.py
