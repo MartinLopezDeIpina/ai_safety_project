@@ -204,6 +204,66 @@ def gen_buckets(model, model_size, bucket_config=None):
     return {"train": train_acts, "test": test_acts}
 
 
+# ---------------------------------------------------------------------------
+# Qwen3.5 thinking buckets. The thinking activation tensors are (L, N, 22, H) — one fixed 22-slot
+# token layout instead of two named positions. So here a "family" (refused_harmful / accepted_harmless
+# / accepted_harmful / refused_harmless) is kept whole (L, N, 22, H); the figure slices positions
+# itself. Config entries are position-agnostic 2-tuples [family_name, [source_stems]]. Split rule is
+# the same md5-seeded per-source rule as build_splits. Zero-norm (null) slots are NOT dropped here —
+# that is done per-position at plot time, since a row is legitimately null at some slots.
+# ---------------------------------------------------------------------------
+def build_splits_thinking(model, model_size, families_train, families_test, test_ratio=0.2, seed=0):
+    """Compose thinking families into train/test dicts family_name -> (L, N, 22, H)."""
+    acts_dir = _acts_dir(model, model_size)
+    train_sources = {s for _, ss in families_train for s in ss}
+    test_sources = {s for _, ss in families_test for s in ss}
+    cache = {}
+
+    def load(source):
+        if source not in cache:
+            path = os.path.join(acts_dir, source + ".pt")
+            if not os.path.exists(path):
+                cache[source] = (None, None, None)
+            else:
+                tensor = torch.load(path, map_location="cpu").float()
+                train_idx, test_idx = _split_indices(tensor.shape[1], test_ratio, seed, source)
+                cache[source] = (tensor, train_idx, test_idx)
+        return cache[source]
+
+    def assemble(config, side):
+        other_sources = test_sources if side == "train" else train_sources
+        out = {}
+        for cluster, sources in config:
+            slices = []
+            for source in sources:
+                tensor, train_idx, test_idx = load(source)
+                if tensor is None:
+                    continue
+                if source in other_sources:
+                    idx = train_idx if side == "train" else test_idx
+                else:
+                    idx = np.arange(tensor.shape[1])
+                if len(idx):
+                    slices.append(tensor[:, idx])  # (L, n, 22, H)
+            if slices:
+                out[cluster] = torch.cat(slices, dim=1)
+        return out
+
+    return assemble(families_train, "train"), assemble(families_test, "test")
+
+
+def gen_buckets_thinking(model, model_size, bucket_config):
+    """Compose thinking train/test buckets -> {"train": {...}, "test": {...}} of (L, N, 22, H)."""
+    path = bucket_config if os.path.isabs(bucket_config) else os.path.join(HERE, bucket_config)
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    train_acts, test_acts = build_splits_thinking(
+        model, model_size,
+        families_train=cfg["families_train"], families_test=cfg["families_test"],
+        test_ratio=cfg.get("test_ratio", 0.2), seed=cfg.get("seed", 0))
+    return {"train": train_acts, "test": test_acts}
+
+
 if __name__ == "__main__":
     model = sys.argv[1] if len(sys.argv) > 1 else "qwen"
     model_size = sys.argv[2] if len(sys.argv) > 2 else "0.5b"

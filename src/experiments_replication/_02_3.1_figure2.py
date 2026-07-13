@@ -101,6 +101,83 @@ def _draw_score(
     ax.legend(loc="lower right", fontsize=15, framealpha=0.9, edgecolor="0.8")
 
 
+# ---- Qwen3.5 thinking Figure 2: the same score s^l, drawn across the fixed 22-slot layout ----
+SLOT_LABELS = {
+    0: r"$t_{\mathrm{inst}}$", 1: r"$t_{\mathrm{post}}$", 2: r"\n", 3: "<think>", 4: r"\n",
+    5: "CoT 1", 6: "CoT 2", 7: "CoT 3", 8: "CoT 4", 9: "CoT 5",
+    10: "mid 1", 11: "mid 2", 12: "mid 3", 13: "mid 4", 14: "mid 5",
+    15: "last 1", 16: "last 2", 17: "last 3", 18: "last 4", 19: "last 5",
+    20: "gen 1", 21: "gen 2",
+}
+THINK_POSITIONS = list(range(22))
+NOTHINK_POSITIONS = [0, 1, 2, 3, 4, 20, 21]  # the only meaningful slots without a reasoning trace
+
+
+def _slice_pos(tensor, p):
+    """(L, N, 22, H) -> (L, n, H) at slot p, dropping null (zero-norm) rows."""
+    sl = tensor[:, :, p, :]
+    keep = (sl.norm(dim=-1) > 0).all(dim=0)
+    return sl[:, keep]
+
+
+def plot_figure2_thinking(model, model_size, buckets, positions, out_path, ncols=6):
+    """Figure 2 across the 22-slot thinking layout (one panel per slot in `positions`).
+
+    Same score as plot_figure2: anchors mu_refused_harmful / mu_accepted_harmless from the train
+    families, coral/teal lines (accepted_harmful / refused_harmless) from test. Families are whole
+    (L, N, 22, H) tensors; each panel slices its own slot and drops null rows.
+    """
+    train, test = buckets["train"], buckets["test"]
+    n = len(positions)
+    ncols = min(ncols, n)
+    nrows = int(np.ceil(n / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(4.2 * ncols, 3.6 * nrows), squeeze=False)
+    axes = axes.ravel()
+
+    for ax, p in zip(axes, positions):
+        title = SLOT_LABELS.get(p, str(p))
+        rh_tr = _slice_pos(train["refused_harmful"], p)
+        ah_tr = _slice_pos(train["accepted_harmless"], p)
+        if rh_tr.shape[1] == 0 or ah_tr.shape[1] == 0:
+            ax.set_title(title, fontsize=12)
+            ax.text(0.5, 0.5, "no anchors", ha="center", va="center", transform=ax.transAxes)
+            continue
+        mu_refused_harmful, mu_accepted_harmless = rh_tr.mean(1), ah_tr.mean(1)
+
+        ah_line = _slice_pos(test["accepted_harmful"], p) if "accepted_harmful" in test else None
+        rh_line = _slice_pos(test["refused_harmless"], p) if "refused_harmless" in test else None
+        accepted_harmful_mean, accepted_harmful_std = _score_stats(
+            ah_line, mu_refused_harmful, mu_accepted_harmless)
+        refused_harmless_mean, refused_harmless_std = _score_stats(
+            rh_line, mu_refused_harmful, mu_accepted_harmless)
+
+        if accepted_harmful_mean is None:
+            ax.set_title(title, fontsize=12)
+            ax.text(0.5, 0.5, "no data", ha="center", va="center", transform=ax.transAxes)
+            continue
+
+        layers = np.arange(mu_refused_harmful.shape[0])
+        span = np.abs(accepted_harmful_mean)
+        if refused_harmless_mean is not None:
+            span = np.concatenate([span, np.abs(refused_harmless_mean)])
+        ymax = float(np.max(span)) * 1.4 or 0.08
+
+        _draw_score(
+            ax, layers,
+            accepted_harmful_mean, accepted_harmful_std,
+            refused_harmless_mean, refused_harmless_std,
+            title=title, ymin=-ymax, ymax=ymax)
+
+    for ax in axes[n:]:
+        ax.axis("off")
+
+    fig.tight_layout()
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"saved {out_path}")
+
+
 def plot_figure2(model, model_size, buckets, out_path=None):
     """Build and save Figure 2 (t_inst and t_post as two panels of one PNG).
 

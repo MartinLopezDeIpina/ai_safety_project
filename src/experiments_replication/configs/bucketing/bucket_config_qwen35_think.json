@@ -1,0 +1,16 @@
+{
+  "test_ratio": 0.5,
+  "seed": 0,
+  "families_train": [
+    ["refused_harmful", ["advbench_genthink_refused", "jbb_genthink_refused"]],
+    ["accepted_harmless", ["alpaca_genthink_accepted", "xstest_genthink_accepted"]],
+    ["accepted_harmful", ["advbench_genthink_accepted", "jbb_genthink_accepted", "sorrybench_genthink_accepted"]],
+    ["refused_harmless", []]
+  ],
+  "families_test": [
+    ["refused_harmful", ["advbench_genthink_refused", "jbb_genthink_refused"]],
+    ["accepted_harmless", ["alpaca_genthink_accepted", "xstest_genthink_accepted"]],
+    ["accepted_harmful", ["advbench_genthink_accepted", "jbb_genthink_accepted", "sorrybench_genthink_accepted"]],
+    ["refused_harmless", ["xstest_genthink_refused"]]
+  ]
+}

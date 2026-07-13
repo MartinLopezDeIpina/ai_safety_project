@@ -80,6 +80,61 @@ def run_extract_hidden(
             os.remove(path)
 
 
+def run_extract_hidden_thinking(
+    harmful_pth,
+    output_pth_harmful,
+    thinking_mode,
+    *,
+    model="qwen35",
+    model_size="0.8b",
+    left=0,
+    right=100000,
+):
+    """Wrapper around extract_hidden.py --thinking 1: forward on prompt+generation and store the
+    fixed 22-slot (L, N, 22, H) tensor. Leaves no scratch/debris (unlike the mean-diff path)."""
+    os.makedirs(os.path.dirname(output_pth_harmful), exist_ok=True)
+    cmd = [
+        sys.executable, EXTRACT_SCRIPT,
+        "--model", model,
+        "--model_size", model_size,
+        "--harmful_pth", harmful_pth,
+        "--output_pth_harmful", output_pth_harmful,
+        "--thinking", "1",
+        "--thinking_mode", thinking_mode,
+        "--left", str(left),
+        "--right", str(right),
+    ]
+    # expandable_segments reduces fragmentation OOMs on long full-trace forward passes.
+    env = {**os.environ, "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"}
+    subprocess.run(cmd, check=True, cwd=HERE, env=env)
+
+
+def compute_all_activations_thinking(model, model_size):
+    """Extract 22-slot activations for each thinking classified generation into activations/.
+
+    thinking_mode is read from the filename (genthink vs gennothink), so gennothink files leave
+    the CoT slots null.
+    """
+    classified_dir, acts_dir = _dirs(model, model_size)
+    os.makedirs(acts_dir, exist_ok=True)
+
+    for src_pth in sorted(glob.glob(os.path.join(classified_dir, "*.json"))):
+        name = os.path.splitext(os.path.basename(src_pth))[0]
+        with open(src_pth, encoding="utf-8") as f:
+            if not json.load(f):
+                print(f"{name}: empty, skipping")
+                continue
+        thinking_mode = "genthink" if "genthink" in name else "gennothink"
+        run_extract_hidden_thinking(
+            harmful_pth=src_pth,
+            output_pth_harmful=os.path.join(acts_dir, name + ".pt"),
+            thinking_mode=thinking_mode,
+            model=model,
+            model_size=model_size,
+        )
+        print(f"{name}: activations saved ({thinking_mode})")
+
+
 def compute_all_activations(model, model_size):
     """Extract activations for each classified generation into activations/."""
     classified_dir, acts_dir = _dirs(model, model_size)

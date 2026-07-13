@@ -1,0 +1,26 @@
+{
+  "config": {
+    "model": "qwen35",
+    "size": "0.8b",
+    "n": 40,
+    "max_new_tokens": 4096,
+    "batch_size": 8
+  },
+  "full": {
+    "variant": "full",
+    "n": 40,
+    "accepted": 10,
+    "refused": 30,
+    "acceptance_rate": 0.25,
+    "think_closed": 40
+  },
+  "stripped": {
+    "variant": "stripped",
+    "n": 40,
+    "accepted": 7,
+    "refused": 33,
+    "acceptance_rate": 0.175,
+    "think_closed": 40
+  },
+  "hypothesis_stripped_accepts_more": false
+}

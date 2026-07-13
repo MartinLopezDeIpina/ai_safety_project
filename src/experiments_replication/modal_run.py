@@ -50,12 +50,20 @@ hf_secret = modal.Secret.from_dict({"HF_TOKEN": _hf_token} if _hf_token else {})
 image = (
     modal.Image.debian_slim()
     .pip_install_from_requirements(os.path.join(_ROOT, "requirements.txt"))
+    # Blackwell (B200/B300) needs a CUDA-13 torch: the requirements' torch 2.6.0+cu121 only ships up
+    # to sm_90, so B300 (sm_103) fails with "no kernel image available". torch 2.12.1+cu130 ships
+    # sm_100 cubins, which run on sm_103 by same-major binary forward-compat (matches the local
+    # Blackwell setup). Harmless on A100 (sm_80 is in the arch list). Overrides the requirements torch.
+    .pip_install("torch==2.12.1+cu130",
+                 extra_index_url="https://download.pytorch.org/whl/cu130")
     # Mounted at runtime (copy=False): no build step needs these files, and copying them into
     # an image layer would abort with "modified during build process" if a file's mtime shifts
     # mid-copy (an editor/linter touching a .py, or .pyc regeneration on entrypoint import).
     .add_local_dir(
         os.path.join(_ROOT, "src"), "/root/src",
-        ignore=["**/output", "**/__pycache__", "**/*.pyc", "*.pt", "run", ".venv"],
+        # **/models excludes the local HF weight cache (src/models/qwen35, ~1.7GB) — the container
+        # re-downloads into its own cache, so uploading it would only slow the build.
+        ignore=["**/output", "**/__pycache__", "**/*.pyc", "*.pt", "**/models", "run", ".venv"],
     )
     .add_local_dir(os.path.join(_ROOT, "data"), "/root/data")
 )
@@ -82,10 +90,15 @@ def _key(model: str, model_size: str, left: int, right: int, config: str = "") -
 @app.function(image=image, gpu="A100", volumes={"/cache": hf_cache, "/results": results_vol},
               secrets=[hf_secret], timeout=18000)
 def run_one(model: str, model_size: str, left: int, right: int, stages: str,
-            config: str) -> tuple[str, str]:
+            config: str, thinking: bool = False, max_len: int = 4096,
+            batch_size: int = 8, sampling_config: str = "sampling_config.json") -> tuple[str, str]:
     """Run main() for one model/config and persist its output tree to /results/<key>. Returns
     (name, key). Output is committed in a `finally` so a late-stage error (e.g. figure3) can't
-    discard an otherwise-complete run — whatever main() produced is still saved."""
+    discard an otherwise-complete run — whatever main() produced is still saved.
+
+    thinking=True runs the Qwen3.5 thinking track (config is the genthink bucket config; the
+    gennothink one defaults inside main). max_len / batch_size tune the (batched) thinking
+    generation."""
     import traceback
     os.environ["HF_HUB_CACHE"] = "/cache"
     # extract_hidden.py runs `from utils import ...` with cwd=experiments_replication, so the
@@ -95,11 +108,17 @@ def run_one(model: str, model_size: str, left: int, right: int, stages: str,
     sys.path.insert(0, "/root/src")
     os.chdir("/root/src/experiments_replication")
 
+    import torch  # log the actual GPU this container got (with_options overrides the decorator default)
+    print(f"### GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'} "
+          f"| torch {torch.__version__} | arch {torch.cuda.get_arch_list() if torch.cuda.is_available() else '-'}",
+          flush=True)
+
     name, key = _name(model, model_size), _key(model, model_size, left, right, config)
     try:
         from main import main
         main(model, model_size, left, right, stages=tuple(stages.split(",")),
-             bucket_config=config)
+             bucket_config=config, thinking=thinking, max_len=max_len, batch_size=batch_size,
+             sampling_config=sampling_config)
     except Exception:
         print(f"### stage error in {key} — committing partial output:", flush=True)
         traceback.print_exc()
@@ -155,7 +174,8 @@ def _pull(name: str, key: str):
         shutil.move(os.path.join(tmp, key), dest)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    subprocess.run(modal_cli + ["volume", "rm", "behavior-results", f"/{key}", "-r"], check=False)
+    # do not rm just in case because it took to long to generate
+    #subprocess.run(modal_cli + ["volume", "rm", "behavior-results", f"/{key}", "-r"], check=False)
     print(f"pulled -> {dest}")
 
 
@@ -163,6 +183,12 @@ def _pull(name: str, key: str):
 def entry(runs: str = "qwen:0.5b:0:10",
           stages: str = "infer,eval,acts,gen_buckets,fig,fig3",
           config: str = "bucket_config.json",
+          thinking: bool = False,
+          max_len: int = 4096,
+          batch_size: int = 8,
+          sampling_config: str = "sampling_config.json",
+          gpu: str = "A100",
+          timeout: int = 18000,
           wait: bool = True,
           collect_only: bool = False):
     """Launch (and optionally collect) the runs in `runs`.
@@ -177,6 +203,14 @@ def entry(runs: str = "qwen:0.5b:0:10",
         modal run modal_run.py --runs "..." --config bucket_config.json --collect-only
     Collect keys are deterministic (model+size+left+right+config), so the same --runs/--config
     retrieves exactly the runs that were launched.
+
+    Qwen3.5 thinking track on a specific GPU (batched generation). The model id is
+    f"Qwen/Qwen3.5-{SIZE.upper()}", so any size works by changing the spec's size field, e.g. 0.8b
+    or 9b (9B needs a big GPU — B200/B300 — it won't fit a 16GB local card):
+        modal run modal_run.py --runs "qwen35:9b:0:40" \
+            --stages "infer,eval,acts,gen_buckets,fig" \
+            --config bucket_config_qwen35_think.json \
+            --thinking --max-len 4096 --batch-size 64 --gpu B300
     """
     specs = _parse_runs(runs)
 
@@ -189,7 +223,10 @@ def entry(runs: str = "qwen:0.5b:0:10",
                 print(f"  not ready on volume yet (skipped): {key}")
         return
 
-    handles = [(spec, run_one.spawn(*spec, stages, config)) for spec in specs]  # launch in parallel
+    # per-invocation GPU + timeout override (e.g. --gpu A100 --timeout 86400 for a long full-dataset run)
+    fn = run_one.with_options(gpu=gpu, timeout=timeout)
+    handles = [(spec, fn.spawn(*spec, stages, config, thinking, max_len, batch_size, sampling_config))
+               for spec in specs]  # launch in parallel
     if not wait:
         print("\nLaunched detached; results commit to the 'behavior-results' volume as each "
               "run finishes.\nCollect them later with:\n"
