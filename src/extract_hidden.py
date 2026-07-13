@@ -6,7 +6,7 @@ import argparse
 from typing import List, Tuple, Callable, Optional
 from torch import Tensor
 from tqdm import tqdm
-from utils import read_row, formatInp_llama_persuasion
+from utils import read_row, formatInp_llama_persuasion, formatInp_thinking
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import contextlib
 import functools
@@ -310,6 +310,123 @@ def generate_directions(
 
     return mean_diffs
 
+# ---------------------------------------------------------------------------
+# Qwen3.5 thinking-model extraction (clone path). Instead of the prompt-only hook machinery
+# above, we run one forward pass on prompt+generation and gather a FIXED 22-slot token layout so
+# both generation modes share a single index scheme (see the plan / CLAUDE-style docs):
+#   0        t_inst (token before the first <|im_end|>)
+#   1-4      assistant \n <think> \n     (slot 1 = t_post)
+#   5-9      first 5 CoT tokens
+#   10-14    middle 5 CoT tokens (region CoT[5:-5] split into 5 groups, middle of each)
+#   15-19    last 5 CoT tokens
+#   20-21    first 2 answer tokens after </think> (whitespace-only tokens skipped)
+# gennothink has no CoT (its </think> is inside the prompt), so slots 5-19 stay null (zeros);
+# missing/short-CoT slots are null too. dynamic_bucket_formation drops zero-norm rows per position.
+# ---------------------------------------------------------------------------
+THINK_SLOTS = 22
+
+
+def _single_tid(tokenizer, s: str):
+    ids = tokenizer(s, add_special_tokens=False).input_ids
+    return ids[0] if len(ids) == 1 else None
+
+
+def _place(slots, offset, values):
+    for i, v in enumerate(values):
+        if offset + i < len(slots):
+            slots[offset + i] = v
+
+
+def _sample_middle(region, k):
+    """Split `region` (a list of indices) into k contiguous groups, return each group's middle
+    index (None for an empty group). Always returns exactly k entries."""
+    if not region:
+        return [None] * k
+    n = len(region)
+    out = []
+    for i in range(k):
+        grp = region[i * n // k:(i + 1) * n // k]
+        out.append(grp[len(grp) // 2] if grp else None)
+    return out
+
+
+def _first_answer_tokens(ids, start, tokenizer, k):
+    """First k token indices at/after `start` whose decoded text is not whitespace-only."""
+    out, j = [], start
+    while j < len(ids) and len(out) < k:
+        if tokenizer.decode([ids[j]]).strip() != '':
+            out.append(j)
+        j += 1
+    return out
+
+
+def compute_positions_thinking(ids, tokenizer, mode):
+    """Map a full prompt+generation token-id list to the 22 fixed slot indices (int or None)."""
+    slots = [None] * THINK_SLOTS
+    im_end = _single_tid(tokenizer, '<|im_end|>')
+    th_open = _single_tid(tokenizer, '<think>')
+    th_close = _single_tid(tokenizer, '</think>')
+
+    # slot 0: t_inst = token before the first <|im_end|>
+    if im_end is not None and im_end in ids:
+        fe = ids.index(im_end)
+        if fe - 1 >= 0:
+            slots[0] = fe - 1
+
+    # slots 1-4: assistant \n <think> \n  (block = <think> index minus 2 .. plus 1)
+    tho = ids.index(th_open) if (th_open is not None and th_open in ids) else None
+    if tho is not None:
+        _place(slots, 1, [i if 0 <= i < len(ids) else None for i in range(tho - 2, tho + 2)])
+
+        cot_start = tho + 2  # skip <think>\n
+        thc = next((k for k in range(cot_start, len(ids)) if ids[k] == th_close), None)
+
+        if mode != 'gennothink':
+            end = thc if thc is not None else len(ids)
+            cot = list(range(cot_start, end))
+            if cot:
+                _place(slots, 5, cot[:5])
+                _place(slots, 10, _sample_middle(cot[5:len(cot) - 5], 5))
+                _place(slots, 15, cot[-5:])
+
+        if thc is not None:  # slots 20-21: first 2 answer tokens after </think>
+            _place(slots, 20, _first_answer_tokens(ids, thc + 1, tokenizer, 2))
+    return slots
+
+
+def extract_thinking_activations(model, tokenizer, rows, thinking_mode):
+    """Forward each (instruction, stored generation) once and gather the 22-slot layout.
+
+    Returns (L, N, 22, H): L = n_layers+1 residual-stream points (output_hidden_states, equivalent
+    to the pre/fwd-hook capture used elsewhere), N rows, 22 token slots, hidden size H.
+    """
+    all_acts = []
+    for row in tqdm(rows):
+        full = formatInp_thinking(row, thinking_mode=thinking_mode, model=MODEL) + row.get('ori_output', '')
+        enc = tokenizer(full, return_tensors='pt', add_special_tokens=False)
+        with torch.no_grad():
+            out = model(input_ids=enc.input_ids.to(model.device), output_hidden_states=True)
+        hs = torch.stack(out.hidden_states).squeeze(1).detach().cpu().half()  # (L, seq, H)
+        L, seq, H = hs.shape
+        idxs = compute_positions_thinking(enc.input_ids[0].tolist(), tokenizer, thinking_mode)
+        slots = [hs[:, j, :] if (j is not None and 0 <= j < seq) else torch.zeros(L, H, dtype=hs.dtype)
+                 for j in idxs]
+        all_acts.append(torch.stack(slots, dim=1))  # (L, 22, H)
+        # full reasoning traces can be long (thousands of tokens); free GPU memory each step so
+        # peak stays at one forward pass and fragmentation doesn't accumulate across examples.
+        del out, hs
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    return torch.stack(all_acts, dim=1)  # (L, N, 22, H)
+
+
+def generate_directions_thinking(model, tokenizer, rows, args):
+    result = extract_thinking_activations(model, tokenizer, rows, args['thinking_mode'])
+    print('thinking activations shape', tuple(result.shape))
+    torch.save(result, args['output_pth_harmful'])
+    return result
+
+
 def main() -> None:
     """Run the full pipeline."""
     parser = argparse.ArgumentParser()
@@ -335,7 +452,9 @@ def main() -> None:
     parser.add_argument('--extract_hidden_inst_token', default=0, type=int, help="Extract hidden state of instruction tokens")
     parser.add_argument('--extract_harmful_token_only', default=0, type=int, help="Extract harmful token only")
     parser.add_argument('--mode_dir', default='hf', type=str, help="Mode for direction extraction: 'hf' or 'refuse'")
-    
+    parser.add_argument('--thinking', default=0, type=int, help="Use the Qwen3.5 thinking 22-slot extraction")
+    parser.add_argument('--thinking_mode', default='genthink', type=str, help="genthink or gennothink")
+
     args = parser.parse_args()
     params = vars(args)
     
@@ -373,6 +492,19 @@ def main() -> None:
         else:
             tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-7B-Instruct", trust_remote_code=True, cache_dir='models/qwen')
             model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-7B-Instruct", device_map="auto", trust_remote_code=True, cache_dir='models/qwen')
+    elif MODEL == 'qwen35':
+        qwen35_path = f"Qwen/Qwen3.5-{params['model_size'].upper()}"
+        # absolute cache dir (src/models/qwen35) so inference and extraction share one download.
+        qwen35_cache = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'qwen35')
+        tokenizer = AutoTokenizer.from_pretrained(qwen35_path, trust_remote_code=True, cache_dir=qwen35_cache)
+        model = AutoModelForCausalLM.from_pretrained(qwen35_path, dtype=torch.float16, device_map="auto", trust_remote_code=True, cache_dir=qwen35_cache)
+
+    if params['thinking']:
+        # Thinking clone path: forward on prompt+generation, store the fixed 22-slot layout.
+        rows = read_row(params['harmful_pth'])
+        rows = rows[params['left']:params['right']] if params['left'] < len(rows) else rows
+        generate_directions_thinking(model, tokenizer, rows, params)
+        return
 
     if params['extract_hidden_inst_token']:
         inst_token = "[/INST]"

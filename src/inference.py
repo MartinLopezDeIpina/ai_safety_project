@@ -7,10 +7,11 @@ import json
 import logging
 from typing import Dict, List, Tuple, Any
 
-from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
+from transformers import (AutoModelForCausalLM, AutoTokenizer, GenerationConfig,
+                          LogitsProcessor, LogitsProcessorList)
 from tqdm import tqdm
 
-from utils import read_row, formatInp_llama_persuasion
+from utils import read_row, formatInp_llama_persuasion, formatInp_thinking
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -184,6 +185,115 @@ def infer(
         logger.debug(f'Output: {output[:100]}...')
 
 
+def extract_model_output_thinking(full_output: str, input_prompt: str) -> str:
+    """Clone of extract_model_output for the Qwen3.5 thinking family. Keeps the FULL generated
+    continuation (reasoning trace + ``</think>`` + answer) so downstream can split on ``</think>``.
+    Strips the echoed input prompt when present; otherwise falls back to the last ``<think>``.
+    """
+    if input_prompt and input_prompt in full_output:
+        response = full_output.split(input_prompt)[-1]
+    else:
+        response = full_output.split('<think>')[-1]
+    return response.replace('</s>', '').strip()
+
+
+# Default thinking-inference sampling. A --sampling_config json may override any subset of these
+# keys; presence_penalty is applied via PresencePenaltyLogitsProcessor (generate ignores it), the
+# rest are passed straight to GenerationConfig.
+_DEFAULT_SAMPLING = {"do_sample": True, "temperature": 1.0, "top_p": 1.0, "top_k": 20,
+                     "min_p": 0.0, "presence_penalty": 2.0}
+
+
+def load_sampling_config(path: str) -> dict:
+    """Merge a sampling-config json (path may be empty/missing) over the defaults."""
+    cfg = dict(_DEFAULT_SAMPLING)
+    if path and os.path.exists(path):
+        with open(path) as f:
+            cfg.update(json.load(f))
+    return cfg
+
+
+class PresencePenaltyLogitsProcessor(LogitsProcessor):
+    """OpenAI/vLLM-style presence penalty (transformers' generate has no built-in one): subtract a
+    flat `penalty` from the logit of every token that has already appeared in the *generated* part
+    of the sequence (binary presence, count-independent). `prompt_len` is the padded input length,
+    so only generated tokens are penalized, not the prompt.
+    """
+    def __init__(self, penalty: float, prompt_len: int):
+        self.penalty = penalty
+        self.prompt_len = prompt_len
+
+    def __call__(self, input_ids, scores):
+        generated = input_ids[:, self.prompt_len:]
+        if generated.shape[1] == 0:
+            return scores
+        seen = torch.zeros_like(scores, dtype=torch.bool)
+        seen.scatter_(1, generated, True)
+        return scores - seen.to(scores.dtype) * self.penalty
+
+
+def infer_thinking(
+    model: AutoModelForCausalLM,
+    tokenizer: AutoTokenizer,
+    eval_data: List[Dict[str, Any]],
+    args: Dict[str, Any]
+) -> None:
+    """Batched clone of infer for the Qwen3.5 thinking family. Builds prompts with formatInp_thinking
+    (genthink/gennothink), generates in batches of args['batch_size'], and stores the full
+    reasoning+answer continuation in ori_output.
+
+    Sampling params come from args['sampling_config'] (a json path) merged over _DEFAULT_SAMPLING;
+    presence_penalty is applied via PresencePenaltyLogitsProcessor (generate ignores it), the rest
+    go to GenerationConfig.
+    """
+    model.eval()
+    model.config.use_cache = True
+
+    if os.path.exists(args['output_file_name']):
+        os.remove(args['output_file_name'])
+
+    # left padding is required for correct batched decoder-only generation.
+    tokenizer.padding_side = 'left'
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    sampling = load_sampling_config(args.get('sampling_config', ''))
+    presence_penalty = float(sampling.pop('presence_penalty', 0.0))
+    generation_config = GenerationConfig(num_beams=1, pad_token_id=tokenizer.pad_token_id, **sampling)
+    batch_size = int(args.get('batch_size', 1)) or 1
+    max_new_tokens = args['max_len']
+
+    prompts = [formatInp_thinking(d, thinking_mode=args['thinking_mode'], model=args['model'])
+               for d in eval_data]
+
+    logger.info('Starting thinking inference (%s), %d samples, batch_size=%d, sampling=%s, '
+                'presence_penalty=%s...', args['thinking_mode'], len(eval_data), batch_size,
+                sampling, presence_penalty)
+
+    with open(args['output_file_name'], 'a') as f:
+        for i in tqdm(range(0, len(eval_data), batch_size), desc="Batches"):
+            batch_prompts = prompts[i:i + batch_size]
+            enc = tokenizer(batch_prompts, return_tensors="pt", padding=True).to(model.device)
+            prompt_len = enc.input_ids.shape[1]
+            logits_processor = (LogitsProcessorList(
+                [PresencePenaltyLogitsProcessor(presence_penalty, prompt_len)])
+                if presence_penalty else None)
+            with torch.no_grad():
+                out = model.generate(**enc, generation_config=generation_config,
+                                     max_new_tokens=max_new_tokens,
+                                     logits_processor=logits_processor)
+            gen = out[:, prompt_len:]  # generated continuation only
+            for j in range(gen.shape[0]):
+                ids = gen[j].tolist()
+                if tokenizer.eos_token_id in ids:  # trim eos + any trailing pad
+                    ids = ids[:ids.index(tokenizer.eos_token_id)]
+                text = tokenizer.decode(ids, skip_special_tokens=False)  # keep <think>/</think>
+                eval_data[i + j]['ori_output'] = text.replace('</s>', '').strip()
+                json.dump(eval_data[i + j], f)
+                f.write('\n')
+            f.flush()
+
+
 def load_model_and_tokenizer(model_type: str, model_size: str, load_checkpoint: bool = False, checkpoint_path: str = "") -> Tuple[AutoModelForCausalLM, AutoTokenizer]:
     """
     Load the specified model and tokenizer.
@@ -248,6 +358,19 @@ def load_model_and_tokenizer(model_type: str, model_size: str, load_checkpoint: 
                 trust_remote_code=True,
                 #cache_dir=cache_dir
             )
+
+        elif model_type == 'qwen35':
+            # Qwen3.5 thinking family (any size, e.g. '0.8b'). Cache under src/models/qwen35 via an
+            # absolute path so inference and extract_hidden (run from different cwds) share one copy.
+            model_path = f"Qwen/Qwen3.5-{model_size.upper()}"
+            cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'qwen35')
+            tokenizer = AutoTokenizer.from_pretrained(
+                model_path, trust_remote_code=True, cache_dir=cache_dir,
+            )
+            model = AutoModelForCausalLM.from_pretrained(
+                model_path, dtype=torch.float16, device_map="auto",
+                trust_remote_code=True, cache_dir=cache_dir,
+            )
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
         
@@ -284,6 +407,7 @@ def main():
     parser.add_argument("--top_p", default=0, type=float, help="Top-p sampling parameter")
     parser.add_argument("--do_sample_decode", default=0, type=int, help="Use sampling for decoding")
     parser.add_argument("--record_prob_max_pos", default=3, type=int, help="Max positions to record probabilities")
+    parser.add_argument("--batch_size", default=1, type=int, help="Batch size (thinking inference)")
     
     # Prompt configuration
     parser.add_argument("--use_jb", default=0, type=int, help="Use jailbroken prompt")
@@ -293,6 +417,11 @@ def main():
     parser.add_argument("--do_not_use_last_inst_tok", default=0, type=int, help="Don't use last instruction token")
     parser.add_argument("--use_inversion", default=0, type=int, help="Use inversion")
     parser.add_argument("--inversion_prompt_idx", default=0, type=int, help="Inversion prompt index")
+    parser.add_argument("--thinking_mode", default='', type=str,
+                        help="Qwen3.5 thinking template: '' (off), 'genthink', or 'gennothink'")
+    parser.add_argument("--sampling_config", default='', type=str,
+                        help="path to a json of thinking-inference sampling params "
+                             "(temperature, top_p, top_k, min_p, presence_penalty, do_sample)")
     
     
     args = parser.parse_args()
@@ -326,8 +455,11 @@ def main():
         if 'sample_rounds' not in d or d['sample_rounds'] != 'Failed'
     ]
     
-    # Run inference
-    infer(model, tokenizer, test_data, params)
+    # Run inference (thinking family routes to the cloned path)
+    if params['thinking_mode']:
+        infer_thinking(model, tokenizer, test_data, params)
+    else:
+        infer(model, tokenizer, test_data, params)
 
 
 if __name__ == "__main__":

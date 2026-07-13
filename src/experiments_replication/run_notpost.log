@@ -1,0 +1,44 @@
+Loaded 40 advbench rows from /home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/data/advbench.json
+Loading qwen35 0.8b...
+2026-07-12 18:43:24,528 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-07-12 18:43:24,540 - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3.5-0.8B/2fc06364715b967f1860aea9cf38778875588b17/config.json "HTTP/1.1 200 OK"
+2026-07-12 18:43:24,667 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-07-12 18:43:24,681 - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3.5-0.8B/2fc06364715b967f1860aea9cf38778875588b17/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-07-12 18:43:24,804 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-07-12 18:43:24,817 - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3.5-0.8B/2fc06364715b967f1860aea9cf38778875588b17/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-07-12 18:43:24,945 - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen3.5-0.8B/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-07-12 18:43:25,064 - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen3.5-0.8B/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-07-12 18:43:25,513 - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen3.5-0.8B "HTTP/1.1 200 OK"
+2026-07-12 18:43:25,640 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-07-12 18:43:25,652 - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3.5-0.8B/2fc06364715b967f1860aea9cf38778875588b17/config.json "HTTP/1.1 200 OK"
+2026-07-12 18:43:25,861 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-07-12 18:43:25,979 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/model.safetensors.index.json "HTTP/1.1 307 Temporary Redirect"
+2026-07-12 18:43:25,993 - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3.5-0.8B/2fc06364715b967f1860aea9cf38778875588b17/model.safetensors.index.json "HTTP/1.1 200 OK"
+2026-07-12 18:43:26,119 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/model.safetensors-00001-of-00001.safetensors "HTTP/1.1 302 Found"
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/320 [00:00<?, ?it/s]Loading weights:  36%|███▌      | 114/320 [00:00<00:00, 1125.38it/s]Loading weights: 100%|██████████| 320/320 [00:00<00:00, 1667.09it/s]
+2026-07-12 18:43:26,581 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/generation_config.json "HTTP/1.1 404 Not Found"
+2026-07-12 18:43:26,721 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-07-12 18:43:26,733 - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3.5-0.8B/2fc06364715b967f1860aea9cf38778875588b17/config.json "HTTP/1.1 200 OK"
+2026-07-12 18:43:26,853 - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3.5-0.8B/resolve/main/custom_generate/generate.py "HTTP/1.1 404 Not Found"
+[full] building prompts + generating (40 rows)...
+[transformers] Passing `generation_config` together with generation-related arguments=({'max_new_tokens'}) is deprecated and will be removed in future versions. Please pass either a `generation_config` object OR all generation parameters explicitly, but not both.
+    generated 8/40
+    generated 16/40
+    generated 24/40
+    generated 32/40
+    generated 40/40
+[full] accepted=10/40 (rate=0.25), </think>-closed=40/40
+[stripped] building prompts + generating (40 rows)...
+    generated 8/40
+    generated 16/40
+    generated 24/40
+    generated 32/40
+    generated 40/40
+[stripped] accepted=7/40 (rate=0.175), </think>-closed=40/40
+
+===== SUMMARY =====
+FULL     (keeps t_post): 10/40 accepted (rate 0.25)
+STRIPPED (no t_post):    7/40 accepted (rate 0.175)
+Stripping post-instruction tokens raises acceptance? False
+Outputs written under: /home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/src/experiments_replication/output/try_think_without_tpost

@@ -103,6 +103,106 @@ RUNS = [
 ]
 
 
+def run_inference_on_dataset_thinking(
+    input_file,
+    output_file,
+    thinking_mode,
+    *,
+    model="qwen35",
+    model_size="0.8b",
+    left=0,
+    right=10,
+    max_len=512,
+    batch_size=8,
+    sampling_config="",
+):
+    """Invoke src/inference.py in thinking mode (genthink/gennothink) on one dataset."""
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    cmd = [
+        sys.executable, "inference.py",
+        "--input", input_file,
+        "--output_file_name", output_file,
+        "--model", model,
+        "--model_size", model_size,
+        "--left", str(left),
+        "--right", str(right),
+        "--use_template", "1",
+        "--use_jb", "0",
+        "--record_prob_max_pos", "0",
+        "--max_len", str(max_len),
+        "--batch_size", str(batch_size),
+        "--thinking_mode", thinking_mode,
+    ]
+    if sampling_config:
+        cmd += ["--sampling_config", sampling_config]  # absolute path (subprocess cwd is SRC_DIR)
+    subprocess.run(cmd, check=True, cwd=SRC_DIR)
+    _write_pretty(output_file, _read_rows(output_file))
+
+
+# (dataset file, output name, thinking_mode). 5 datasets x {genthink, gennothink} = 10 runs, all in
+# the same generations/ dir. Unlike the Qwen2 pipeline there is no gentinst/gentpost split.
+RUNS_THINKING = [
+    ("advbench.json", "advbench_genthink.json", "genthink"),
+    ("advbench.json", "advbench_gennothink.json", "gennothink"),
+    ("jbb.json", "jbb_genthink.json", "genthink"),
+    ("jbb.json", "jbb_gennothink.json", "gennothink"),
+    ("sorry-badq.json", "sorrybench_genthink.json", "genthink"),
+    ("sorry-badq.json", "sorrybench_gennothink.json", "gennothink"),
+    ("xstest-harmless.json", "xstest_genthink.json", "genthink"),
+    ("xstest-harmless.json", "xstest_gennothink.json", "gennothink"),
+    ("alpaca_data_instruction.json", "alpaca_genthink.json", "genthink"),
+    ("alpaca_data_instruction.json", "alpaca_gennothink.json", "gennothink"),
+]
+
+
+def run_all_inference_thinking(model, model_size, left, right, max_len=512, batch_size=8,
+                               sampling_config=""):
+    """Generate genthink/gennothink responses for all 5 datasets (Qwen3.5 thinking family).
+
+    sampling_config: path to a sampling json (relative paths resolve against this dir); "" uses the
+    inference defaults.
+    """
+    generations_dir, _, _ = _out_dirs(model, model_size)
+    scfg = sampling_config
+    if scfg and not os.path.isabs(scfg):
+        scfg = os.path.join(HERE, scfg)
+    for dataset_file, out_name, thinking_mode in RUNS_THINKING:
+        run_inference_on_dataset_thinking(
+            input_file=os.path.join(DATA_DIR, dataset_file),
+            output_file=os.path.join(generations_dir, out_name),
+            thinking_mode=thinking_mode,
+            model=model,
+            model_size=model_size,
+            left=left,
+            right=right,
+            max_len=max_len,
+            batch_size=batch_size,
+            sampling_config=scfg,
+        )
+
+
+def evaluate_thinking(model, model_size):
+    """Split each thinking generation into accepted/refused using easy_eval_thinking.
+
+    For genthink the classification runs only on the post-</think> answer; gennothink has no trace.
+    """
+    sys.path.insert(0, SRC_DIR)
+    from eval import easy_eval_thinking
+
+    generations_dir, classified_dir, _ = _out_dirs(model, model_size)
+    os.makedirs(classified_dir, exist_ok=True)
+
+    for _, out_name, thinking_mode in RUNS_THINKING:
+        data = _read_rows(os.path.join(generations_dir, out_name))
+        labels = easy_eval_thinking(data, tag="ori_output", mode="refusal",
+                                    think=(thinking_mode == "genthink"))
+        stem = out_name[: -len(".json")]
+        for suffix, keep_label in (("accepted", "5"), ("refused", "0")):
+            split = [item for item, label in zip(data, labels) if label == keep_label]
+            _write_pretty(os.path.join(classified_dir, f"{stem}_{suffix}.json"), split)
+            print(f"{stem}_{suffix}: {len(split)} items")
+
+
 def run_all_inference(model, model_size, left, right):
     """Generate responses for all 8 dataset/config combinations."""
     generations_dir, _, _ = _out_dirs(model, model_size)
