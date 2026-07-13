@@ -152,40 +152,65 @@ Modeled after `src/experiments_replication/modal_run.py` (colleague's pipeline-r
 - **Verified**: `torch 2.12.1+cu130` detects RTX 5060 Ti, `sm_120` in arch list; all other deps match `requirements.txt` versions exactly.
 
 
-## Intervention Experiments — ✅ Completed (initial run: 50 examples)
+## Intervention Experiments
 
-Six steering experiments run on Modal (A100, detached), results collected locally.
+### Initial Run (50 examples) — ✅ Completed
 
-> **Note:** The initial run used 50 examples (`qwen:7b:0:50`). The scripts have since been
-> bumped to 500 examples (`qwen:7b:0:500`) for a larger-scale run. The volume keys and output
-> directory names reflect the `right` value, so the 500-example runs will produce separate
-> directories (e.g. `qwen7b-advbench-hf-less-0-500/`). Additionally, the refusal-direction
-> experiments in the initial run used the wrong token scope (context-only instead of all
-> tokens); the corrected auto-defaulting (per Appendix E.1) is now in place for the re-run.
+The initial run used 50 examples (`qwen:7b:0:50`) with six experiments. Results collected locally.
 
-### Bash Scripts
+> **Note:** The refusal-direction experiments in the initial run used the wrong token scope
+> (context-only instead of all tokens); the corrected auto-defaulting (per Appendix E.1) is
+> now in place for re-runs.
+
+### Expanded Run (500 examples) — scripts ready
+
+The scripts have been bumped to 500 examples (`qwen:7b:0:500`) and expanded from 6 to 14
+experiments across four datasets (advbench, jbb, alpaca, xstest-harmless), plus two
+no-inversion runs on alpaca.
+
+### Python Scripts (replaced bash scripts)
+
+The original bash scripts (`run_interventions_modal.sh`, `collect_interventions_modal.sh`)
+have been replaced by a single Python script:
 
 | Script | Purpose |
 |---|---|
-| `run_interventions_modal.sh` | Launches all six experiments detached on Modal |
-| `collect_interventions_modal.sh` | Pulls results from the `intervention-results` volume |
+| `_045_interventions.py` | Run (`--mode run`) or collect (`--mode collect`) all experiments |
 
-Both scripts include a 5-second `sleep` between `modal run` calls to avoid Modal's "App creation failed: rate limit exceeded" error.
+The experiment table is generated programmatically from dataset/vector definitions. A
+5-second delay between `modal run` calls avoids the rate limit.
 
-### Experiments Run
+```bash
+# Launch all experiments detached
+uv run python src/experiments_replication/_045_interventions.py --mode run --runs "qwen:7b:0:500"
 
-| # | Dataset | Vector | Direction | `--reverse-intervention` | `--arg-key-prompt` | Effect |
+# Collect results
+uv run python src/experiments_replication/_045_interventions.py --mode collect --runs "qwen:7b:0:500"
+```
+
+### Full Experiment Table (14 experiments)
+
+| # | Dataset | Vector | Reverse | Prompt key | `use_inversion` | Effect |
 |---|---|---|---|---|---|---|
-| 1 | advbench | hf | less | 1 | `bad_q` (default) | Less-harm steering |
-| 2 | advbench | refusal | less | 1 | `bad_q` (default) | Less-refusal steering |
-| 3 | advbench | refusal | more | 0 | `bad_q` (default) | More-refusal steering |
-| 4 | alpaca_data_instruction | hf | more | 0 | `instruction` | More-harm steering |
-| 5 | alpaca_data_instruction | refusal | more | 0 | `instruction` | More-refusal steering |
-| 6 | alpaca_data_instruction | refusal | less | 1 | `instruction` | Less-refusal steering |
+| 1 | advbench | hf | 1 | `bad_q` | 1 | Less-harm steering |
+| 2 | advbench | refusal | 1 | `bad_q` | 1 | Less-refusal steering |
+| 3 | advbench | refusal | 0 | `bad_q` | 1 | More-refusal steering |
+| 4 | alpaca_data_instruction | hf | 0 | `instruction` | 1 | More-harm steering |
+| 5 | alpaca_data_instruction | refusal | 0 | `instruction` | 1 | More-refusal steering |
+| 6 | alpaca_data_instruction | refusal | 1 | `instruction` | 1 | Less-refusal steering |
+| 7 | jbb | hf | 1 | `bad_q` | 1 | Less-harm steering |
+| 8 | jbb | refusal | 1 | `bad_q` | 1 | Less-refusal steering |
+| 9 | jbb | refusal | 0 | `bad_q` | 1 | More-refusal steering |
+| 10 | xstest-harmless | hf | 0 | `bad_q` | 1 | More-harm steering |
+| 11 | xstest-harmless | refusal | 0 | `bad_q` | 1 | More-refusal steering |
+| 12 | xstest-harmless | refusal | 1 | `bad_q` | 1 | Less-refusal steering |
+| 13 | alpaca_data_instruction | hf | 0 | `instruction` | 0 | More-harm (no inversion) |
+| 14 | alpaca_data_instruction | refusal | 0 | `instruction` | 0 | More-refusal (no inversion) |
 
-### Collected Results
+Experiments 1–12 use the inversion prompt (`use_inversion=1`); experiments 13–14 steer
+without the inversion question so the model responds directly to the instruction.
 
-All six experiments collected successfully. Each produced 28 per-layer JSON files (layers 0–27):
+### Collected Results (initial 50-example run)
 
 | Output directory | Files |
 |---|---|
@@ -226,6 +251,34 @@ modal run modal_intervene.py --runs "qwen:7b:0:50,qwen:7b:0:50,qwen:7b:0:50" \
 | 2 | jbb | refusal |
 | 3 | jbb (last repeated) | refusal (last repeated) |
 
+
+## Figure 5: Refusal Rate Across Intervention Layers
+
+**Path:** `src/experiments_replication/_05_figure5.py`
+
+Replicates Figure 5 from the paper. Loads per-layer intervention JSONs, classifies responses
+with `easy_eval` (mode=`'inversion'`), and plots refusal rate vs. layer.
+
+### Features
+- Two panels: (a) harmless instructions (pools alpaca + xstest-harmless), (b) harmful instructions (pools advbench + jbb)
+- Refusal rate computed by pooling all examples across datasets per layer
+- Per-panel color lists: harmless = [orange, blue, teal], harmful = [orange, teal, blue]
+- CLI args: `--model`, `--right`, `--harmless`, `--harmful`, `--output-dir`
+
+### Usage
+```bash
+# Default: all four datasets, 50 examples
+uv run python src/experiments_replication/_05_figure5.py
+
+# 500-example run
+uv run python src/experiments_replication/_05_figure5.py --right 500
+
+# Only specific datasets
+uv run python src/experiments_replication/_05_figure5.py --harmless "alpaca_data_instruction" --harmful "advbench"
+```
+
+Output: `output/<model>/figure5_refusal_rate.png`
+
 ## File Paths Reference
 
 | Path | Description |
@@ -240,7 +293,9 @@ modal run modal_intervene.py --runs "qwen:7b:0:50,qwen:7b:0:50,qwen:7b:0:50" \
 | `src/experiments_replication/modal_intervene.py` | Modal runner for intervention experiments |
 | `src/experiments_replication/modal_run.py` | Modal runner for the full pipeline (reference) |
 | `src/experiments_replication/intervention_outputs/` | Collected intervention results (6 experiments × 28 layers) |
+| `src/experiments_replication/_045_interventions.py` | Run/collect all 14 intervention experiments on Modal |
+| `src/experiments_replication/_05_figure5.py` | Figure 5: refusal rate across intervention layers |
 | `slurm/intervene.slurm` | Slurm script (original, now ported to Modal) |
-| `run_interventions_modal.sh` | Launches all six intervention experiments on Modal (detached) |
-| `collect_interventions_modal.sh` | Collects intervention results from Modal volume |
+| `run_interventions_modal.sh` | Launches intervention experiments on Modal (legacy bash, replaced by _045_interventions.py) |
+| `collect_interventions_modal.sh` | Collects intervention results (legacy bash, replaced by _045_interventions.py) |
 | `pyproject.toml` | Local uv environment (CUDA 13.0 torch for Blackwell GPU) |
