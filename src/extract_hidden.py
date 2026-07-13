@@ -348,22 +348,24 @@ def main() -> None:
     if MODEL == 'llama':
         model = AutoModelForCausalLM.from_pretrained(
             llama_2_model_path,
-            cache_dir='models/llama',
             torch_dtype=torch.float16,
             device_map="cuda",
+            trust_remote_code=True,
         )
         tokenizer = AutoTokenizer.from_pretrained(
             llama_2_model_path,
-            cache_dir='models/llama',
+            trust_remote_code=True,
         )
     elif MODEL == 'llama3':
         llama3_model_path = "meta-llama/Meta-Llama-3-8B-Instruct"
         model = AutoModelForCausalLM.from_pretrained(
             llama3_model_path,
             device_map="auto",
+            trust_remote_code=True,
         )
         tokenizer = AutoTokenizer.from_pretrained(
             llama3_model_path,
+            trust_remote_code=True,
         )
         tokenizer.pad_token = tokenizer.eos_token
     elif MODEL == 'qwen':
@@ -371,8 +373,8 @@ def main() -> None:
             tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-0.5B-Instruct", trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-0.5B-Instruct", device_map="auto", trust_remote_code=True)
         else:
-            tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-7B-Instruct", trust_remote_code=True, cache_dir='models/qwen')
-            model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-7B-Instruct", device_map="auto", trust_remote_code=True, cache_dir='models/qwen')
+            tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-7B-Instruct", trust_remote_code=True)
+            model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-7B-Instruct", device_map="auto", trust_remote_code=True)
 
     if params['extract_hidden_inst_token']:
         inst_token = "[/INST]"

@@ -27,3 +27,5 @@ venv/
 **/activations/**
 
 *.zip
+
+activations_qwen/
