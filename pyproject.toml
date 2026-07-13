@@ -3,17 +3,21 @@ name = "ai-safety-project"
 version = "0.1.0"
 description = "LLMs Encode Harmfulness and Refusal Separately — replication & extension"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "torch",
-    "accelerate",
-    "transformers",
-    "tokenizers",
-    "huggingface-hub",
-    "tqdm",
-    "numpy",
-    "matplotlib",
-    "protobuf",
+    # torch is pinned to a CUDA-13 build for the local Blackwell GPU (RTX 5060 Ti, sm_120).
+    # The cluster's requirements.txt uses cu121 (sm_80 A100); that build has no kernels for
+    # sm_120, so we override the index here without touching requirements.txt.
+    "torch==2.12.1",
+    "accelerate==1.14.0",
+    # transformers 5.x is required for the qwen3_5 judge model (Qwen/Qwen3.5-4B).
+    "transformers==5.13.0",
+    "tokenizers==0.22.2",
+    "huggingface-hub==1.22.0",
+    "tqdm==4.68.3",
+    "numpy==2.5.0",
+    "matplotlib==3.11.0",
+    "protobuf==6.33.6",
     "requests",
 ]
 
@@ -23,9 +27,9 @@ dev = [
 ]
 
 [tool.uv.sources]
-torch = { index = "pytorch-cu121" }
+torch = { index = "pytorch-cu130" }
 
 [[tool.uv.index]]
-name = "pytorch-cu121"
-url = "https://download.pytorch.org/whl/cu121"
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
 explicit = true
