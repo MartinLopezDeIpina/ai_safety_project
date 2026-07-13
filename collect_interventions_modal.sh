@@ -56,6 +56,48 @@ modal run "$SCRIPT" --runs "$RUNS" \
     --datasets "alpaca_data_instruction" --vectors "refusal" --reverse-intervention 1 \
     --arg-key-prompt "instruction" \
     --intervene-context-only 0 --intervene-all 1 --collect-only
+echo "Sleeping to avoid exceeding rate limit..."
+sleep "$COLLECT_DELAY"
+
+echo "=== Collecting 7. Reverse harmfulness direction on jbb (less-harm) ==="
+modal run "$SCRIPT" --runs "$RUNS" \
+    --datasets "jbb" --vectors "hf" --reverse-intervention 1 \
+    --intervene-context-only 1 --intervene-all 0 --collect-only
+echo "Sleeping to avoid exceeding rate limit..."
+sleep "$COLLECT_DELAY"
+
+echo "=== Collecting 8. Reverse refusal direction on jbb (less-refusal) ==="
+modal run "$SCRIPT" --runs "$RUNS" \
+    --datasets "jbb" --vectors "refusal" --reverse-intervention 1 \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
+echo "Sleeping to avoid exceeding rate limit..."
+sleep "$COLLECT_DELAY"
+
+echo "=== Collecting 9. Refusal direction on jbb (more-refusal) ==="
+modal run "$SCRIPT" --runs "$RUNS" \
+    --datasets "jbb" --vectors "refusal" --reverse-intervention 0 \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
+echo "Sleeping to avoid exceeding rate limit..."
+sleep "$COLLECT_DELAY"
+
+echo "=== Collecting 10. Harmfulness direction on xstest-harmless (more-harm) ==="
+modal run "$SCRIPT" --runs "$RUNS" \
+    --datasets "xstest-harmless" --vectors "hf" --reverse-intervention 0 \
+    --intervene-context-only 1 --intervene-all 0 --collect-only
+echo "Sleeping to avoid exceeding rate limit..."
+sleep "$COLLECT_DELAY"
+
+echo "=== Collecting 11. Refusal direction on xstest-harmless (more-refusal) ==="
+modal run "$SCRIPT" --runs "$RUNS" \
+    --datasets "xstest-harmless" --vectors "refusal" --reverse-intervention 0 \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
+echo "Sleeping to avoid exceeding rate limit..."
+sleep "$COLLECT_DELAY"
+
+echo "=== Collecting 12. Reverse refusal direction on xstest-harmless (less-refusal) ==="
+modal run "$SCRIPT" --runs "$RUNS" \
+    --datasets "xstest-harmless" --vectors "refusal" --reverse-intervention 1 \
+    --intervene-context-only 0 --intervene-all 1 --collect-only
 
 echo ""
 echo "Done. Results are in src/experiments_replication/intervention_outputs/"
