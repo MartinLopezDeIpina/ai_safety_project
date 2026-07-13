@@ -57,13 +57,13 @@ def _harmless_strategies(datasets: list[str], model: str, right: int) -> list[di
     """Build the three harmless-instruction strategies, each pooling the given datasets."""
     return [
         {"label": "harmfulness dir",
-         "dirs": [f"{model}-{ds}-hf-more-0-{right}" for ds in datasets],
+         "dirs": [f"{model}-{ds}-hf-more-0-{right}-inv1" for ds in datasets],
          "file_stems": [f"{ds}-more" for ds in datasets]},
         {"label": "refusal dir",
-         "dirs": [f"{model}-{ds}-refusal-more-0-{right}" for ds in datasets],
+         "dirs": [f"{model}-{ds}-refusal-more-0-{right}-inv1" for ds in datasets],
          "file_stems": [f"{ds}-more" for ds in datasets]},
         {"label": "reverse refusal dir",
-         "dirs": [f"{model}-{ds}-refusal-less-0-{right}" for ds in datasets],
+         "dirs": [f"{model}-{ds}-refusal-less-0-{right}-inv1" for ds in datasets],
          "file_stems": [f"{ds}-less" for ds in datasets]},
     ]
 
@@ -72,13 +72,13 @@ def _harmful_strategies(datasets: list[str], model: str, right: int) -> list[dic
     """Build the three harmful-instruction strategies, each pooling the given datasets."""
     return [
         {"label": "reverse harmfulness dir",
-         "dirs": [f"{model}-{ds}-hf-less-0-{right}" for ds in datasets],
+         "dirs": [f"{model}-{ds}-hf-less-0-{right}-inv1" for ds in datasets],
          "file_stems": [f"{ds}-less" for ds in datasets]},
         {"label": "refusal dir",
-         "dirs": [f"{model}-{ds}-refusal-more-0-{right}" for ds in datasets],
+         "dirs": [f"{model}-{ds}-refusal-more-0-{right}-inv1" for ds in datasets],
          "file_stems": [f"{ds}-more" for ds in datasets]},
         {"label": "reverse refusal dir",
-         "dirs": [f"{model}-{ds}-refusal-less-0-{right}" for ds in datasets],
+         "dirs": [f"{model}-{ds}-refusal-less-0-{right}-inv1" for ds in datasets],
          "file_stems": [f"{ds}-less" for ds in datasets]},
     ]
 

@@ -46,7 +46,7 @@ python get_intervene_vectors.py <act_dir> [--out-dir <dir>]
 Bash wrapper that:
 - Auto-detects repo-root `.venv` Python
 - Runs `get_intervene_vectors.py` with `activations_qwen` as input
-- Saves output to `steering_vectors/qwen-7b/`
+- Saves output to `steering_vectors/qwen7b/`
 
 ## Verification Results
 
@@ -54,8 +54,8 @@ Both runs completed successfully (exit code 0):
 
 | File | Size | Shape | dtype |
 |---|---|---|---|
-| `steering_vectors/qwen-7b/hf.pt` | 205 KB | (29, 3584) | float16 |
-| `steering_vectors/qwen-7b/refusal.pt` | 205 KB | (29, 3584) | float16 |
+| `steering_vectors/qwen7b/hf.pt` | 205 KB | (29, 3584) | float16 |
+| `steering_vectors/qwen7b/refusal.pt` | 205 KB | (29, 3584) | float16 |
 
 
 ## Activation File Inventory (`activations_qwen/`)
@@ -99,36 +99,6 @@ Modal equivalent of `slurm/intervene.slurm`. Runs `src/intervention.py` on Modal
 ### CLI Usage
 
 DON'T RUN THIS FILE. Use `_045_interventions.py` instead.
-
-<!-- ```bash
-# Default — replicates intervene.slurm (advbench + hf, less-harm)
-modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50"
-
-# Multiple datasets/vectors in parallel (zipped with --runs)
-modal run src/experiments_replication/modal_intervene.py \
-    --runs "qwen:7b:0:50,qwen:7b:0:50" \
-    --datasets "advbench,jbb" --vectors "hf,refusal"
-
-# Flip to more-harm (amplify harmfulness)
-modal run src/experiments_replication/modal_intervene.py \
-    --runs "qwen:7b:0:50" --reverse-intervention 0
-
-# Detached — safe to close laptop, collect later
-modal run --detach src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --no-wait
-modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --collect-only
-```
-
-Experiment:
-
-```bash
-modal run --detach src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --no-wait
-modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --collect-only
-```
-
-Look for outputs in `src/experiments_replication/intervention_outputs/qwen7b-advbench-hf-less-0-50/`.
-
-### Reference
-Modeled after `src/experiments_replication/modal_run.py` (colleague's pipeline-runner), adapted for the intervention use case. -->
 
 
 ## Local Environment Setup (uv)
@@ -271,3 +241,11 @@ Output: `output/<model>/figure5_refusal_rate.png`
 | `run_interventions_modal.sh` | Launches intervention experiments on Modal (legacy bash, replaced by _045_interventions.py) |
 | `collect_interventions_modal.sh` | Collects intervention results (legacy bash, replaced by _045_interventions.py) |
 | `pyproject.toml` | Local uv environment (CUDA 13.0 torch for Blackwell GPU) |
+
+
+## TODO
+
+- Check if `_05_figure5.py` has been correctly adapted to the new file naming scheme (with `inv1` suffix).
+- Add `_04_figure4.py`.
+- Get steering vectors for the other models and let the user pick which one to load for the intervention experiments.
+- Run intervention experiments on all data and thinking model.

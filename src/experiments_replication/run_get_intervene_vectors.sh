@@ -7,7 +7,7 @@
 set -e
 
 ACT_DIR="src/experiments_replication/activations_qwen"  # change this for your setup
-OUT_DIR="src/experiments_replication/steering_vectors/qwen-7b"
+OUT_DIR="src/experiments_replication/steering_vectors/qwen7b"
 
 python "src/experiments_replication/get_intervene_vectors.py" \
   --act-dir "${ACT_DIR}" \
