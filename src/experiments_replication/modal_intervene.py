@@ -84,12 +84,14 @@ def _name(model: str, model_size: str) -> str:
     return f"{model}{model_size}"
 
 
-def _key(model: str, model_size: str, dataset: str, vector: str,
-         left: int, right: int, reverse: int) -> str:
+def _key(
+        model: str, model_size: str, dataset: str, vector: str,
+        left: int, right: int, reverse: int, use_inversion: int
+    ) -> str:
     """Deterministic results-volume key for one intervention run, so a detached run can be
     collected later and runs with different dataset/vector/reverse don't collide."""
     direction = "less" if reverse else "more"
-    return f"{model}{model_size}-{dataset}-{vector}-{direction}-{left}-{right}"
+    return f"{model}{model_size}-{dataset}-{vector}-{direction}-{left}-{right}-inv{use_inversion}"
 
 
 @app.function(
@@ -105,9 +107,8 @@ def run_intervention(
         use_inversion: int, inversion_prompt_idx: int
     ) -> tuple[str, str]:
     """
-    Run intervention.py for one config and persist its output JSON(s) to /results/<key>.
-    Returns (name, key). Output is committed in a `finally` so a late-stage error can't
-    discard an otherwise-complete run — whatever intervention.py produced is still saved.
+    Run intervention.py for one config and persist its output JSON(s) to intervention_outputs/<key>.
+    Returns (name, key).
     """
     import traceback
     os.environ["HF_HUB_CACHE"] = "/cache"
@@ -122,7 +123,7 @@ def run_intervention(
           flush=True)
 
     name = _name(model, model_size)
-    key = _key(model, model_size, dataset, vector, left, right, reverse_intervention)
+    key = _key(model, model_size, dataset, vector, left, right, reverse_intervention, use_inversion)
 
     # Resolve paths inside the container.
     test_data_pth = f"/root/data/{dataset}.json"
@@ -240,39 +241,6 @@ def entry(
     collect_only: bool = False,
 ):
     """Launch (and optionally collect) intervention runs.
-
-    Token-scope flags (--intervene-context-only / --intervene-all) must be set explicitly.
-    Per Appendix E.1 of the paper:
-
-        hf vector      → --intervene-context-only 1 --intervene-all 0
-        refusal vector → --intervene-context-only 0 --intervene-all 1
-
-    Interactive (defaults mirror slurm/intervene.slurm — advbench + hf vector, reverse=less-harm):
-        modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" \\
-            --intervene-context-only 1 --intervene-all 0
-        spawns the run, waits, and pulls the result JSON(s) locally.
-
-    Multiple datasets / vectors in parallel (comma-separated, zipped with --runs):
-        modal run src/experiments_replication/modal_intervene.py \\
-            --runs "qwen:7b:0:50,qwen:7b:0:50" \\
-            --datasets "advbench,jbb" --vectors "hf,refusal" \\
-            --intervene-context-only 1 --intervene-all 0  # applies to all runs
-
-    Detached (safe to close the laptop): run fire-and-forget, collect later.
-        modal run --detach src/experiments_replication/modal_intervene.py --runs "..." \\
-            --intervene-context-only 1 --intervene-all 0 --no-wait
-        # ...later, when back at the machine:
-        modal run src/experiments_replication/modal_intervene.py --runs "..." --collect-only \\
-            --datasets "advbench" --vectors "hf" --reverse-intervention 1 \\
-            --intervene-context-only 1 --intervene-all 0
-
-    Collect keys are deterministic (model+size+dataset+vector+direction+left+right), so the
-    same --runs/--datasets/--vectors/--reverse-intervention retrieves exactly the runs launched.
-
-    Flip to more-harm (amplify harmfulness) instead of less-harm:
-        modal run src/experiments_replication/modal_intervene.py \\
-            --runs "qwen:7b:0:50" --reverse-intervention 0 \\
-            --intervene-context-only 1 --intervene-all 0
     """
     specs = _parse_runs(runs)
     dataset_list = [d.strip() for d in datasets.split(",") if d.strip()]
@@ -283,14 +251,17 @@ def entry(
     for i, (model, size, left, right) in enumerate(specs):
         ds = dataset_list[i] if i < len(dataset_list) else dataset_list[-1]
         vec = vector_list[i] if i < len(vector_list) else vector_list[-1]
-        configs.append((model, size, left, right, ds, vec,
-                        intervene_context_only, intervene_all))
+        configs.append((
+            model, size, left, right, ds, vec,
+            intervene_context_only, intervene_all
+        ))
 
     if collect_only:
         for model, size, left, right, ds, vec, ctx, all_ in configs:
-            name, key = _name(model, size), _key(
+            name = _name(model, size)
+            key = _key(
                 model, size, ds, vec, left, right,
-                reverse_intervention
+                reverse_intervention, use_inversion
             )
             try:
                 _pull(name, key)
@@ -311,7 +282,7 @@ def entry(
         )
         handles.append((
             _name(model, size),
-            _key(model, size, ds, vec, left, right, reverse_intervention), h
+            _key(model, size, ds, vec, left, right, reverse_intervention, use_inversion), h
         ))
 
     if not wait:
@@ -319,7 +290,7 @@ def entry(
               "run finishes.\nCollect them later with:\n"
               f'  modal run {os.path.relpath(__file__, os.getcwd())} '
               f'--collect-only --runs "{runs}" --datasets "{datasets}" --vectors "{vectors}" '
-              f'--reverse-intervention {reverse_intervention}\n')
+              f'--reverse-intervention {reverse_intervention} --use-inversion {use_inversion}\n')
         return
 
     for name, key, handle in handles:

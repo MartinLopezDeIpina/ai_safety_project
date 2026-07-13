@@ -77,7 +77,7 @@ Both runs completed successfully (exit code 0):
 
 The steering vectors are now ready. The immediate next steps in the replication workflow are:
 1. ~~**Run intervention experiments**~~ — ✅ Done (see "Intervention Experiments" below)
-2. **Replicate figures** — Run the figure-plotting stages (Figures 2 & 3 from paper)
+2. **Replicate figures** — Run the figure-plotting stages (Figures 2 & 3 from paper) (NOT ON THIS BRANCH)
 3. **Other models** — The repo supports Llama-2/3 as well; can extend the same pipeline
 
 
@@ -90,23 +90,17 @@ Modal equivalent of `slurm/intervene.slurm`. Runs `src/intervention.py` on Modal
 
 ### Design
 - **Image / layout** — Reproduces the repo under `/root` so `intervention.py`'s `from utils import ...` and `from template_inversion import ...` (both in `src/`) resolve. Sets `PYTHONPATH=/root/src` and `cwd=/root/src`.
-- **Steering vectors** — Unlike `modal_run.py`, this script does **not** ignore `*.pt` under `experiments_replication/`; the steering vectors (`steering_vectors/qwen-7b/hf.pt`, `refusal.pt`) are mounted at runtime.
+- **Steering vectors** — Unlike `modal_run.py`, this script does **not** ignore `*.pt` under `experiments_replication/`; the steering vectors (`steering_vectors/qwen7b/hf.pt`, `refusal.pt`) are mounted at runtime.
+  IMPORTANT TODO: allow the user to specify the steering vector location.
 - **Volume** — Uses a dedicated `intervention-results` volume (separate from `behavior-results`) so intervention outputs don't collide with pipeline outputs.
 - **Defaults** — Mirror `intervene.slurm` exactly: `qwen:7b`, `advbench`, `hf` vector, `reverse_intervention=1` (less-harm), `layer_s=0`, `layer_e=28`, `coeff_select=1`, `max_token_generate=100`, `use_inversion=1`, `inversion_prompt_idx=1`, `right=50`.
 - **Output collection** — `intervention.py` writes per-layer JSONs (`<stem>-intervene<layer>.json`), so the `finally` block copies **all** JSONs from the run's output dir to the volume.
 
-### Key Functions
-| Function | Description |
-|---|---|
-| `run_intervention(...)` | Modal remote function: runs `intervention.py` for one config, persists output JSON(s) to `/results/<key>` |
-| `_key(model, size, dataset, vector, left, right, reverse)` | Deterministic results-volume key (includes direction: `less`/`more`) |
-| `_parse_runs(runs)` | Parses `model:size[:left[:right]]` tokens (right defaults 50) |
-| `_pull(name, key)` | Fetches `/<key>/` from the results volume into a fresh indexed local dir |
-| `entry(...)` | Modal local entrypoint — launches runs in parallel, waits, pulls results |
-
 ### CLI Usage
 
-```bash
+DON'T RUN THIS FILE. Use `_045_interventions.py` instead.
+
+<!-- ```bash
 # Default — replicates intervene.slurm (advbench + hf, less-harm)
 modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50"
 
@@ -134,7 +128,7 @@ modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" -
 Look for outputs in `src/experiments_replication/intervention_outputs/qwen7b-advbench-hf-less-0-50/`.
 
 ### Reference
-Modeled after `src/experiments_replication/modal_run.py` (colleague's pipeline-runner), adapted for the intervention use case.
+Modeled after `src/experiments_replication/modal_run.py` (colleague's pipeline-runner), adapted for the intervention use case. -->
 
 
 ## Local Environment Setup (uv)
@@ -152,33 +146,22 @@ Modeled after `src/experiments_replication/modal_run.py` (colleague's pipeline-r
 - **Verified**: `torch 2.12.1+cu130` detects RTX 5060 Ti, `sm_120` in arch list; all other deps match `requirements.txt` versions exactly.
 
 
-## Intervention Experiments
+## Intervention Experiments (`_045_interventions.py`)
 
-### Initial Run (50 examples) — ✅ Completed
-
-The initial run used 50 examples (`qwen:7b:0:50`) with six experiments. Results collected locally.
-
-> **Note:** The refusal-direction experiments in the initial run used the wrong token scope
-> (context-only instead of all tokens); the corrected auto-defaulting (per Appendix E.1) is
-> now in place for re-runs.
-
-### Expanded Run (500 examples) — scripts ready
+### Test Run (500 examples) — scripts ready
 
 The scripts have been bumped to 500 examples (`qwen:7b:0:500`) and expanded from 6 to 14
 experiments across four datasets (advbench, jbb, alpaca, xstest-harmless), plus two
 no-inversion runs on alpaca.
 
-### Python Scripts (replaced bash scripts)
-
-The original bash scripts (`run_interventions_modal.sh`, `collect_interventions_modal.sh`)
-have been replaced by a single Python script:
+### Python Scripts
 
 | Script | Purpose |
 |---|---|
 | `_045_interventions.py` | Run (`--mode run`) or collect (`--mode collect`) all experiments |
 
-The experiment table is generated programmatically from dataset/vector definitions. A
-5-second delay between `modal run` calls avoids the rate limit.
+The experiment table is generated programmatically from dataset/vector definitions.
+A 5-second delay between `modal run` calls avoids the rate limit.
 
 ```bash
 # Launch all experiments detached
@@ -210,19 +193,6 @@ uv run python src/experiments_replication/_045_interventions.py --mode collect -
 Experiments 1–12 use the inversion prompt (`use_inversion=1`); experiments 13–14 steer
 without the inversion question so the model responds directly to the instruction.
 
-### Collected Results (initial 50-example run)
-
-| Output directory | Files |
-|---|---|
-| `intervention_outputs/qwen7b-advbench-hf-less-0-50/` | 28 |
-| `intervention_outputs/qwen7b-advbench-refusal-less-0-50/` | 28 |
-| `intervention_outputs/qwen7b-advbench-refusal-more-0-50/` | 28 |
-| `intervention_outputs/qwen7b-alpaca_data_instruction-hf-more-0-50/` | 28 |
-| `intervention_outputs/qwen7b-alpaca_data_instruction-refusal-more-0-50/` | 28 |
-| `intervention_outputs/qwen7b-alpaca_data_instruction-refusal-less-0-50/` | 28 |
-
-Each JSON file is JSONL format (one response per line), named `<dataset>-<direction>-intervene<layer>.json`.
-
 ### Intervention Token Scope (Appendix E.1)
 
 Per the paper's Appendix E.1, the two steering directions require different token scopes in the reply inversion task:
@@ -237,6 +207,8 @@ The paper finds that steering with the refusal direction only works effectively 
 In `modal_intervene.py`, both `--intervene-context-only` and `--intervene-all` default to `-1` (auto), which picks the correct values based on the vector: `refusal` → `intervene_all=1, intervene_context_only=0`; `hf` → `intervene_all=0, intervene_context_only=1`. An explicit `0`/`1` overrides the auto default.
 
 ### Multi-Run Argument Cycling
+
+IMPORTANT: This is not ready. Don't use this feature. (And we don't need it.)
 
 When passing fewer `--datasets` or `--vectors` values than `--runs` entries, the last value is reused for the remaining runs. For example:
 
@@ -262,8 +234,8 @@ with `easy_eval` (mode=`'inversion'`), and plots refusal rate vs. layer.
 ### Features
 - Two panels: (a) harmless instructions (pools alpaca + xstest-harmless), (b) harmful instructions (pools advbench + jbb)
 - Refusal rate computed by pooling all examples across datasets per layer
-- Per-panel color lists: harmless = [orange, blue, teal], harmful = [orange, teal, blue]
-- CLI args: `--model`, `--right`, `--harmless`, `--harmful`, `--output-dir`
+- CLI args: `--model`, `--right`, `--harmless`, `--harmful`, `--output-dir`. By default, the script tries to load all harmful and harmless instructions.
+- The script assumes that the generations can be found in `intervention_outputs/`.
 
 ### Usage
 ```bash
