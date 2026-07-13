@@ -76,7 +76,7 @@ Both runs completed successfully (exit code 0):
 ## Next Steps
 
 The steering vectors are now ready. The immediate next steps in the replication workflow are:
-1. **Run intervention experiments** — Use `hf.pt` and `refusal.pt` with the intervention pipeline (`intervention.py`, `complete_intervene.sh`, or the new `modal_intervene.py` — see below)
+1. ~~**Run intervention experiments**~~ — ✅ Done (see "Intervention Experiments" below)
 2. **Replicate figures** — Run the figure-plotting stages (Figures 2 & 3 from paper)
 3. **Other models** — The repo supports Llama-2/3 as well; can extend the same pipeline
 
@@ -99,7 +99,7 @@ Modal equivalent of `slurm/intervene.slurm`. Runs `src/intervention.py` on Modal
 | Function | Description |
 |---|---|
 | `run_intervention(...)` | Modal remote function: runs `intervention.py` for one config, persists output JSON(s) to `/results/<key>` |
-| `_key(model, size, dataset, vector, left, right, reverse)` | Deterministic results-volume key (includes direction: `lessharm`/`moreharm`) |
+| `_key(model, size, dataset, vector, left, right, reverse)` | Deterministic results-volume key (includes direction: `less`/`more`) |
 | `_parse_runs(runs)` | Parses `model:size[:left[:right]]` tokens (right defaults 50) |
 | `_pull(name, key)` | Fetches `/<key>/` from the results volume into a fresh indexed local dir |
 | `entry(...)` | Modal local entrypoint — launches runs in parallel, waits, pulls results |
@@ -131,19 +131,100 @@ modal run --detach src/experiments_replication/modal_intervene.py --runs "qwen:7
 modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50" --collect-only
 ```
 
-Look for outputs in `src/experiments_replication/intervention_outputs/qwen7b-advbench-hf-lessharm-0-50/`.
+Look for outputs in `src/experiments_replication/intervention_outputs/qwen7b-advbench-hf-less-0-50/`.
 
 ### Reference
 Modeled after `src/experiments_replication/modal_run.py` (colleague's pipeline-runner), adapted for the intervention use case.
 
 
-## Cleanup: `Zone.Identifier` Files
+## Local Environment Setup (uv)
 
-All Windows metadata files (`*Zone.Identifier`) in `activations_qwen/` were removed with:
-```
-find activations_qwen -name '*Zone.Identifier' -delete
+### `pyproject.toml` — updated for local Blackwell GPU
+
+| Field | Before (cluster) | After (local) |
+|---|---|---|
+| `requires-python` | `>=3.11` | `>=3.12,<3.13` |
+| `torch` | unpinned, `pytorch-cu121` index | `torch==2.12.1`, `pytorch-cu130` index |
+| Other deps | unpinned | pinned to match `requirements.txt` versions |
+
+- **Why CUDA 13.0 torch** — Local RTX 5060 Ti is Blackwell (sm_120); the cluster's `cu121` torch only ships up to sm_90 and has no kernels for sm_120.
+- **`requirements.txt` was NOT touched** — it remains the cluster reference. The local override lives entirely in `pyproject.toml`.
+- **Verified**: `torch 2.12.1+cu130` detects RTX 5060 Ti, `sm_120` in arch list; all other deps match `requirements.txt` versions exactly.
+
+
+## Intervention Experiments — ✅ Completed (initial run: 50 examples)
+
+Six steering experiments run on Modal (A100, detached), results collected locally.
+
+> **Note:** The initial run used 50 examples (`qwen:7b:0:50`). The scripts have since been
+> bumped to 500 examples (`qwen:7b:0:500`) for a larger-scale run. The volume keys and output
+> directory names reflect the `right` value, so the 500-example runs will produce separate
+> directories (e.g. `qwen7b-advbench-hf-less-0-500/`). Additionally, the refusal-direction
+> experiments in the initial run used the wrong token scope (context-only instead of all
+> tokens); the corrected auto-defaulting (per Appendix E.1) is now in place for the re-run.
+
+### Bash Scripts
+
+| Script | Purpose |
+|---|---|
+| `run_interventions_modal.sh` | Launches all six experiments detached on Modal |
+| `collect_interventions_modal.sh` | Pulls results from the `intervention-results` volume |
+
+Both scripts include a 5-second `sleep` between `modal run` calls to avoid Modal's "App creation failed: rate limit exceeded" error.
+
+### Experiments Run
+
+| # | Dataset | Vector | Direction | `--reverse-intervention` | `--arg-key-prompt` | Effect |
+|---|---|---|---|---|---|---|
+| 1 | advbench | hf | less | 1 | `bad_q` (default) | Less-harm steering |
+| 2 | advbench | refusal | less | 1 | `bad_q` (default) | Less-refusal steering |
+| 3 | advbench | refusal | more | 0 | `bad_q` (default) | More-refusal steering |
+| 4 | alpaca_data_instruction | hf | more | 0 | `instruction` | More-harm steering |
+| 5 | alpaca_data_instruction | refusal | more | 0 | `instruction` | More-refusal steering |
+| 6 | alpaca_data_instruction | refusal | less | 1 | `instruction` | Less-refusal steering |
+
+### Collected Results
+
+All six experiments collected successfully. Each produced 28 per-layer JSON files (layers 0–27):
+
+| Output directory | Files |
+|---|---|
+| `intervention_outputs/qwen7b-advbench-hf-less-0-50/` | 28 |
+| `intervention_outputs/qwen7b-advbench-refusal-less-0-50/` | 28 |
+| `intervention_outputs/qwen7b-advbench-refusal-more-0-50/` | 28 |
+| `intervention_outputs/qwen7b-alpaca_data_instruction-hf-more-0-50/` | 28 |
+| `intervention_outputs/qwen7b-alpaca_data_instruction-refusal-more-0-50/` | 28 |
+| `intervention_outputs/qwen7b-alpaca_data_instruction-refusal-less-0-50/` | 28 |
+
+Each JSON file is JSONL format (one response per line), named `<dataset>-<direction>-intervene<layer>.json`.
+
+### Intervention Token Scope (Appendix E.1)
+
+Per the paper's Appendix E.1, the two steering directions require different token scopes in the reply inversion task:
+
+| Vector | `--intervene_context_only` | `--intervene_all` | Tokens intervened |
+|---|---|---|---|
+| `hf` (harmfulness) | 1 | 0 | Context only (before the inversion question) |
+| `refusal` | 0 | 1 | All input tokens (including post-instruction tokens) |
+
+The paper finds that steering with the refusal direction only works effectively when applied to all input tokens, because refusal is processed after seeing post-instruction tokens (Section 3.1). The harmfulness direction, however, only needs to be applied to the context tokens before the inversion question.
+
+In `modal_intervene.py`, both `--intervene-context-only` and `--intervene-all` default to `-1` (auto), which picks the correct values based on the vector: `refusal` → `intervene_all=1, intervene_context_only=0`; `hf` → `intervene_all=0, intervene_context_only=1`. An explicit `0`/`1` overrides the auto default.
+
+### Multi-Run Argument Cycling
+
+When passing fewer `--datasets` or `--vectors` values than `--runs` entries, the last value is reused for the remaining runs. For example:
+
+```bash
+modal run modal_intervene.py --runs "qwen:7b:0:50,qwen:7b:0:50,qwen:7b:0:50" \
+    --datasets "advbench,jbb" --vectors "hf,refusal"
 ```
 
+| Run | Dataset | Vector |
+|---|---|---|
+| 1 | advbench | hf |
+| 2 | jbb | refusal |
+| 3 | jbb (last repeated) | refusal (last repeated) |
 
 ## File Paths Reference
 
@@ -151,11 +232,15 @@ find activations_qwen -name '*Zone.Identifier' -delete
 |---|---|
 | `src/experiments_replication/main.py` | Pipeline orchestrator |
 | `src/experiments_replication/get_intervene_vectors.py` | Steering vector computation |
-| `src/experiments_replication/run_get_intervene_vectors.sh` | Bash wrapper |
+| `src/experiments_replication/run_get_intervene_vectors.sh` | Bash wrapper (steering vectors) |
 | `src/experiments_replication/activations_qwen/` | Cached activation tensors (.pt) |
-| `src/experiments_replication/steering_vectors/qwen-7b/` | Output steering vectors |
+| `src/experiments_replication/steering_vectors/qwen7b/` | Output steering vectors (`hf.pt`, `refusal.pt`) |
 | `src/intervention.py` | Intervention experiments (run by Modal) |
 | `src/experiments_replication/complete_intervene.sh` | Intervention batch script (local) |
 | `src/experiments_replication/modal_intervene.py` | Modal runner for intervention experiments |
 | `src/experiments_replication/modal_run.py` | Modal runner for the full pipeline (reference) |
+| `src/experiments_replication/intervention_outputs/` | Collected intervention results (6 experiments × 28 layers) |
 | `slurm/intervene.slurm` | Slurm script (original, now ported to Modal) |
+| `run_interventions_modal.sh` | Launches all six intervention experiments on Modal (detached) |
+| `collect_interventions_modal.sh` | Collects intervention results from Modal volume |
+| `pyproject.toml` | Local uv environment (CUDA 13.0 torch for Blackwell GPU) |

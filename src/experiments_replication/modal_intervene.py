@@ -88,7 +88,7 @@ def _key(model: str, model_size: str, dataset: str, vector: str,
          left: int, right: int, reverse: int) -> str:
     """Deterministic results-volume key for one intervention run, so a detached run can be
     collected later and runs with different dataset/vector/reverse don't collide."""
-    direction = "lessharm" if reverse else "moreharm"
+    direction = "less" if reverse else "more"
     return f"{model}{model_size}-{dataset}-{vector}-{direction}-{left}-{right}"
 
 
@@ -99,7 +99,7 @@ def _key(model: str, model_size: str, dataset: str, vector: str,
 def run_intervention(
         model: str, model_size: str, left: int, right: int,
         dataset: str, vector: str, reverse_intervention: int,
-        intervene_context_only: int, arg_key_prompt: str,
+        intervene_context_only: int, intervene_all: int, arg_key_prompt: str,
         layer_s: int, layer_e: int, coeff_select: float,
         max_token_generate: int, max_decode_step_while_intervene: int,
         use_inversion: int, inversion_prompt_idx: int
@@ -129,7 +129,7 @@ def run_intervention(
     vector_pth = f"/root/src/experiments_replication/steering_vectors/{name}/{vector}.pt"
     out_dir = f"/root/src/experiments_replication/intervention_outputs/{key}"
     os.makedirs(out_dir, exist_ok=True)
-    output_pth = f"{out_dir}/{dataset}-{'lessharm' if reverse_intervention else 'moreharm'}.json"
+    output_pth = f"{out_dir}/{dataset}-{'less' if reverse_intervention else 'more'}.json"
 
     cmd = [
         sys.executable, "-u", "/root/src/intervention.py",
@@ -138,6 +138,7 @@ def run_intervention(
         "--intervention_vector", vector_pth,
         "--reverse_intervention", str(reverse_intervention),
         "--intervene_context_only", str(intervene_context_only),
+        "--intervene_all", str(intervene_all),
         "--arg_key_prompt", arg_key_prompt,
         "--model", model,
         "--model_size", model_size,
@@ -223,7 +224,8 @@ def entry(
     datasets: str = "advbench",
     vectors: str = "hf",
     reverse_intervention: int = 1,
-    intervene_context_only: int = 1,
+    intervene_context_only: int = -1,
+    intervene_all: int = -1,
     arg_key_prompt: str = "bad_q",
     layer_s: int = 0,
     layer_e: int = 28,
@@ -270,12 +272,23 @@ def entry(
     for i, (model, size, left, right) in enumerate(specs):
         ds = dataset_list[i] if i < len(dataset_list) else dataset_list[-1]
         vec = vector_list[i] if i < len(vector_list) else vector_list[-1]
-        configs.append((model, size, left, right, ds, vec))
+        is_refusal = vec == "refusal"
+        if intervene_context_only >= 0:
+            ctx = intervene_context_only
+        else:
+            ctx = 0 if is_refusal else 1
+        if intervene_all >= 0:
+            all_ = intervene_all
+        else:
+            all_ = 1 if is_refusal else 0
+        configs.append((model, size, left, right, ds, vec, ctx, all_))
 
     if collect_only:
-        for model, size, left, right, ds, vec in configs:
-            name, key = _name(model, size), _key(model, size, ds, vec, left, right,
-                                                 reverse_intervention)
+        for model, size, left, right, ds, vec, ctx, all_ in configs:
+            name, key = _name(model, size), _key(
+                model, size, ds, vec, left, right,
+                reverse_intervention
+            )
             try:
                 _pull(name, key)
             except subprocess.CalledProcessError:
@@ -285,17 +298,18 @@ def entry(
     # per-invocation GPU + timeout override
     fn = run_intervention.with_options(gpu=gpu, timeout=timeout)
     handles = []
-    for model, size, left, right, ds, vec in configs:
+    for model, size, left, right, ds, vec, ctx, all_ in configs:
         h = fn.spawn(
             model, size, left, right, ds, vec,
-            reverse_intervention, intervene_context_only, arg_key_prompt,
+            reverse_intervention, ctx, all_, arg_key_prompt,
             layer_s, layer_e, coeff_select,
             max_token_generate, max_decode_step_while_intervene,
             use_inversion, inversion_prompt_idx,
         )
-        handles.append((_name(model, size),
-                        _key(model, size, ds, vec, left, right, reverse_intervention),
-                        h))
+        handles.append((
+            _name(model, size),
+            _key(model, size, ds, vec, left, right, reverse_intervention), h
+        ))
 
     if not wait:
         print("\nLaunched detached; results commit to the 'intervention-results' volume as each "
