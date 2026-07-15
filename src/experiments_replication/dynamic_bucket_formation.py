@@ -88,8 +88,11 @@ BUCKET_TRAIN_ALT = [
 BUCKET_TEST_ALT = [(name, list(sources), pos) for name, sources, pos in BUCKET_TRAIN_ALT]
 
 
-def _acts_dir(model, model_size):
-    return os.path.join(HERE, "output", f"{model}{model_size}", "datasets_outputs", "activations")
+def _acts_dir(model, model_size, use_judged=False):
+    """The activations dir to source bucket .pt from. use_judged=True selects judge_activations/
+    (extracted from the judge-corrected judge_classifications/) instead of the standard activations/."""
+    sub = "judge_activations" if use_judged else "activations"
+    return os.path.join(HERE, "output", f"{model}{model_size}", "datasets_outputs", sub)
 
 
 def _sources(config):
@@ -111,13 +114,14 @@ def _split_indices(n, test_ratio, seed, source):
 
 
 def build_splits(model, model_size, bucket_train=BUCKET_TRAIN, bucket_test=BUCKET_TEST,
-                 test_ratio=0.5, seed=0):
+                 test_ratio=0.5, seed=0, use_judged=False):
     """Compose and split activations into train/test clusters.
 
     Returns (train_acts, test_acts), each a dict cluster_name -> (L, N, H) tensor at the
     cluster's token position. A cluster with no available source examples is omitted.
+    use_judged=True sources the .pt from judge_activations/ instead of activations/.
     """
-    acts_dir = _acts_dir(model, model_size)
+    acts_dir = _acts_dir(model, model_size, use_judged)
     train_sources = _sources(bucket_train)
     test_sources = _sources(bucket_test)
 
@@ -180,11 +184,12 @@ def load_config(path):
     }
 
 
-def gen_buckets(model, model_size, bucket_config=None):
+def gen_buckets(model, model_size, bucket_config=None, use_judged=False):
     """Compose train/test buckets for one model -> {"train": {...}, "test": {...}}.
 
     bucket_config: path to a json config (resolved against HERE when relative). None -> module
     defaults. Each dict maps cluster_name -> (L, N, H) tensor at the cluster's token position.
+    use_judged=True sources activations from judge_activations/ (the judge-corrected splits).
     """
     if bucket_config is not None:
         path = bucket_config if os.path.isabs(bucket_config) else os.path.join(HERE, bucket_config)
@@ -200,7 +205,7 @@ def gen_buckets(model, model_size, bucket_config=None):
     train_acts, test_acts = build_splits(
         model, model_size,
         bucket_train=cfg["bucket_train"], bucket_test=cfg["bucket_test"],
-        test_ratio=cfg["test_ratio"], seed=cfg["seed"])
+        test_ratio=cfg["test_ratio"], seed=cfg["seed"], use_judged=use_judged)
     return {"train": train_acts, "test": test_acts}
 
 
@@ -212,9 +217,13 @@ def gen_buckets(model, model_size, bucket_config=None):
 # the same md5-seeded per-source rule as build_splits. Zero-norm (null) slots are NOT dropped here —
 # that is done per-position at plot time, since a row is legitimately null at some slots.
 # ---------------------------------------------------------------------------
-def build_splits_thinking(model, model_size, families_train, families_test, test_ratio=0.2, seed=0):
-    """Compose thinking families into train/test dicts family_name -> (L, N, 22, H)."""
-    acts_dir = _acts_dir(model, model_size)
+def build_splits_thinking(model, model_size, families_train, families_test, test_ratio=0.2, seed=0,
+                          use_judged=False):
+    """Compose thinking families into train/test dicts family_name -> (L, N, 22, H).
+
+    use_judged=True sources the .pt from judge_activations/ instead of activations/.
+    """
+    acts_dir = _acts_dir(model, model_size, use_judged)
     train_sources = {s for _, ss in families_train for s in ss}
     test_sources = {s for _, ss in families_test for s in ss}
     cache = {}
@@ -225,7 +234,14 @@ def build_splits_thinking(model, model_size, families_train, families_test, test
             if not os.path.exists(path):
                 cache[source] = (None, None, None)
             else:
-                tensor = torch.load(path, map_location="cpu").float()
+                # Keep the .pt's native fp16 (it was saved fp16): the whole (L,N,22,H) bucket
+                # stays resident during figure building, so upcasting it to fp32 here is what
+                # OOMs at N=512. The fp32 upcast is deferred to the small per-slot slice in
+                # _02_3.1_figure2._slice_pos, so the mean/cosine reductions still run in fp32.
+                try:
+                    tensor = torch.load(path, map_location="cpu", mmap=True)
+                except Exception:  # non-mmappable (e.g. legacy format) -> plain load
+                    tensor = torch.load(path, map_location="cpu")
                 train_idx, test_idx = _split_indices(tensor.shape[1], test_ratio, seed, source)
                 cache[source] = (tensor, train_idx, test_idx)
         return cache[source]
@@ -252,15 +268,18 @@ def build_splits_thinking(model, model_size, families_train, families_test, test
     return assemble(families_train, "train"), assemble(families_test, "test")
 
 
-def gen_buckets_thinking(model, model_size, bucket_config):
-    """Compose thinking train/test buckets -> {"train": {...}, "test": {...}} of (L, N, 22, H)."""
+def gen_buckets_thinking(model, model_size, bucket_config, use_judged=False):
+    """Compose thinking train/test buckets -> {"train": {...}, "test": {...}} of (L, N, 22, H).
+
+    use_judged=True sources activations from judge_activations/ (the judge-corrected splits).
+    """
     path = bucket_config if os.path.isabs(bucket_config) else os.path.join(HERE, bucket_config)
     with open(path, encoding="utf-8") as f:
         cfg = json.load(f)
     train_acts, test_acts = build_splits_thinking(
         model, model_size,
         families_train=cfg["families_train"], families_test=cfg["families_test"],
-        test_ratio=cfg.get("test_ratio", 0.2), seed=cfg.get("seed", 0))
+        test_ratio=cfg.get("test_ratio", 0.2), seed=cfg.get("seed", 0), use_judged=use_judged)
     return {"train": train_acts, "test": test_acts}
 
 

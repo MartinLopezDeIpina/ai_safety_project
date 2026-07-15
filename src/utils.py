@@ -132,8 +132,10 @@ def formatInp_thinking(d, thinking_mode='genthink', model='qwen35'):
     formatInp_llama_persuasion). Both modes share the same post-instruction block; they differ
     only in whether the reasoning block is left open for the model to fill:
 
-      genthink   -> "<|im_start|>user\\n{Q}<|im_end|>\\n<|im_start|>assistant\\n<think>\\n"
-      gennothink -> genthink + "\\n</think>\\n\\n"   (reasoning closed, model answers directly)
+      genthink            -> "<|im_start|>user\\n{Q}<|im_end|>\\n<|im_start|>assistant\\n<think>\\n"
+      gennothink          -> genthink + "\\n</think>\\n\\n"   (reasoning closed, model answers directly)
+      gennothink_stripped -> "<|im_start|>user\\n{Q}<|im_end|>\\n<|im_start|>"  (post-instruction
+                             template tokens removed; the model autocompletes assistant\\n<think>...)
     """
     # instruction text: same precedence as formatInp_llama_persuasion's non-persuade branch.
     if isinstance(d, dict) and 'prompt' in d:
@@ -142,6 +144,9 @@ def formatInp_thinking(d, thinking_mode='genthink', model='qwen35'):
         q = d.get('instruction') or d.get('question') or d.get('bad_q') or ''
     else:
         q = d
+    if thinking_mode == 'gennothink_stripped':
+        # strip the trailing template tokens; the model must autocomplete assistant\n<think>...
+        return f"<|im_start|>user\n{q}<|im_end|>\n<|im_start|>"
     prompt = f"<|im_start|>user\n{q}<|im_end|>\n<|im_start|>assistant\n<think>\n"
     if thinking_mode == 'gennothink':
         prompt += "\n</think>\n\n"

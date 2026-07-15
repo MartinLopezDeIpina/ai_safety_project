@@ -18,12 +18,25 @@ SRC_DIR = os.path.dirname(HERE)
 EXTRACT_SCRIPT = os.path.join(SRC_DIR, "extract_hidden.py")
 
 
-def _dirs(model, model_size):
-    """classified_generations/ (input) and activations/ (output) for a given model."""
+def _is_split_file(name):
+    """True for a classified-generation split (…_accepted / …_refused). Excludes non-split JSON that
+    can share the dir — notably the judge's judge_log.json audit file, which is a {summary, samples}
+    dict, not a list of rows, and would crash extract_hidden.py."""
+    return name.endswith("_accepted") or name.endswith("_refused")
+
+
+def _dirs(model, model_size, classified_subdir="classified_generations",
+          acts_subdir="activations"):
+    """Input classified-generations dir and output activations dir for a given model.
+
+    Defaults are the standard classified_generations/ -> activations/. In judge mode the caller passes
+    classified_subdir="judge_classifications", acts_subdir="judge_activations" so activations are
+    extracted from the judge-corrected splits into a separate folder, leaving activations/ untouched.
+    """
     base = os.path.join(HERE, "output", f"{model}{model_size}", "datasets_outputs")
     return (
-        os.path.join(base, "classified_generations"),
-        os.path.join(base, "activations"),
+        os.path.join(base, classified_subdir),
+        os.path.join(base, acts_subdir),
     )
 
 
@@ -109,39 +122,77 @@ def run_extract_hidden_thinking(
     subprocess.run(cmd, check=True, cwd=HERE, env=env)
 
 
-def compute_all_activations_thinking(model, model_size):
-    """Extract 22-slot activations for each thinking classified generation into activations/.
+def _thinking_mode_of(name):
+    """thinking_mode from a classified filename. Order matters: 'gennothink_stripped' is neither
+    'genthink' nor plain 'gennothink', so test it first."""
+    if "gennothink_stripped" in name:
+        return "gennothink_stripped"
+    return "genthink" if "genthink" in name else "gennothink"
 
-    thinking_mode is read from the filename (genthink vs gennothink), so gennothink files leave
-    the CoT slots null.
+
+def compute_all_activations_thinking(model, model_size,
+                                     classified_subdir="classified_generations",
+                                     acts_subdir="activations", only_modes=None,
+                                     max_acts_per_bucket=None):
+    """Extract 22-slot activations for each thinking classified generation into acts_subdir.
+
+    thinking_mode is read from the filename (genthink / gennothink / gennothink_stripped): gennothink
+    leaves the CoT slots null (its </think> is in the prompt), while genthink and gennothink_stripped
+    keep the (model-generated) CoT. Pass judge_classifications/judge_activations for the judge-corrected
+    splits.
+
+    only_modes: comma-separated thinking modes (e.g. "gennothink_stripped") to restrict extraction to;
+    None extracts every classified split.
+    max_acts_per_bucket: cap the number of rows extracted PER bucket (per classified split file) to the
+    first N — bounds each .pt to (L, N, 22, H) so figure/bucket loading doesn't OOM. None = no cap. The
+    cap is per-file, so buckets are never mixed.
     """
-    classified_dir, acts_dir = _dirs(model, model_size)
+    classified_dir, acts_dir = _dirs(model, model_size, classified_subdir, acts_subdir)
     os.makedirs(acts_dir, exist_ok=True)
+
+    wanted = {m.strip() for m in (only_modes.split(",") if isinstance(only_modes, str)
+                                  else (only_modes or [])) if m and m.strip()}
+    right = max_acts_per_bucket if max_acts_per_bucket else 100000  # extract_hidden slices rows[:right]
 
     for src_pth in sorted(glob.glob(os.path.join(classified_dir, "*.json"))):
         name = os.path.splitext(os.path.basename(src_pth))[0]
+        if not _is_split_file(name):
+            continue  # skip non-split JSON (e.g. judge_log.json)
+        thinking_mode = _thinking_mode_of(name)
+        if wanted and thinking_mode not in wanted:
+            continue
         with open(src_pth, encoding="utf-8") as f:
             if not json.load(f):
                 print(f"{name}: empty, skipping")
                 continue
-        thinking_mode = "genthink" if "genthink" in name else "gennothink"
         run_extract_hidden_thinking(
             harmful_pth=src_pth,
             output_pth_harmful=os.path.join(acts_dir, name + ".pt"),
             thinking_mode=thinking_mode,
             model=model,
             model_size=model_size,
+            right=right,
         )
-        print(f"{name}: activations saved ({thinking_mode})")
+        print(f"{name}: activations saved ({thinking_mode}, cap={right if max_acts_per_bucket else 'none'})")
 
 
-def compute_all_activations(model, model_size):
-    """Extract activations for each classified generation into activations/."""
-    classified_dir, acts_dir = _dirs(model, model_size)
+def compute_all_activations(model, model_size,
+                            classified_subdir="classified_generations",
+                            acts_subdir="activations", max_acts_per_bucket=None):
+    """Extract activations for each classified generation into acts_subdir.
+
+    Pass judge_classifications/judge_activations for the judge-corrected splits.
+    max_acts_per_bucket: cap the rows extracted PER bucket (per split file) to the first N; None = no
+    cap. Per-file, so buckets are never mixed.
+    """
+    classified_dir, acts_dir = _dirs(model, model_size, classified_subdir, acts_subdir)
     os.makedirs(acts_dir, exist_ok=True)
+    right = max_acts_per_bucket if max_acts_per_bucket else 100000  # extract_hidden slices rows[:right]
 
     for src_pth in sorted(glob.glob(os.path.join(classified_dir, "*.json"))):
         name = os.path.splitext(os.path.basename(src_pth))[0]
+        if not _is_split_file(name):
+            continue  # skip non-split JSON (e.g. judge_log.json)
         with open(src_pth, encoding="utf-8") as f:
             if not json.load(f):
                 print(f"{name}: empty, skipping")
@@ -155,5 +206,6 @@ def compute_all_activations(model, model_size):
             extract_only=1,
             model=model,
             model_size=model_size,
+            right=right,
         )
-        print(f"{name}: activations saved")
+        print(f"{name}: activations saved (cap={right if max_acts_per_bucket else 'none'})")

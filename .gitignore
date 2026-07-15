@@ -25,4 +25,7 @@ venv/
 **/buckets_activations_v2/
 **/buckets_activations_original/
 **/activations/**
-
+**/judge_activations/**
+**/judge_activations_128/**
+**/judge_activations_256/**
+**/judge_activations_2048/**

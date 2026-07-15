@@ -1,0 +1,34 @@
+{
+  "judge_model": "Qwen/Qwen3.5-4B",
+  "thinking": true,
+  "max_new_tokens": 4096,
+  "batch_size": 64,
+  "strip_think": true,
+  "gen": {
+    "do_sample": true,
+    "temperature": 0.6,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "repetition_penalty": 1.0
+  },
+  "harmful": [
+    "advbench_genthink",
+    "advbench_gennothink",
+    "advbench_gennothink_stripped",
+    "jbb_genthink",
+    "jbb_gennothink",
+    "jbb_gennothink_stripped",
+    "sorrybench_genthink",
+    "sorrybench_gennothink",
+    "sorrybench_gennothink_stripped"
+  ],
+  "harmless": [
+    "xstest_genthink",
+    "xstest_gennothink",
+    "xstest_gennothink_stripped",
+    "alpaca_genthink",
+    "alpaca_gennothink",
+    "alpaca_gennothink_stripped"
+  ]
+}

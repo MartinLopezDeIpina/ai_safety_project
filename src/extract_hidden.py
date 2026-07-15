@@ -312,18 +312,21 @@ def generate_directions(
 
 # ---------------------------------------------------------------------------
 # Qwen3.5 thinking-model extraction (clone path). Instead of the prompt-only hook machinery
-# above, we run one forward pass on prompt+generation and gather a FIXED 22-slot token layout so
+# above, we run one forward pass on prompt+generation and gather a FIXED 25-slot token layout so
 # both generation modes share a single index scheme (see the plan / CLAUDE-style docs):
 #   0        t_inst (token before the first <|im_end|>)
 #   1-4      assistant \n <think> \n     (slot 1 = t_post)
 #   5-9      first 5 CoT tokens
 #   10-14    middle 5 CoT tokens (region CoT[5:-5] split into 5 groups, middle of each)
 #   15-19    last 5 CoT tokens
-#   20-21    first 2 answer tokens after </think> (whitespace-only tokens skipped)
+#   20-23    the 4 tokens right after </think>, taken CONTIGUOUSLY (no whitespace skip) so the
+#            offset from </think> is identical across modes: genthink = 4 generated tokens;
+#            gennothink = the template's \n\n + the first 2 generated answer tokens.
+#   24       </think> itself (generated in genthink/gennothink_stripped; in the prompt for gennothink)
 # gennothink has no CoT (its </think> is inside the prompt), so slots 5-19 stay null (zeros);
 # missing/short-CoT slots are null too. dynamic_bucket_formation drops zero-norm rows per position.
 # ---------------------------------------------------------------------------
-THINK_SLOTS = 22
+THINK_SLOTS = 25
 
 
 def _single_tid(tokenizer, s: str):
@@ -350,18 +353,8 @@ def _sample_middle(region, k):
     return out
 
 
-def _first_answer_tokens(ids, start, tokenizer, k):
-    """First k token indices at/after `start` whose decoded text is not whitespace-only."""
-    out, j = [], start
-    while j < len(ids) and len(out) < k:
-        if tokenizer.decode([ids[j]]).strip() != '':
-            out.append(j)
-        j += 1
-    return out
-
-
 def compute_positions_thinking(ids, tokenizer, mode):
-    """Map a full prompt+generation token-id list to the 22 fixed slot indices (int or None)."""
+    """Map a full prompt+generation token-id list to the 25 fixed slot indices (int or None)."""
     slots = [None] * THINK_SLOTS
     im_end = _single_tid(tokenizer, '<|im_end|>')
     th_open = _single_tid(tokenizer, '<think>')
@@ -389,16 +382,20 @@ def compute_positions_thinking(ids, tokenizer, mode):
                 _place(slots, 10, _sample_middle(cot[5:len(cot) - 5], 5))
                 _place(slots, 15, cot[-5:])
 
-        if thc is not None:  # slots 20-21: first 2 answer tokens after </think>
-            _place(slots, 20, _first_answer_tokens(ids, thc + 1, tokenizer, 2))
+        if thc is not None:
+            # slots 20-23: the 4 tokens right after </think>, taken CONTIGUOUSLY (no whitespace
+            # skip) so the offset from </think> matches across modes (gennothink keeps its \n\n +
+            # 2 generated tokens; genthink is 4 generated tokens).
+            _place(slots, 20, [i if i < len(ids) else None for i in range(thc + 1, thc + 5)])
+            slots[24] = thc  # slot 24: </think> itself
     return slots
 
 
 def extract_thinking_activations(model, tokenizer, rows, thinking_mode):
-    """Forward each (instruction, stored generation) once and gather the 22-slot layout.
+    """Forward each (instruction, stored generation) once and gather the 25-slot layout.
 
-    Returns (L, N, 22, H): L = n_layers+1 residual-stream points (output_hidden_states, equivalent
-    to the pre/fwd-hook capture used elsewhere), N rows, 22 token slots, hidden size H.
+    Returns (L, N, 25, H): L = n_layers+1 residual-stream points (output_hidden_states, equivalent
+    to the pre/fwd-hook capture used elsewhere), N rows, 25 token slots, hidden size H.
     """
     all_acts = []
     for row in tqdm(rows):
@@ -411,13 +408,13 @@ def extract_thinking_activations(model, tokenizer, rows, thinking_mode):
         idxs = compute_positions_thinking(enc.input_ids[0].tolist(), tokenizer, thinking_mode)
         slots = [hs[:, j, :] if (j is not None and 0 <= j < seq) else torch.zeros(L, H, dtype=hs.dtype)
                  for j in idxs]
-        all_acts.append(torch.stack(slots, dim=1))  # (L, 22, H)
+        all_acts.append(torch.stack(slots, dim=1))  # (L, 25, H)
         # full reasoning traces can be long (thousands of tokens); free GPU memory each step so
         # peak stays at one forward pass and fragmentation doesn't accumulate across examples.
         del out, hs
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-    return torch.stack(all_acts, dim=1)  # (L, N, 22, H)
+    return torch.stack(all_acts, dim=1)  # (L, N, 25, H)
 
 
 def generate_directions_thinking(model, tokenizer, rows, args):

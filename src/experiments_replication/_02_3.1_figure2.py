@@ -101,21 +101,26 @@ def _draw_score(
     ax.legend(loc="lower right", fontsize=15, framealpha=0.9, edgecolor="0.8")
 
 
-# ---- Qwen3.5 thinking Figure 2: the same score s^l, drawn across the fixed 22-slot layout ----
+# ---- Qwen3.5 thinking Figure 2: the same score s^l, drawn across the fixed 25-slot layout ----
 SLOT_LABELS = {
     0: r"$t_{\mathrm{inst}}$", 1: r"$t_{\mathrm{post}}$", 2: r"\n", 3: "<think>", 4: r"\n",
     5: "CoT 1", 6: "CoT 2", 7: "CoT 3", 8: "CoT 4", 9: "CoT 5",
     10: "mid 1", 11: "mid 2", 12: "mid 3", 13: "mid 4", 14: "mid 5",
     15: "last 1", 16: "last 2", 17: "last 3", 18: "last 4", 19: "last 5",
-    20: "gen 1", 21: "gen 2",
+    20: "gen 1", 21: "gen 2", 22: "gen 3", 23: "gen 4", 24: "</think>",
 }
-THINK_POSITIONS = list(range(22))
-NOTHINK_POSITIONS = [0, 1, 2, 3, 4, 20, 21]  # the only meaningful slots without a reasoning trace
+THINK_POSITIONS = list(range(25))
+# meaningful slots without a reasoning trace: +the 2 extra gen tokens (22,23) and </think> (24)
+NOTHINK_POSITIONS = [0, 1, 2, 3, 4, 20, 21, 22, 23, 24]
 
 
 def _slice_pos(tensor, p):
-    """(L, N, 22, H) -> (L, n, H) at slot p, dropping null (zero-norm) rows."""
-    sl = tensor[:, :, p, :]
+    """(L, N, 22, H) -> (L, n, H) at slot p, dropping null (zero-norm) rows.
+
+    Buckets are held in fp16 (their on-disk dtype) to bound memory; upcast this one small
+    (L, n, H) slice to fp32 here so the downstream mean/cosine reductions stay fp32-accurate.
+    """
+    sl = tensor[:, :, p, :].float()
     keep = (sl.norm(dim=-1) > 0).all(dim=0)
     return sl[:, keep]
 

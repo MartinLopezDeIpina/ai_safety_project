@@ -139,34 +139,83 @@ def run_inference_on_dataset_thinking(
     _write_pretty(output_file, _read_rows(output_file))
 
 
-# (dataset file, output name, thinking_mode). 5 datasets x {genthink, gennothink} = 10 runs, all in
-# the same generations/ dir. Unlike the Qwen2 pipeline there is no gentinst/gentpost split.
+# (dataset file, output name, thinking_mode). 5 datasets x {genthink, gennothink, gennothink_stripped}
+# = 15 runs, all in the same generations/ dir. Unlike the Qwen2 pipeline there is no gentinst/gentpost
+# split. gennothink_stripped omits the trailing template tokens so the model autocompletes them (the
+# thinking-family analogue of gentinst); scope a run to it via only_modes.
 RUNS_THINKING = [
     ("advbench.json", "advbench_genthink.json", "genthink"),
     ("advbench.json", "advbench_gennothink.json", "gennothink"),
+    ("advbench.json", "advbench_gennothink_stripped.json", "gennothink_stripped"),
     ("jbb.json", "jbb_genthink.json", "genthink"),
     ("jbb.json", "jbb_gennothink.json", "gennothink"),
+    ("jbb.json", "jbb_gennothink_stripped.json", "gennothink_stripped"),
     ("sorry-badq.json", "sorrybench_genthink.json", "genthink"),
     ("sorry-badq.json", "sorrybench_gennothink.json", "gennothink"),
+    ("sorry-badq.json", "sorrybench_gennothink_stripped.json", "gennothink_stripped"),
     ("xstest-harmless.json", "xstest_genthink.json", "genthink"),
     ("xstest-harmless.json", "xstest_gennothink.json", "gennothink"),
+    ("xstest-harmless.json", "xstest_gennothink_stripped.json", "gennothink_stripped"),
     ("alpaca_data_instruction.json", "alpaca_genthink.json", "genthink"),
     ("alpaca_data_instruction.json", "alpaca_gennothink.json", "gennothink"),
+    ("alpaca_data_instruction.json", "alpaca_gennothink_stripped.json", "gennothink_stripped"),
 ]
 
 
+def _dataset_key(out_name):
+    """The dataset name a run belongs to, from its output filename: the part before '_gen'/'.json'.
+    e.g. 'alpaca_genthink.json' -> 'alpaca', 'advbench_gentinst.json' -> 'advbench', 'xstest.json' ->
+    'xstest'. Used to filter runs to a single dataset."""
+    return out_name[: -len(".json")].split("_gen")[0]
+
+
+def _filter_runs(runs, only_datasets):
+    """Keep only the runs whose dataset (_dataset_key of out_name, at tuple index 1) is in
+    only_datasets (a comma-separated string or a list). None/empty -> all runs unchanged."""
+    if not only_datasets:
+        return runs
+    wanted = {d.strip() for d in (only_datasets.split(",") if isinstance(only_datasets, str)
+                                  else only_datasets) if d and d.strip()}
+    sel = [r for r in runs if _dataset_key(r[1]) in wanted]
+    if not sel:
+        avail = sorted({_dataset_key(r[1]) for r in runs})
+        raise ValueError(f"no runs match datasets={sorted(wanted)}; available: {avail}")
+    return sel
+
+
+def _filter_modes(runs, only_modes):
+    """Keep only the runs whose thinking_mode (tuple index 2) is in only_modes (a comma-separated
+    string or a list). None/empty -> all runs unchanged. Used to scope a run to one generation type
+    (e.g. only gennothink_stripped)."""
+    if not only_modes:
+        return runs
+    wanted = {m.strip() for m in (only_modes.split(",") if isinstance(only_modes, str)
+                                  else only_modes) if m and m.strip()}
+    sel = [r for r in runs if r[2] in wanted]
+    if not sel:
+        avail = sorted({r[2] for r in runs})
+        raise ValueError(f"no runs match modes={sorted(wanted)}; available: {avail}")
+    return sel
+
+
 def run_all_inference_thinking(model, model_size, left, right, max_len=512, batch_size=8,
-                               sampling_config=""):
-    """Generate genthink/gennothink responses for all 5 datasets (Qwen3.5 thinking family).
+                               sampling_config="", only_datasets=None, only_modes=None):
+    """Generate genthink/gennothink/gennothink_stripped responses for all 5 datasets (Qwen3.5
+    thinking family).
 
     sampling_config: path to a sampling json (relative paths resolve against this dir); "" uses the
     inference defaults.
+    only_datasets: comma-separated dataset names (e.g. "alpaca") to restrict generation to; None runs
+    all. A named dataset runs all of its thinking configs.
+    only_modes: comma-separated thinking modes (e.g. "gennothink_stripped") to restrict generation to;
+    None runs all. Applied on top of only_datasets.
     """
     generations_dir, _, _ = _out_dirs(model, model_size)
     scfg = sampling_config
     if scfg and not os.path.isabs(scfg):
         scfg = os.path.join(HERE, scfg)
-    for dataset_file, out_name, thinking_mode in RUNS_THINKING:
+    for dataset_file, out_name, thinking_mode in _filter_modes(
+            _filter_runs(RUNS_THINKING, only_datasets), only_modes):
         run_inference_on_dataset_thinking(
             input_file=os.path.join(DATA_DIR, dataset_file),
             output_file=os.path.join(generations_dir, out_name),
@@ -181,10 +230,21 @@ def run_all_inference_thinking(model, model_size, left, right, max_len=512, batc
         )
 
 
-def evaluate_thinking(model, model_size):
+def evaluate_thinking(model, model_size, use_judge=False,
+                      judge_config="configs/eval/judge_config_thinking.json", only_modes=None):
     """Split each thinking generation into accepted/refused using easy_eval_thinking.
 
     For genthink the classification runs only on the post-</think> answer; gennothink has no trace.
+    gennothink_stripped is evaluated leniently: the model autocompleted the template, so we classify
+    the text after the last </think> when present, else the whole output (no </think> -> keep, don't
+    drop). The stored ori_output is left intact.
+
+    only_modes: comma-separated thinking modes (e.g. "gennothink_stripped") to restrict evaluation to;
+    None evaluates all. Scope this to match the modes generated by a partial infer run.
+
+    use_judge: after the split, re-verify the two opposing buckets with the judge LLM (thinking judge
+    config; strip_think=true so it judges the post-</think> answer). Writes a parallel
+    classified_generations_judge/ dir and leaves classified_generations/ untouched.
     """
     sys.path.insert(0, SRC_DIR)
     from eval import easy_eval_thinking
@@ -192,21 +252,38 @@ def evaluate_thinking(model, model_size):
     generations_dir, classified_dir, _ = _out_dirs(model, model_size)
     os.makedirs(classified_dir, exist_ok=True)
 
-    for _, out_name, thinking_mode in RUNS_THINKING:
+    for _, out_name, thinking_mode in _filter_modes(RUNS_THINKING, only_modes):
         data = _read_rows(os.path.join(generations_dir, out_name))
-        labels = easy_eval_thinking(data, tag="ori_output", mode="refusal",
-                                    think=(thinking_mode == "genthink"))
+        if thinking_mode == "gennothink_stripped":
+            # lenient literal strip: drop the model's autocompleted template prefix up to the last
+            # </think> if it emitted one, else classify the whole output. Classify a view so
+            # ori_output stays intact (kept for future activation extraction).
+            view = [{**d, "_ans": d["ori_output"].split("</think>")[-1]
+                     if "</think>" in d["ori_output"] else d["ori_output"]} for d in data]
+            labels = easy_eval_thinking(view, tag="_ans", mode="refusal", think=False)
+        else:
+            labels = easy_eval_thinking(data, tag="ori_output", mode="refusal",
+                                        think=(thinking_mode == "genthink"))
         stem = out_name[: -len(".json")]
         for suffix, keep_label in (("accepted", "5"), ("refused", "0")):
             split = [item for item, label in zip(data, labels) if label == keep_label]
             _write_pretty(os.path.join(classified_dir, f"{stem}_{suffix}.json"), split)
             print(f"{stem}_{suffix}: {len(split)} items")
 
+    if use_judge:
+        sys.path.insert(0, HERE)
+        from judge_llm import reclassify_opposing
+        reclassify_opposing(model, model_size, judge_config, only_modes=only_modes)
 
-def run_all_inference(model, model_size, left, right):
-    """Generate responses for all 8 dataset/config combinations."""
+
+def run_all_inference(model, model_size, left, right, only_datasets=None):
+    """Generate responses for all 8 dataset/config combinations.
+
+    only_datasets: comma-separated dataset names (e.g. "alpaca") to restrict generation to; None runs
+    all. A named harmful dataset runs BOTH its gentinst and gentpost configs.
+    """
     generations_dir, _, _ = _out_dirs(model, model_size)
-    for dataset_file, out_name, no_last_tok in RUNS:
+    for dataset_file, out_name, no_last_tok in _filter_runs(RUNS, only_datasets):
         run_inference_on_dataset(
             input_file=os.path.join(DATA_DIR, dataset_file),
             output_file=os.path.join(generations_dir, out_name),
@@ -218,11 +295,17 @@ def run_all_inference(model, model_size, left, right):
         )
 
 
-def evaluate(model, model_size):
+def evaluate(model, model_size, use_judge=False,
+             judge_config="configs/eval/judge_config.json"):
     """Split each generation into accepted/refused classified generations.
 
     label: '5' = accepted, '0' = refused (easy_eval refusal mode). No cross-source
     aggregation here; that is the job of dynamic_bucket_formation.py.
+
+    use_judge: after the easy_eval split, re-verify the two error-prone "opposing" buckets
+    (harmful->accepted, harmless->refused) with a judge LLM and rebucket disagreements. Purely
+    additive on top of easy_eval; see judge_llm.reclassify_opposing. It only rewrites the classified
+    JSONs (activations are left stale — re-run `acts` if you need judged figures).
     """
     sys.path.insert(0, SRC_DIR)
     from eval import easy_eval
@@ -238,3 +321,8 @@ def evaluate(model, model_size):
             split = [item for item, label in zip(data, labels) if label == keep_label]
             _write_pretty(os.path.join(classified_dir, f"{stem}_{suffix}.json"), split)
             print(f"{stem}_{suffix}: {len(split)} items")
+
+    if use_judge:
+        sys.path.insert(0, HERE)
+        from judge_llm import reclassify_opposing
+        reclassify_opposing(model, model_size, judge_config)

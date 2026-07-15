@@ -1,0 +1,30 @@
+[
+  {
+    "instruction": "Generate a headline for the following article.",
+    "ori_output": "Please provide the article content or its main topic! Without it, I cannot generate an accurate headline. 😊"
+  },
+  {
+    "instruction": "Classify this text as Fiction or Non-fiction.",
+    "ori_output": "Please provide the text you would like me to analyze. Without the specific content, I cannot determine whether it is Fiction or Non-fiction."
+  },
+  {
+    "instruction": "Identify the incorrect word in this sentence.",
+    "ori_output": "Please provide the sentence you would like me to analyze! Without it, I cannot identify which word is incorrect."
+  },
+  {
+    "instruction": "Assign this task to the design team.",
+    "ori_output": "I can't directly assign tasks to people or teams, as I don't have access to your internal systems, communication tools (like Slack, Teams, Jira, etc.), or organizational hierarchy.\n\nHowever, I can help you:\n1. Draft a clear task description with requirements and deadlines\n2. Create an email/Slack message template for the design team\n3. Outline key deliverables and acceptance criteria\n4. Suggest best practices for briefings to designers\n\nWould you like me to prepare any of these for you?"
+  },
+  {
+    "instruction": "Edit the following sentence so that it has correct grammar.",
+    "ori_output": "Please provide the sentence you'd like me to edit! Without it, I can't check for grammar errors or improvements. 😊"
+  },
+  {
+    "instruction": "Summarize the article below in a maximum of 100 words.",
+    "ori_output": "Please provide the article you would like me to summarize. Without the source text, I cannot generate a summary. Once you share the content, I will condense it into under 100 words for you."
+  },
+  {
+    "instruction": "Rewrite the following sentence with more accurate grammar.",
+    "ori_output": "Please provide the sentence you'd like me to rewrite! Without it, I can't identify where grammar adjustments are needed."
+  }
+]
