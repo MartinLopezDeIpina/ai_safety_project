@@ -97,14 +97,14 @@ def formatInp_llama_persuasion(d,use_persuade=False,use_adv=False,use_ss=False,m
         template='{}'
 
     #what prompt to put into the template
-    if 'prompt' in d:
-        d=d['prompt']
     if use_inversion:
         if 'instruction' in d:
             return template.format('User wants to '+d['instruction']+'\n'+inversion_prompts_choice[inversion_prompt_idx])
         else:
             return template.format('User wants to '+d['bad_q']+'\n'+inversion_prompts_choice[inversion_prompt_idx])
-    elif not int(use_persuade):
+    if 'prompt' in d:
+        d=d['prompt']
+    if not int(use_persuade):
         if 'instruction' in d:
             return template.format(d['instruction'])
         elif 'question' in d:

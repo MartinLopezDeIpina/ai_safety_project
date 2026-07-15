@@ -6,44 +6,31 @@ import subprocess
 import time
 
 SCRIPT = "src/experiments_replication/modal_intervene.py"
-DELAY = 5  # seconds between modal run calls
+DELAY = 10  # seconds between modal run calls
 
-# Datasets grouped by type. Harmful datasets use "bad_q"; harmless use the noted prompt key.
-HARMFUL_DATASETS = ["advbench", "jbb"]
-HARMLESS_DATASETS = ["alpaca_data_instruction", "xstest-harmless"]
-HARMLESS_PROMPT_KEYS = {
-    "alpaca_data_instruction": "instruction",
-    "xstest-harmless": "bad_q"
-}
+# Each experiment tuple:
+#   (dataset, vector, reverse, prompt_key, ctx_only, all_tokens, use_inversion)
+EXPERIMENTS = [
+    # Harmful datasets (prompt key: "bad_q")
+    ("advbench",              "hf",      1, "bad_q",       1, 0, 1),  # less-harm
+    ("advbench",              "refusal", 1, "bad_q",       0, 1, 1),  # less-refusal
+    ("advbench",              "refusal", 0, "bad_q",       0, 1, 1),  # more-refusal
+    ("jbb",                   "hf",      1, "bad_q",       1, 0, 1),  # less-harm
+    ("jbb",                   "refusal", 1, "bad_q",       0, 1, 1),  # less-refusal
+    ("jbb",                   "refusal", 0, "bad_q",       0, 1, 1),  # more-refusal
 
-# First flag is for context-only, second is for all tokens.
-INTERVENTION_SCOPE = {"hf": (1, 0), "refusal": (0, 1)}
+    # Harmless datasets
+    ("alpaca_data_instruction", "hf",      0, "instruction", 1, 0, 1),  # more-harm
+    ("alpaca_data_instruction", "refusal", 0, "instruction", 0, 1, 1),  # more-refusal
+    ("alpaca_data_instruction", "refusal", 1, "instruction", 0, 1, 1),  # less-refusal
+    ("xstest-harmless",         "hf",      0, "bad_q",       1, 0, 1),  # more-harm
+    ("xstest-harmless",         "refusal", 0, "bad_q",       0, 1, 1),  # more-refusal
+    ("xstest-harmless",         "refusal", 1, "bad_q",       0, 1, 1),  # less-refusal
 
-# Harmful datasets: reverse hf (less-harm), reverse refusal (less-refusal), refusal (more-refusal).
-# Harmless datasets: hf (more-harm), refusal (more-refusal), reverse refusal (less-refusal).
-HARMFUL_VARIANTS = [("hf", 1), ("refusal", 1), ("refusal", 0)]
-HARMLESS_VARIANTS = [("hf", 0), ("refusal", 0), ("refusal", 1)]
-
-
-def build_experiments() -> list[tuple]:
-    """Generate the experiment table from the dataset/vector definitions above."""
-    experiments = []
-    for ds in HARMFUL_DATASETS:
-        for vector, reverse in HARMFUL_VARIANTS:
-            ctx, all_ = INTERVENTION_SCOPE[vector]
-            # prompt key for harmful datasets is always "bad_q"
-            experiments.append((ds, vector, reverse, "bad_q", ctx, all_, 1))
-    for ds in HARMLESS_DATASETS:
-        for vector, reverse in HARMLESS_VARIANTS:
-            ctx, all_ = INTERVENTION_SCOPE[vector]
-            experiments.append((ds, vector, reverse, HARMLESS_PROMPT_KEYS[ds], ctx, all_, 1))
-    # No-inversion runs on alpaca: steer along hf and refusal without the inversion prompt.
-    for vector, reverse in [("hf", 0), ("refusal", 0)]:
-        ctx, all_ = INTERVENTION_SCOPE[vector]
-        experiments.append(("alpaca_data_instruction", vector, reverse, "instruction", ctx, all_, 0))
-    return experiments
-
-EXPERIMENTS = build_experiments()
+    # No-inversion runs on alpaca (respond directly, no inversion question)
+    ("alpaca_data_instruction", "hf",      0, "instruction", 0, 1, 0),  # more-harm (no inversion)
+    ("alpaca_data_instruction", "refusal", 0, "instruction", 0, 1, 0),  # more-refusal (no inversion)
+]
 
 
 def main():

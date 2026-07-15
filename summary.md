@@ -245,7 +245,7 @@ Output: `output/<model>/figure5_refusal_rate.png`
 
 ## TODO
 
-- Check if `_05_figure5.py` has been correctly adapted to the new file naming scheme (with `inv1` suffix).
+- ~~Check if `_05_figure5.py` has been correctly adapted to the new file naming scheme (with `inv1` suffix).~~ Done.
 - Add `_04_figure4.py`.
 - Get steering vectors for the other models and let the user pick which one to load for the intervention experiments.
 - Run intervention experiments on all data and thinking model.

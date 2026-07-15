@@ -1,25 +1,4 @@
 """Run intervention experiments (src/intervention.py) on Modal.
-
-Each --runs entry launches its own A100 container that runs intervention.py for one
-model/dataset/vector config, then copies the produced output JSON file(s) onto a results
-volume. The local entrypoint pulls every finished file back into
-src/experiments_replication/intervention_outputs/, auto-indexing so it never clobbers a
-previous local run.
-
-This is the Modal equivalent of slurm/intervene.slurm.
-
-Usage (from the repo root):
-  # Single run (defaults mirror intervene.slurm: advbench + hf vector, reverse=less-harm)
-  modal run src/experiments_replication/modal_intervene.py \\
-      --runs "qwen:7b:0:50"
-
-  # Multiple datasets / vectors in parallel
-  modal run src/experiments_replication/modal_intervene.py \\
-      --runs "qwen:7b:0:50,qwen:7b:0:50" \\
-      --datasets "advbench,jbb" \\
-      --vectors "hf,refusal"
-
-Each run token is  model:size[:left[:right]]  (left defaults 0, right defaults 50).
 """
 import os
 import shutil
@@ -84,10 +63,8 @@ def _name(model: str, model_size: str) -> str:
     return f"{model}{model_size}"
 
 
-def _key(
-        model: str, model_size: str, dataset: str, vector: str,
-        left: int, right: int, reverse: int, use_inversion: int
-    ) -> str:
+def _key(model: str, model_size: str, dataset: str, vector: str,
+         left: int, right: int, reverse: int, use_inversion: int) -> str:
     """Deterministic results-volume key for one intervention run, so a detached run can be
     collected later and runs with different dataset/vector/reverse don't collide."""
     direction = "less" if reverse else "more"
@@ -96,7 +73,7 @@ def _key(
 
 @app.function(
     image=image, gpu="A100", volumes={"/cache": hf_cache, "/results": results_vol},
-    secrets=[hf_secret], timeout=7200
+    secrets=[hf_secret], timeout=14400
 )
 def run_intervention(
         model: str, model_size: str, left: int, right: int,
@@ -107,8 +84,9 @@ def run_intervention(
         use_inversion: int, inversion_prompt_idx: int
     ) -> tuple[str, str]:
     """
-    Run intervention.py for one config and persist its output JSON(s) to intervention_outputs/<key>.
-    Returns (name, key).
+    Run intervention.py for one config and persist its output JSON(s) to /results/<key>.
+    Returns (name, key). Output is committed in a `finally` so a late-stage error can't
+    discard an otherwise-complete run — whatever intervention.py produced is still saved.
     """
     import traceback
     os.environ["HF_HUB_CACHE"] = "/cache"
@@ -225,8 +203,8 @@ def entry(
     datasets: str = "advbench",
     vectors: str = "hf",
     reverse_intervention: int = 1,
-    intervene_context_only: int = 0,
-    intervene_all: int = 0,
+    intervene_context_only: int = -1,
+    intervene_all: int = -1,
     arg_key_prompt: str = "bad_q",
     layer_s: int = 0,
     layer_e: int = 28,
@@ -241,6 +219,28 @@ def entry(
     collect_only: bool = False,
 ):
     """Launch (and optionally collect) intervention runs.
+
+    Interactive (defaults mirror slurm/intervene.slurm — advbench + hf vector, reverse=less-harm):
+        modal run src/experiments_replication/modal_intervene.py --runs "qwen:7b:0:50"
+        spawns the run, waits, and pulls the result JSON(s) locally.
+
+    Multiple datasets / vectors in parallel (comma-separated, zipped with --runs):
+        modal run src/experiments_replication/modal_intervene.py \\
+            --runs "qwen:7b:0:50,qwen:7b:0:50" \\
+            --datasets "advbench,jbb" --vectors "hf,refusal"
+
+    Detached (safe to close the laptop): run fire-and-forget, collect later.
+        modal run --detach src/experiments_replication/modal_intervene.py --runs "..." --no-wait
+        # ...later, when back at the machine:
+        modal run src/experiments_replication/modal_intervene.py --runs "..." --collect-only \\
+            --datasets "advbench" --vectors "hf" --reverse-intervention 1
+
+    Collect keys are deterministic (model+size+dataset+vector+direction+left+right), so the
+    same --runs/--datasets/--vectors/--reverse-intervention retrieves exactly the runs launched.
+
+    Flip to more-harm (amplify harmfulness) instead of less-harm:
+        modal run src/experiments_replication/modal_intervene.py \\
+            --runs "qwen:7b:0:50" --reverse-intervention 0
     """
     specs = _parse_runs(runs)
     dataset_list = [d.strip() for d in datasets.split(",") if d.strip()]
@@ -251,15 +251,20 @@ def entry(
     for i, (model, size, left, right) in enumerate(specs):
         ds = dataset_list[i] if i < len(dataset_list) else dataset_list[-1]
         vec = vector_list[i] if i < len(vector_list) else vector_list[-1]
-        configs.append((
-            model, size, left, right, ds, vec,
-            intervene_context_only, intervene_all
-        ))
+        is_refusal = vec == "refusal"
+        if intervene_context_only >= 0:
+            ctx = intervene_context_only
+        else:
+            ctx = 0 if is_refusal else 1
+        if intervene_all >= 0:
+            all_ = intervene_all
+        else:
+            all_ = 1 if is_refusal else 0
+        configs.append((model, size, left, right, ds, vec, ctx, all_))
 
     if collect_only:
         for model, size, left, right, ds, vec, ctx, all_ in configs:
-            name = _name(model, size)
-            key = _key(
+            name, key = _name(model, size), _key(
                 model, size, ds, vec, left, right,
                 reverse_intervention, use_inversion
             )
