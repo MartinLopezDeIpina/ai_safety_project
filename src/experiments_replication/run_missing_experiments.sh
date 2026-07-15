@@ -54,7 +54,7 @@ modal run --detach src/experiments_replication/modal_intervene.py \
     --intervene-all 1 \
     --use-inversion 0 \
     --no-wait
-# sleep 10
+sleep 10
 
 modal run --detach src/experiments_replication/modal_intervene.py \
     --runs qwen:7b:0:100 \

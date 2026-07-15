@@ -2,7 +2,49 @@
 
 **Date:** 2026-07-13
 **Project:** AI Safety — Replication of "LLMs Encode Harmfulness and Refusal Separately" (Zhao et al., 2025)
-**Model:** Qwen 7B (Qwen2-7B-Instruct)
+
+# TL;DR
+
+- Go to `run_get_intervene_vectors.sh`. Change `ACT_DIR` and `OUT_DIR`. In the `OUT_DIR` you will get the steering vectors for the harmfulness direction (`hf.pt`) and the refusal direction (`refusal`).
+- Go to `modal_intervene.py`. Change `vector_pth` in line 108 (or somewhere near if you have changed this file). Make sure that `vector_pth` matches your `OUT_DIR` in the previous step.
+- To run the intervention experiments for figure 5, run:
+  ```bash
+  uv run python src/experiments_replication/_045_interventions.py --mode run --runs "qwen:7b:0:500"
+  ```
+  After 2h or so, run
+  ```bash
+  uv run python src/experiments_replication/_045_interventions.py --mode collect --runs "qwen:7b:0:500"
+  ```
+  to collect the results.
+  Then run `uv run python src/experiments_replication/_05_figure5.py --right 500` to produce figure 5.
+- For figure 4, run:
+  ```bash
+  modal run --detach src/experiments_replication/modal_intervene.py \
+    --runs qwen:7b:0:100 \
+    --datasets alpaca_data_instruction \
+    --vectors hf \
+    --reverse-intervention 0 \
+    --arg-key-prompt instruction \
+    --intervene-context-only 0 \
+    --intervene-all 1 \
+    --use-inversion 0 \
+    --no-wait
+  # after some while
+  modal run --detach src/experiments_replication/modal_intervene.py \
+    --runs qwen:7b:0:100 \
+    --datasets alpaca_data_instruction \
+    --vectors refusal \
+    --reverse-intervention 0 \
+    --arg-key-prompt instruction \
+    --intervene-context-only 0 \
+    --intervene-all 1 \
+    --use-inversion 0 \
+    --no-wait
+  ```
+  After 3h or so, run the same comments but with `--no-wait` replaced by `--collect-only` to get the results.
+
+Increasing the data size could lead to time-outs. So be careful.
+
 
 ## Key Script Created: `get_intervene_vectors.py`
 
@@ -38,7 +80,6 @@ Load cached `.pt` activation tensors, compute harmfulness ("hf") and refusal ste
 python get_intervene_vectors.py <act_dir> [--out-dir <dir>]
 ```
 
-
 ## Supporting File: `run_get_intervene_vectors.sh`
 
 **Path:** `src/experiments_replication/run_get_intervene_vectors.sh`
@@ -47,38 +88,6 @@ Bash wrapper that:
 - Auto-detects repo-root `.venv` Python
 - Runs `get_intervene_vectors.py` with `activations_qwen` as input
 - Saves output to `steering_vectors/qwen7b/`
-
-## Verification Results
-
-Both runs completed successfully (exit code 0):
-
-| File | Size | Shape | dtype |
-|---|---|---|---|
-| `steering_vectors/qwen7b/hf.pt` | 205 KB | (29, 3584) | float16 |
-| `steering_vectors/qwen7b/refusal.pt` | 205 KB | (29, 3584) | float16 |
-
-
-## Activation File Inventory (`activations_qwen/`)
-
-16 `.pt` files total:
-- **Harmful datasets (12 files):** advbench, jbb, sorrybench — each with `_gentinst`/`_gentpost` variants × accepted/refused
-- **Harmless datasets (4 files):** alpaca, xstest — each with accepted/refused (no position suffix)
-
-
-## Technical Details
-
-- **Model Architecture:** Qwen2-7B-Instruct, 29 layers, 3584 hidden dim
-- **Token Conventions:** `tinst` = position 1 (last instruction token), `tpost` = position -1 (last prompt token)
-- **Activation shape:** `(L, N, T, H)` where T=6: [2nd-last-inst, tinst, suffix1, suffix2, suffix3, tpost]
-- **File I/O:** PyTorch with `weights_only=True`
-
-
-## Next Steps
-
-The steering vectors are now ready. The immediate next steps in the replication workflow are:
-1. ~~**Run intervention experiments**~~ — ✅ Done (see "Intervention Experiments" below)
-2. **Replicate figures** — Run the figure-plotting stages (Figures 2 & 3 from paper) (NOT ON THIS BRANCH)
-3. **Other models** — The repo supports Llama-2/3 as well; can extend the same pipeline
 
 
 ## Modal Script Created: `modal_intervene.py`
@@ -141,28 +150,6 @@ uv run python src/experiments_replication/_045_interventions.py --mode run --run
 uv run python src/experiments_replication/_045_interventions.py --mode collect --runs "qwen:7b:0:500"
 ```
 
-### Full Experiment Table (14 experiments)
-
-| # | Dataset | Vector | Reverse | Prompt key | `use_inversion` | Effect |
-|---|---|---|---|---|---|---|
-| 1 | advbench | hf | 1 | `bad_q` | 1 | Less-harm steering |
-| 2 | advbench | refusal | 1 | `bad_q` | 1 | Less-refusal steering |
-| 3 | advbench | refusal | 0 | `bad_q` | 1 | More-refusal steering |
-| 4 | alpaca_data_instruction | hf | 0 | `instruction` | 1 | More-harm steering |
-| 5 | alpaca_data_instruction | refusal | 0 | `instruction` | 1 | More-refusal steering |
-| 6 | alpaca_data_instruction | refusal | 1 | `instruction` | 1 | Less-refusal steering |
-| 7 | jbb | hf | 1 | `bad_q` | 1 | Less-harm steering |
-| 8 | jbb | refusal | 1 | `bad_q` | 1 | Less-refusal steering |
-| 9 | jbb | refusal | 0 | `bad_q` | 1 | More-refusal steering |
-| 10 | xstest-harmless | hf | 0 | `bad_q` | 1 | More-harm steering |
-| 11 | xstest-harmless | refusal | 0 | `bad_q` | 1 | More-refusal steering |
-| 12 | xstest-harmless | refusal | 1 | `bad_q` | 1 | Less-refusal steering |
-| 13 | alpaca_data_instruction | hf | 0 | `instruction` | 0 | More-harm (no inversion) |
-| 14 | alpaca_data_instruction | refusal | 0 | `instruction` | 0 | More-refusal (no inversion) |
-
-Experiments 1–12 use the inversion prompt (`use_inversion=1`); experiments 13–14 steer
-without the inversion question so the model responds directly to the instruction.
-
 ### Intervention Token Scope (Appendix E.1)
 
 Per the paper's Appendix E.1, the two steering directions require different token scopes in the reply inversion task:
@@ -175,23 +162,6 @@ Per the paper's Appendix E.1, the two steering directions require different toke
 The paper finds that steering with the refusal direction only works effectively when applied to all input tokens, because refusal is processed after seeing post-instruction tokens (Section 3.1). The harmfulness direction, however, only needs to be applied to the context tokens before the inversion question.
 
 In `modal_intervene.py`, both `--intervene-context-only` and `--intervene-all` default to `-1` (auto), which picks the correct values based on the vector: `refusal` → `intervene_all=1, intervene_context_only=0`; `hf` → `intervene_all=0, intervene_context_only=1`. An explicit `0`/`1` overrides the auto default.
-
-### Multi-Run Argument Cycling
-
-IMPORTANT: This is not ready. Don't use this feature. (And we don't need it.)
-
-When passing fewer `--datasets` or `--vectors` values than `--runs` entries, the last value is reused for the remaining runs. For example:
-
-```bash
-modal run modal_intervene.py --runs "qwen:7b:0:50,qwen:7b:0:50,qwen:7b:0:50" \
-    --datasets "advbench,jbb" --vectors "hf,refusal"
-```
-
-| Run | Dataset | Vector |
-|---|---|---|
-| 1 | advbench | hf |
-| 2 | jbb | refusal |
-| 3 | jbb (last repeated) | refusal (last repeated) |
 
 
 ## Figure 5: Refusal Rate Across Intervention Layers
@@ -220,28 +190,6 @@ uv run python src/experiments_replication/_05_figure5.py --harmless "alpaca_data
 ```
 
 Output: `output/<model>/figure5_refusal_rate.png`
-
-## File Paths Reference
-
-| Path | Description |
-|---|---|
-| `src/experiments_replication/main.py` | Pipeline orchestrator |
-| `src/experiments_replication/get_intervene_vectors.py` | Steering vector computation |
-| `src/experiments_replication/run_get_intervene_vectors.sh` | Bash wrapper (steering vectors) |
-| `src/experiments_replication/activations_qwen/` | Cached activation tensors (.pt) |
-| `src/experiments_replication/steering_vectors/qwen7b/` | Output steering vectors (`hf.pt`, `refusal.pt`) |
-| `src/intervention.py` | Intervention experiments (run by Modal) |
-| `src/experiments_replication/complete_intervene.sh` | Intervention batch script (local) |
-| `src/experiments_replication/modal_intervene.py` | Modal runner for intervention experiments |
-| `src/experiments_replication/modal_run.py` | Modal runner for the full pipeline (reference) |
-| `src/experiments_replication/intervention_outputs/` | Collected intervention results (6 experiments × 28 layers) |
-| `src/experiments_replication/_045_interventions.py` | Run/collect all 14 intervention experiments on Modal |
-| `src/experiments_replication/_05_figure5.py` | Figure 5: refusal rate across intervention layers |
-| `slurm/intervene.slurm` | Slurm script (original, now ported to Modal) |
-| `run_interventions_modal.sh` | Launches intervention experiments on Modal (legacy bash, replaced by _045_interventions.py) |
-| `collect_interventions_modal.sh` | Collects intervention results (legacy bash, replaced by _045_interventions.py) |
-| `pyproject.toml` | Local uv environment (CUDA 13.0 torch for Blackwell GPU) |
-
 
 ## TODO
 

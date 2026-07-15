@@ -27,9 +27,9 @@ EXPERIMENTS = [
     ("xstest-harmless",         "refusal", 0, "bad_q",       0, 1, 1),  # more-refusal
     ("xstest-harmless",         "refusal", 1, "bad_q",       0, 1, 1),  # less-refusal
 
-    # No-inversion runs on alpaca (respond directly, no inversion question)
-    ("alpaca_data_instruction", "hf",      0, "instruction", 0, 1, 0),  # more-harm (no inversion)
-    ("alpaca_data_instruction", "refusal", 0, "instruction", 0, 1, 0),  # more-refusal (no inversion)
+    # # No-inversion runs on alpaca (respond directly, no inversion question)
+    # ("alpaca_data_instruction", "hf",      0, "instruction", 0, 1, 0),  # more-harm (no inversion)
+    # ("alpaca_data_instruction", "refusal", 0, "instruction", 0, 1, 0),  # more-refusal (no inversion)
 ]
 
 
