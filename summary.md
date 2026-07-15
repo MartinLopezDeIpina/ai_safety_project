@@ -1,6 +1,6 @@
 # Conversation Summary
 
-**Date:** 2026-07-13
+**Date:** 2026-07-15
 **Project:** AI Safety — Replication of "LLMs Encode Harmfulness and Refusal Separately" (Zhao et al., 2025)
 
 # TL;DR
@@ -42,9 +42,12 @@
     --no-wait
   ```
   After 3h or so, run the same comments but with `--no-wait` replaced by `--collect-only` to get the results.
+  I have not finished the experiment yet, so I just produced figure 4 from the inversion prompting results.
+  But changing the code to no-inversion results should be easy.
 
-Increasing the data size could lead to time-outs. So be careful.
+Be careful that increasing the data size could lead to time-outs.
 
+--
 
 ## Key Script Created: `get_intervene_vectors.py`
 

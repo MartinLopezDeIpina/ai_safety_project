@@ -41,7 +41,7 @@ def compute_refusal_rate(dir_name: str, file_stem: str) -> list[float]:
             rates.append(float("nan"))
             continue
 
-        scores = easy_eval(eval_data, tag="response", mode="inversion")
+        scores = easy_eval(eval_data, tag="response", mode="inversion")  # TODO: no inversion!
         valid = [s for s in scores if s != "-1"]
         if not valid:
             rates.append(float("nan"))
