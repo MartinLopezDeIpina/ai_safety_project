@@ -72,16 +72,19 @@ def _main_thinking(model, model_size, left, right, stages,
 
     if any(s in stages for s in ("gen_buckets", "fig")):
         # figure2 (the only figure on this track) optionally from judge_activations/ (judge-corrected).
+        # use_judge implies judged figures — the figure reads the same judge_activations/ the `acts`
+        # stage wrote; use_judged_classifications stays as an explicit override for fig-only runs.
+        use_judged_acts = use_judge or use_judged_classifications
         # Build one grid at a time and free it before the next: each is a full set of fp16
         # (L,N,22,H) buckets, and holding both think+nothink at once OOMs at N=512.
         buckets_think = gen_buckets_thinking(model, model_size, cfg_think,
-                                             use_judged=use_judged_classifications)
+                                             use_judged=use_judged_acts)
         if "fig" in stages:
             plot_figure2_thinking(model, model_size, buckets_think, THINK_POSITIONS,
                                   _fig_path(model, model_size, "figure2", cfg_think))
             del buckets_think
         buckets_nothink = gen_buckets_thinking(model, model_size, cfg_nothink,
-                                               use_judged=use_judged_classifications)
+                                               use_judged=use_judged_acts)
         if "fig" in stages:
             plot_figure2_thinking(model, model_size, buckets_nothink, NOTHINK_POSITIONS,
                                   _fig_path(model, model_size, "figure2", cfg_nothink))
@@ -121,7 +124,10 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
 
     use_judged_classifications: build FIGURE 2 from the judge-corrected splits — sources bucket
     activations from judge_activations/ instead of activations/ (produced by an eval+acts run with
-    use_judge=True). Only affects figure2; figure3 still uses the standard activations/.
+    use_judge=True). Only affects figure2; figure3 still uses the standard activations/. NOTE:
+    use_judge=True already implies this (the figure reads the same judge_activations/ that `acts`
+    wrote), so a full judged run needs only use_judge=True. This flag remains an explicit override for
+    fig-only runs (stages=("fig",)) that read judge_activations/ produced by an earlier judged run.
 
     max_acts_per_bucket: cap the `acts` stage to the first N rows PER bucket (per classified/judged
     split file), bounding each .pt so figure/bucket loading doesn't OOM. None = no cap; per-file, so
@@ -155,9 +161,11 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
         buckets = gen_buckets(model, model_size, bucket_config)
     if "fig" in stages:
         # figure2 optionally from the judge-corrected activations (judge_activations/); figure3 stays
-        # on the standard activations/.
+        # on the standard activations/. use_judge implies judged figures (same source `acts` wrote);
+        # use_judged_classifications stays as an explicit override for fig-only runs.
+        use_judged_acts = use_judge or use_judged_classifications
         fig2_buckets = (gen_buckets(model, model_size, bucket_config, use_judged=True)
-                        if use_judged_classifications else buckets)
+                        if use_judged_acts else buckets)
         plot_figure2(model, model_size, fig2_buckets,
                      out_path=_fig_path(model, model_size, "figure2", bucket_config))
     if "fig3" in stages:
@@ -174,7 +182,7 @@ if __name__ == "__main__":
          bucket_config="configs/bucketing/bucket_config_qwen35_think.json",
          bucket_config_nothink="configs/bucketing/bucket_config_qwen35_nothink.json",
          thinking=True,
-         use_judged_classifications=False)
+         use_judged_classifications=True)
     """
     main("qwen", "7b",
          stages=("fig", "fig3"),  # note the trailing comma

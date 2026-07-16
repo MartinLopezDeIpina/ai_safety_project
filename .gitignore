@@ -29,3 +29,4 @@ venv/
 **/judge_activations_128/**
 **/judge_activations_256/**
 **/judge_activations_2048/**
+**/judge_activations_old/**
