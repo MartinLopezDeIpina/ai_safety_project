@@ -321,12 +321,19 @@ def generate_directions(
 #   15-19    last 5 CoT tokens
 #   20-23    the 4 tokens right after </think>, taken CONTIGUOUSLY (no whitespace skip) so the
 #            offset from </think> is identical across modes: genthink = 4 generated tokens;
-#            gennothink = the template's \n\n + the first 2 generated answer tokens.
-#   24       </think> itself (generated in genthink/gennothink_stripped; in the prompt for gennothink)
-# gennothink has no CoT (its </think> is inside the prompt), so slots 5-19 stay null (zeros);
+#            gennothink = the template's \n\n + the first 2 generated answer tokens;
+#            gennothink_stripped_v2 = 4 generated tokens (the model emits the \n\n itself).
+#   24       </think> itself (generated in genthink/gennothink_stripped; in the prompt for
+#            gennothink/gennothink_stripped_v2)
+# NO_COT_MODES have no CoT (their </think> is inside the prompt), so slots 5-19 stay null (zeros);
 # missing/short-CoT slots are null too. dynamic_bucket_formation drops zero-norm rows per position.
 # ---------------------------------------------------------------------------
 THINK_SLOTS = 25
+# modes whose reasoning block is closed by the PROMPT: nothing but the template's own newlines sits
+# between <think> and </think>, so there is no CoT to gather. Qwen3.5 tokenizes that gap as a single
+# "\n\n" token, which already leaves `cot` empty below; naming the modes keeps slots 5-19 null (rather
+# than holding a stray newline) should a tokenizer ever split the gap.
+NO_COT_MODES = ('gennothink', 'gennothink_stripped_v2')
 
 
 def _single_tid(tokenizer, s: str):
@@ -374,7 +381,7 @@ def compute_positions_thinking(ids, tokenizer, mode):
         cot_start = tho + 2  # skip <think>\n
         thc = next((k for k in range(cot_start, len(ids)) if ids[k] == th_close), None)
 
-        if mode != 'gennothink':
+        if mode not in NO_COT_MODES:
             end = thc if thc is not None else len(ids)
             cot = list(range(cot_start, end))
             if cot:

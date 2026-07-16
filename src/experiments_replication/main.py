@@ -43,12 +43,19 @@ def _fig_path(model, model_size, fig, bucket_config):
 
 
 def _main_thinking(model, model_size, left, right, stages,
-                   bucket_config, bucket_config_nothink, max_len, batch_size, sampling_config,
+                   bucket_config, bucket_config_nothink, bucket_config_stripped,
+                   bucket_config_stripped_v2, max_len, batch_size, sampling_config,
                    use_judge=False, judge_config=None, only_datasets=None, only_modes=None,
                    use_judged_classifications=False, max_acts_per_bucket=None):
     """Qwen3.5 thinking track (see main's docstring)."""
-    cfg_think = bucket_config or "bucket_config_qwen35_think.json"
-    cfg_nothink = bucket_config_nothink or "bucket_config_qwen35_nothink.json"
+    # defaults carry the configs/bucketing/ prefix: gen_buckets_thinking resolves a relative path
+    # against this dir, and that is where the checked-in configs live.
+    cfg_think = bucket_config or "configs/bucketing/bucket_config_qwen35_think.json"
+    cfg_nothink = bucket_config_nothink or "configs/bucketing/bucket_config_qwen35_nothink.json"
+    cfg_stripped = (bucket_config_stripped
+                    or "configs/bucketing/bucket_config_qwen35_nothink_stripped.json")
+    cfg_stripped_v2 = (bucket_config_stripped_v2
+                       or "configs/bucketing/bucket_config_qwen35_nothink_stripped_v2.json")
     cfg_judge = judge_config or "configs/eval/judge_config_thinking.json"
 
     if "infer" in stages:
@@ -76,24 +83,27 @@ def _main_thinking(model, model_size, left, right, stages,
         # stage wrote; use_judged_classifications stays as an explicit override for fig-only runs.
         use_judged_acts = use_judge or use_judged_classifications
         # Build one grid at a time and free it before the next: each is a full set of fp16
-        # (L,N,22,H) buckets, and holding both think+nothink at once OOMs at N=512.
-        buckets_think = gen_buckets_thinking(model, model_size, cfg_think,
-                                             use_judged=use_judged_acts)
-        if "fig" in stages:
-            plot_figure2_thinking(model, model_size, buckets_think, THINK_POSITIONS,
-                                  _fig_path(model, model_size, "figure2", cfg_think))
-            del buckets_think
-        buckets_nothink = gen_buckets_thinking(model, model_size, cfg_nothink,
-                                               use_judged=use_judged_acts)
-        if "fig" in stages:
-            plot_figure2_thinking(model, model_size, buckets_nothink, NOTHINK_POSITIONS,
-                                  _fig_path(model, model_size, "figure2", cfg_nothink))
-            del buckets_nothink
+        # (L,N,25,H) buckets, and holding two at once OOMs at N=512.
+        for cfg, positions in ((cfg_think, THINK_POSITIONS),
+                               (cfg_nothink, NOTHINK_POSITIONS),
+                               (cfg_stripped, NOTHINK_POSITIONS),
+                               (cfg_stripped_v2, NOTHINK_POSITIONS)):
+            buckets = gen_buckets_thinking(model, model_size, cfg, use_judged=use_judged_acts)
+            if "fig" in stages:
+                # a whole anchor family is missing when none of its .pt exist (e.g. the stripped
+                # sources, which are only extracted under judge_activations/)
+                if "refused_harmful" in buckets["train"]:
+                    plot_figure2_thinking(model, model_size, buckets, positions,
+                                          _fig_path(model, model_size, "figure2", cfg))
+                else:
+                    print(f"skipping figure2 for {cfg}: no activations found")
+            del buckets
 
 
 def main(model="qwen", model_size="0.5b", left=0, right=10,
          stages=("infer", "eval", "acts", "gen_buckets", "fig", "fig3"),
-         bucket_config=None, thinking=False, bucket_config_nothink=None, max_len=512, batch_size=8,
+         bucket_config=None, thinking=False, bucket_config_nothink=None,
+         bucket_config_stripped=None, bucket_config_stripped_v2=None, max_len=512, batch_size=8,
          sampling_config="sampling_config.json", use_judge=False,
          judge_config=None, only_datasets=None, only_modes=None,
          use_judged_classifications=False, max_acts_per_bucket=None):
@@ -108,12 +118,26 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
     defaults per track — configs/eval/judge_config.json for instruct, judge_config_thinking.json for
     the thinking track; pass a path to override. Re-run `acts` against the judge dir for judged figures.
 
-    thinking=True runs the Qwen3.5 thinking track instead: genthink+gennothink generation, the
-    22-slot extraction, and two Figure-2 grids (think = all 22 slots, nothink = the 7 meaningful
-    ones). It uses bucket_config (genthink sources) and bucket_config_nothink; both default to the
-    checked-in bucket_config_qwen35_{think,nothink}.json. Inference sampling params (temperature,
-    top_p, top_k, min_p, presence_penalty, do_sample) come from sampling_config (a json path,
-    resolved against this dir; default sampling_config.json).
+    thinking=True runs the Qwen3.5 thinking track instead: genthink + gennothink +
+    gennothink_stripped + gennothink_stripped_v2 generation, the 25-slot extraction, and four
+    Figure-2 grids (think = all 25 slots; the other three = the 10 slots meaningful without a
+    reasoning trace). It uses bucket_config (genthink sources), bucket_config_nothink,
+    bucket_config_stripped and bucket_config_stripped_v2; all default to the checked-in
+    bucket_config_qwen35_{think,nothink,nothink_stripped,nothink_stripped_v2}.json. A grid whose
+    sources are absent is skipped (the stripped .pt are only extracted under judge_activations/, so
+    an unjudged run plots fewer).
+
+    The two stripped modes cut a different amount of the trailing template, which changes what the
+    slots mean. gennothink_stripped stops the prompt at <|im_start|>, so slots 1-4/24 are the model's
+    OWN autocompleted template, anchored on the <think> it generated — t_post there is a generated
+    token. gennothink_stripped_v2 keeps gennothink's prompt but drops its trailing "\n\n", so slots
+    0-4/24 are prompt tokens exactly as in gennothink and only slots 20-23 differ (the model emits
+    the \n\n itself); that makes v2 the clean A/B against gennothink. Slot 0 (t_inst) is a prompt
+    token in every mode and stays comparable throughout.
+
+    Inference sampling params (temperature, top_p, top_k, min_p, presence_penalty,
+    do_sample) come from sampling_config (a json path, resolved against this dir; default
+    sampling_config.json).
 
     only_datasets: comma-separated dataset names (e.g. "alpaca") to restrict the `infer` stage to; None
     generates all. A named dataset runs all of its generation configs (gentinst/gentpost or
@@ -135,7 +159,8 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
     """
     if thinking:
         _main_thinking(model, model_size, left, right, stages,
-                       bucket_config, bucket_config_nothink, max_len, batch_size, sampling_config,
+                       bucket_config, bucket_config_nothink, bucket_config_stripped,
+                       bucket_config_stripped_v2, max_len, batch_size, sampling_config,
                        use_judge=use_judge, judge_config=judge_config, only_datasets=only_datasets,
                        only_modes=only_modes, use_judged_classifications=use_judged_classifications,
                        max_acts_per_bucket=max_acts_per_bucket)
@@ -181,6 +206,8 @@ if __name__ == "__main__":
          stages=("fig",),  # note the trailing comma
          bucket_config="configs/bucketing/bucket_config_qwen35_think.json",
          bucket_config_nothink="configs/bucketing/bucket_config_qwen35_nothink.json",
+         bucket_config_stripped="configs/bucketing/bucket_config_qwen35_nothink_stripped.json",
+         bucket_config_stripped_v2="configs/bucketing/bucket_config_qwen35_nothink_stripped_v2.json",
          thinking=True,
          use_judged_classifications=True)
     """

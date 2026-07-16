@@ -123,8 +123,11 @@ def run_extract_hidden_thinking(
 
 
 def _thinking_mode_of(name):
-    """thinking_mode from a classified filename. Order matters: 'gennothink_stripped' is neither
-    'genthink' nor plain 'gennothink', so test it first."""
+    """thinking_mode from a classified filename. Order matters, longest first: each name is a
+    substring of the next ('gennothink_stripped' is neither 'genthink' nor plain 'gennothink', and
+    'gennothink_stripped_v2' contains 'gennothink_stripped')."""
+    if "gennothink_stripped_v2" in name:
+        return "gennothink_stripped_v2"
     if "gennothink_stripped" in name:
         return "gennothink_stripped"
     return "genthink" if "genthink" in name else "gennothink"

@@ -36,7 +36,8 @@ HARMFUL_DATASETS = ("advbench", "jbb", "sorrybench")
 HARMLESS_DATASETS = ("xstest", "alpaca")
 
 # preferred display order of generation types; anything else is appended alphabetically.
-GEN_TYPE_ORDER = ("gentinst", "gentpost", "genthink", "gennothink", "gennothink_stripped", "(default)")
+GEN_TYPE_ORDER = ("gentinst", "gentpost", "genthink", "gennothink", "gennothink_stripped",
+                  "gennothink_stripped_v2", "(default)")
 
 
 def _classified_dir(model, model_size, classified_subdir="classified_generations"):

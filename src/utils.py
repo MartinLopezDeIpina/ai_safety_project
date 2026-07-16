@@ -129,11 +129,13 @@ def formatInp_llama_persuasion(d,use_persuade=False,use_adv=False,use_ss=False,m
 
 def formatInp_thinking(d, thinking_mode='genthink', model='qwen35'):
     """Qwen3.5 thinking-model prompt builder (clone of the qwen branch of
-    formatInp_llama_persuasion). Both modes share the same post-instruction block; they differ
-    only in whether the reasoning block is left open for the model to fill:
+    formatInp_llama_persuasion). All modes share the same post-instruction block; they differ
+    only in how much of the trailing template is left for the model to fill:
 
       genthink            -> "<|im_start|>user\\n{Q}<|im_end|>\\n<|im_start|>assistant\\n<think>\\n"
       gennothink          -> genthink + "\\n</think>\\n\\n"   (reasoning closed, model answers directly)
+      gennothink_stripped_v2 -> genthink + "\\n</think>"  (gennothink minus the trailing "\\n\\n", so
+                             the model must generate that transition itself before answering)
       gennothink_stripped -> "<|im_start|>user\\n{Q}<|im_end|>\\n<|im_start|>"  (post-instruction
                              template tokens removed; the model autocompletes assistant\\n<think>...)
     """
@@ -148,7 +150,10 @@ def formatInp_thinking(d, thinking_mode='genthink', model='qwen35'):
         # strip the trailing template tokens; the model must autocomplete assistant\n<think>...
         return f"<|im_start|>user\n{q}<|im_end|>\n<|im_start|>"
     prompt = f"<|im_start|>user\n{q}<|im_end|>\n<|im_start|>assistant\n<think>\n"
-    if thinking_mode == 'gennothink':
+    if thinking_mode == 'gennothink_stripped_v2':
+        # gennothink without its trailing "\n\n": the model generates the transition itself.
+        prompt += "\n</think>"
+    elif thinking_mode == 'gennothink':
         prompt += "\n</think>\n\n"
     return prompt
 
