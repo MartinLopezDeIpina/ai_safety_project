@@ -1,4 +1,6 @@
 src/experiments_replication/results_qwen1.5b/*
+src/experiments_replication/models/qwen/*
+src/experiments_replication/output/qwen7b/datasets_outputs/classified_generations/*
 src/models/
 out_pt/
 .env
@@ -17,6 +19,12 @@ venv/*
 *.swk
 *.swl
 *.swm
+*.err
+*.out
+*.lock
+**/.locks/
+*_accepted.json
+*_refused.json
 __pycache__/
 *.pyc
 venv/
@@ -25,4 +33,3 @@ venv/
 **/buckets_activations_v2/
 **/buckets_activations_original/
 **/activations/**
-

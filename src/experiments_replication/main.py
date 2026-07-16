@@ -20,6 +20,7 @@ def _load_module(filename, name):
 
 plot_figure2 = _load_module("_02_3.1_figure2.py", "figure2").plot_figure2
 plot_figure3 = _load_module("_03_3.2_figure3.py", "figure3").plot_figure3
+section4 = _load_module("_04_4_jailbreak_plot.py", "section4")
 
 
 def _fig_path(model, model_size, fig, bucket_config):
@@ -39,7 +40,7 @@ def _fig_path(model, model_size, fig, bucket_config):
 
 def main(model="qwen", model_size="0.5b", left=0, right=10,
          stages=("infer", "eval", "acts", "gen_buckets", "fig", "fig3"),
-         bucket_config=None):
+         bucket_config=None, jailbreaks=("template jailbreak", "evil persona")):
     """Run the pipeline for one model/config. `stages` selects which stages run.
 
     bucket_config: path to a bucket config json (relative paths resolve against this dir), or None
@@ -61,6 +62,13 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
     if "fig3" in stages:
         plot_figure3(model, model_size, buckets,
                      save_path=_fig_path(model, model_size, "figure3", bucket_config))
+    if "section4_infer" in stages:
+        section4.run_inference(model, model_size, list(jailbreaks), left, right)
+    if "section4_acts" in stages:
+        section4.compute_activations(model, model_size, list(jailbreaks), left, right)
+    if "section4" in stages:
+        section4.plot_section4(model, model_size, list(jailbreaks),
+                              bucket_config or "bucket_config_clean.json")
 
 
 if __name__ == "__main__":
@@ -69,4 +77,3 @@ if __name__ == "__main__":
     # main("qwen", "0.5b", stages=("infer", "eval", "acts"))
     main("qwen", "7b", stages=("fig", "fig3"),
          bucket_config="bucket_config_alt.json")
-

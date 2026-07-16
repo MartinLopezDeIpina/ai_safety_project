@@ -72,6 +72,45 @@ Key parameters:
 One of our contributions is the **Latent Guard** - an intrinsic safeguard that uses the model's own internal harmfulness representations.
 Implementations are in `classifier.ipynb`.
 
+### Section 4 Jailbreak Analysis
+
+To compare jailbreak prompt families against the refused-harmful baseline without
+running an additional classification step on a GPU machine:
+
+```bash
+cd src/experiments_replication
+python _04_4_jailbreak_plot.py qwen 7b --stages infer acts plot --right 50
+```
+
+On the cluster, submit the Slurm wrapper instead:
+
+```bash
+cd src/experiments_replication
+sbatch section4_jailbreak_sbatch.sh
+```
+
+If the Figure 2/3 baseline activations are not already present, submit with:
+
+```bash
+RUN_BASELINE=1 sbatch section4_jailbreak_sbatch.sh
+```
+
+By default this plots GPTFuzzer template jailbreaks and the evil-persona style
+`human-seed-50-adv` prompts in harmfulness/refusal space. Use
+`JAILBREAK_SET=all sbatch section4_jailbreak_sbatch.sh` to add GCG suffixes
+and persuasion prompts.
+
+To train fresh nanoGCG suffixes on Qwen2-7B-Instruct before plotting them:
+
+```bash
+cd src/experiments_replication
+INSTALL_NANOGCG=1 sbatch train_qwen2_gcg_sbatch.sh
+JAILBREAK_SET=qwen_gcg sbatch section4_jailbreak_sbatch.sh
+```
+
+The Section 4 wrapper also writes a stricter harmful-compliance audit under
+`output/qwen7b/section4_jailbreak/harmful_compliance_eval/`.
+
 #### Compare with Baselines
 
 ```bash
@@ -95,4 +134,3 @@ If you find this work useful, please cite our paper:
       url={https://arxiv.org/abs/2507.11878}, 
 }
 ```
-
