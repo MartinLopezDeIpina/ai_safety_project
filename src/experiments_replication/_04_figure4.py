@@ -41,7 +41,7 @@ def compute_refusal_rate(dir_name: str, file_stem: str) -> list[float]:
             rates.append(float("nan"))
             continue
 
-        scores = easy_eval(eval_data, tag="response", mode="inversion")  # TODO: no inversion!
+        scores = easy_eval(eval_data, tag="response")
         valid = [s for s in scores if s != "-1"]
         if not valid:
             rates.append(float("nan"))
@@ -58,8 +58,8 @@ def main():
     )
     parser.add_argument("--model", default="qwen7b", type=str,
                         help="Model name used in intervention directory names (e.g. qwen7b, llama2-7b)")
-    parser.add_argument("--right", default=500, type=int,
-                        help="Number of examples (right slice) used in the experiments (e.g. 50, 500)")
+    parser.add_argument("--right", default=100, type=int,
+                        help="Number of examples (right slice) used in the experiments (e.g. 50, 100)")
     parser.add_argument("--dataset", default="alpaca_data_instruction", type=str,
                         help="Dataset name (default: alpaca_data_instruction)")
     parser.add_argument("--output-dir", default=None, type=str,
@@ -70,10 +70,10 @@ def main():
 
     strategies = [
         {"label": "harmfulness dir",
-         "dir": f"{args.model}-{ds}-hf-more-0-{args.right}-inv1",  # TODO: change to inv0
+         "dir": f"{args.model}-{ds}-hf-more-0-{args.right}-inv0",
          "file_stem": f"{ds}-more"},
         {"label": "refusal dir",
-         "dir": f"{args.model}-{ds}-refusal-more-0-{args.right}-inv1",  # TODO: change to inv0
+         "dir": f"{args.model}-{ds}-refusal-more-0-{args.right}-inv0",
          "file_stem": f"{ds}-more"},
     ]
 

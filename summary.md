@@ -47,6 +47,8 @@
 
 Be careful that increasing the data size could lead to time-outs.
 
+One more thing to try is to set "coeff_select" to 2 or something else. This is the scaling factor applied to the steering vectors.
+
 ---
 
 ## Key Script Created: `get_intervene_vectors.py`
