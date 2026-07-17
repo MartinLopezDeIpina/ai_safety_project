@@ -7,6 +7,9 @@ import os
 from _00_run_inference import (run_all_inference, evaluate,
                                run_all_inference_thinking, evaluate_thinking)
 from _01_compute_activations import compute_all_activations, compute_all_activations_thinking
+from _04_intervention import (build_vectors, run_all_interventions, judge_run, plot_figure4,
+                              run_key, run_dir as intervention_run_dir, fig4_path,
+                              load_config as load_intervene_config)
 from dynamic_bucket_formation import gen_buckets, gen_buckets_thinking
 
 
@@ -46,7 +49,8 @@ def _main_thinking(model, model_size, left, right, stages,
                    bucket_config, bucket_config_nothink, bucket_config_stripped,
                    bucket_config_stripped_v2, max_len, batch_size, sampling_config,
                    use_judge=False, judge_config=None, only_datasets=None, only_modes=None,
-                   use_judged_classifications=False, max_acts_per_bucket=None):
+                   use_judged_classifications=False, max_acts_per_bucket=None,
+                   intervene_config=None):
     """Qwen3.5 thinking track (see main's docstring)."""
     # defaults carry the configs/bucketing/ prefix: gen_buckets_thinking resolves a relative path
     # against this dir, and that is where the checked-in configs live.
@@ -65,7 +69,7 @@ def _main_thinking(model, model_size, left, right, stages,
                                    only_modes=only_modes)
     if "eval" in stages:
         evaluate_thinking(model, model_size, use_judge=use_judge, judge_config=cfg_judge,
-                          only_modes=only_modes)
+                          only_modes=only_modes, only_datasets=only_datasets)
     if "acts" in stages:
         if use_judge:
             # activations from the judge-corrected splits -> judge_activations/ (activations/ untouched)
@@ -84,20 +88,50 @@ def _main_thinking(model, model_size, left, right, stages,
         use_judged_acts = use_judge or use_judged_classifications
         # Build one grid at a time and free it before the next: each is a full set of fp16
         # (L,N,25,H) buckets, and holding two at once OOMs at N=512.
-        for cfg, positions in ((cfg_think, THINK_POSITIONS),
-                               (cfg_nothink, NOTHINK_POSITIONS),
-                               (cfg_stripped, NOTHINK_POSITIONS),
-                               (cfg_stripped_v2, NOTHINK_POSITIONS)):
+        for cfg, positions, mode in ((cfg_think, THINK_POSITIONS, "genthink"),
+                                     (cfg_nothink, NOTHINK_POSITIONS, "gennothink"),
+                                     (cfg_stripped, NOTHINK_POSITIONS, "gennothink_stripped"),
+                                     (cfg_stripped_v2, NOTHINK_POSITIONS, "gennothink_stripped_v2")):
             buckets = gen_buckets_thinking(model, model_size, cfg, use_judged=use_judged_acts)
             if "fig" in stages:
                 # a whole anchor family is missing when none of its .pt exist (e.g. the stripped
                 # sources, which are only extracted under judge_activations/)
                 if "refused_harmful" in buckets["train"]:
                     plot_figure2_thinking(model, model_size, buckets, positions,
-                                          _fig_path(model, model_size, "figure2", cfg))
+                                          _fig_path(model, model_size, "figure2", cfg), mode)
                 else:
                     print(f"skipping figure2 for {cfg}: no activations found")
             del buckets
+
+    # Section 3.4 / Figure 4 interventions. Independent of the figure-2 grids above: these read the
+    # activations only to build the steering vectors, then generate afresh from data/<dataset>.json.
+    if any(s in stages for s in ("vectors", "intervene", "judge4", "fig4")):
+        _run_interventions(model, model_size, stages, intervene_config, cfg_judge)
+
+
+def _run_interventions(model, model_size, stages, intervene_config, judge_config):
+    """The §3.4 stages. `intervene` runs locally; use modal_intervene.py for the remote equivalent."""
+    if not intervene_config:
+        raise ValueError("the vectors/intervene/judge4/fig4 stages need intervene_config=")
+    icfg = load_intervene_config(intervene_config)
+
+    if "vectors" in stages:
+        build_vectors(model, model_size, icfg)
+    if "intervene" in stages:
+        run_all_interventions(model, model_size, icfg)
+    if "judge4" in stages:
+        for dataset, vector, reverse, _p, _c, _a, use_inv in icfg["experiments"]:
+            key = run_key(model, model_size, dataset, vector, reverse, icfg["left"], icfg["right"],
+                          use_inv, icfg["coeff"], icfg["layer_s"], icfg["layer_e"],
+                          icfg.get("thinking_mode", ""))
+            d = intervention_run_dir(model, model_size, key)
+            if os.path.isdir(d):
+                judge_run(d, judge_config)
+            else:
+                print(f"  [warn] missing, skipped: {key}")
+    if "fig4" in stages:
+        plot_figure4(model, model_size, icfg,
+                     fig4_path(model, model_size, intervene_config))
 
 
 def main(model="qwen", model_size="0.5b", left=0, right=10,
@@ -106,7 +140,8 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
          bucket_config_stripped=None, bucket_config_stripped_v2=None, max_len=512, batch_size=8,
          sampling_config="sampling_config.json", use_judge=False,
          judge_config=None, only_datasets=None, only_modes=None,
-         use_judged_classifications=False, max_acts_per_bucket=None):
+         use_judged_classifications=False, max_acts_per_bucket=None,
+         intervene_config=None):
     """Run the pipeline for one model/config. `stages` selects which stages run.
 
     bucket_config: path to a bucket config json (relative paths resolve against this dir), or None
@@ -139,9 +174,11 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
     do_sample) come from sampling_config (a json path, resolved against this dir; default
     sampling_config.json).
 
-    only_datasets: comma-separated dataset names (e.g. "alpaca") to restrict the `infer` stage to; None
-    generates all. A named dataset runs all of its generation configs (gentinst/gentpost or
-    genthink/gennothink/gennothink_stripped). Only affects `infer`.
+    only_datasets: comma-separated dataset names (e.g. "alpaca") to restrict to; None generates all. A
+    named dataset runs all of its generation configs (gentinst/gentpost or
+    genthink/gennothink/gennothink_stripped[_v2]). Affects `infer` on both tracks, and on the thinking
+    track `eval` too — a partial infer must be evaluated with the same scope, or eval reads
+    generations that were never produced.
 
     only_modes: (thinking track only) comma-separated thinking modes (e.g. "gennothink_stripped") to
     restrict `infer` and `eval` to; None runs all. Scope both stages to a single generation type.
@@ -163,7 +200,7 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
                        bucket_config_stripped_v2, max_len, batch_size, sampling_config,
                        use_judge=use_judge, judge_config=judge_config, only_datasets=only_datasets,
                        only_modes=only_modes, use_judged_classifications=use_judged_classifications,
-                       max_acts_per_bucket=max_acts_per_bucket)
+                       max_acts_per_bucket=max_acts_per_bucket, intervene_config=intervene_config)
         return
 
     if "infer" in stages:

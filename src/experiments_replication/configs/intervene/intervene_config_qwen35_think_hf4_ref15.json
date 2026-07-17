@@ -1,0 +1,49 @@
+{
+  "_comment": "Section 3.4 / Figure 4 on genthink. Harmfulness direction from slot 4 (newline-after-think (\\n\\n for gennothink)); refusal direction from slot 15 (last1). Branch formula: both are mu(harmful_all) - mu(harmless_all), datasets pooled across accepted AND refused, differing only in token slot. Vector names carry the slot so experiments on the same mode with different slots never overwrite each other.",
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_think_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "genthink",
+  "vectors": [
+    [
+      "hf_s4",
+      "harmful_all",
+      "harmless_all",
+      4
+    ],
+    [
+      "refusal_s15",
+      "harmful_all",
+      "harmless_all",
+      15
+    ]
+  ],
+  "layer_s": 8,
+  "layer_e": 20,
+  "coeff": 1.0,
+  "max_token_generate": 2048,
+  "max_decode_step_while_intervene": 1,
+  "batch_size": 16,
+  "left": 0,
+  "right": 50,
+  "experiments": [
+    [
+      "alpaca_data_instruction",
+      "hf_s4",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ],
+    [
+      "alpaca_data_instruction",
+      "refusal_s15",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ]
+  ]
+}

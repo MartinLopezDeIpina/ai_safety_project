@@ -102,20 +102,103 @@ def _draw_score(
 
 
 # ---- Qwen3.5 thinking Figure 2: the same score s^l, drawn across the fixed 25-slot layout ----
-SLOT_LABELS = {
-    0: r"$t_{\mathrm{inst}}$", 1: r"$t_{\mathrm{post}}$", 2: r"\n", 3: "<think>", 4: r"\n",
+# Slots 1-4, 20 and 24 hold different tokens per generation mode, so their labels are per-mode.
+# A "(gen)"/"(prompt)" tag marks where a slot's origin differs between modes; untagged slots 1-4 are
+# prompt tokens in every mode that has them. Verified against the Qwen3.5-9B tokenizer:
+#
+#   slot 4   genthink   '\n'   (prompt) - the template ends "<think>\n".
+#            gennothink '\n\n' (prompt) - Qwen's canonical empty block is "<think>\n\n</think>\n\n",
+#                       and that newline pair is ONE token (id 271), not two.
+#   slot 20  genthink   '\n\n' GENERATED after the model's own </think> (100/100 rows).
+#            gennothink '\n\n' supplied by the PROMPT (the template's trailing pair).
+#   slot 24  generated in genthink/stripped (the model closes its own block); a prompt token in
+#            gennothink/v2, where the template hands </think> to the model.
+#
+# So genthink and gennothink are token-aligned across 20-23 and differ only in where the '\n\n'
+# came from; in both, the first ANSWER token is slot 21. Hence "gen N" = the Nth answer token, and
+# the '\n\n' is named for what it is instead of being counted as generated output.
+_SLOT_LABELS_COMMON = {
+    0: r"$t_{\mathrm{inst}}$",
     5: "CoT 1", 6: "CoT 2", 7: "CoT 3", 8: "CoT 4", 9: "CoT 5",
     10: "mid 1", 11: "mid 2", 12: "mid 3", 13: "mid 4", 14: "mid 5",
     15: "last 1", 16: "last 2", 17: "last 3", 18: "last 4", 19: "last 5",
-    20: "gen 1", 21: "gen 2", 22: "gen 3", 23: "gen 4", 24: "</think>",
+    21: "gen 1", 22: "gen 2", 23: "gen 3",
 }
-THINK_POSITIONS = list(range(25))
-# meaningful slots without a reasoning trace: +the 2 extra gen tokens (22,23) and </think> (24)
-NOTHINK_POSITIONS = [0, 1, 2, 3, 4, 20, 21, 22, 23, 24]
+_SLOT_LABELS_BY_MODE = {
+    "genthink": {
+        1: r"$t_{\mathrm{post}}$", 2: r"\n", 3: "<think>", 4: r"\n",
+        24: "</think> (gen)", 20: r"\n\n (gen)",
+    },
+    "gennothink": {
+        1: r"$t_{\mathrm{post}}$", 2: r"\n", 3: "<think>", 4: r"\n\n",
+        24: "</think> (prompt)", 20: r"\n\n (prompt)",
+    },
+    # gennothink_stripped cuts the prompt at <|im_start|>, so EVERY slot but 0 is the model's own
+    # output - it re-emits the template itself. Slots 1/2/4 are mixtures across rows, so their
+    # labels name the majority token (of 200 advbench rows):
+    #   slot 1  'assistant' x118, null x56, '<|im_start|>' x23 (rows where the model emitted a second
+    #           <|im_start|> before <think>, so tho-2 lands back on the prompt's own)
+    #   slot 2  '\n' x119, null x56, '<|im_start|>' x23
+    #   slot 4  '\n\n' x111 (empty think block), '\n' x32 (a real CoT follows), null x56
+    # Slot 4 predicts the CoT exactly: '\n\n' -> no CoT (111/111), '\n' -> CoT (32/32). Only ~22% of
+    # the rows that open a <think> go on to reason; the rest reproduce "<think>\n\n</think>".
+    "gennothink_stripped": {
+        1: r"$t_{\mathrm{post}}$ (gen)", 2: r"\n (gen)", 3: "<think> (gen)", 4: r"\n / \n\n (gen)",
+        24: "</think> (gen)", 20: r"\n\n (gen)",
+    },
+    # v2 is not plotted (its \n\n-stripping question was answered behaviourally: the model still
+    # refuses, since refusal rides on <think>). Kept so main.py's grid loop resolves. Its slot 20
+    # would hold the first answer token, not '\n\n', because inference.py:291 .strip()s the model's
+    # leading whitespace before storing - see the pipeline notes.
+    "gennothink_stripped_v2": {
+        1: r"$t_{\mathrm{post}}$", 2: r"\n", 3: "<think>", 4: r"\n\n",
+        24: "</think> (prompt)", 20: "gen 1 (\\n\\n stripped)",
+    },
+}
+
+
+def slot_labels(mode):
+    """Slot -> x-axis label for one generation mode (see _SLOT_LABELS_BY_MODE)."""
+    if mode not in _SLOT_LABELS_BY_MODE:
+        raise KeyError(f"unknown thinking mode {mode!r} (have {sorted(_SLOT_LABELS_BY_MODE)})")
+    return {**_SLOT_LABELS_COMMON, **_SLOT_LABELS_BY_MODE[mode]}
+
+
+# Mode-neutral default, for callers that only name a slot in a diagnostic (_04_intervention).
+SLOT_LABELS = slot_labels("genthink")
+# Panels are drawn in list order, so these list the slots in TOKEN order, which is not slot order:
+# extract_hidden puts </think> in slot 24 but the 4 tokens after it in slots 20-23
+# (slots[24] = thc, slots[20..23] = thc+1..thc+4, extract_hidden.py:396-397), so 24 always precedes
+# 20-23 in the sequence, in every mode. Reading a grid left-to-right therefore walks the prompt.
+THINK_POSITIONS = [0, 1, 2, 3, 4] + list(range(5, 20)) + [24, 20, 21, 22, 23]
+# meaningful slots without a reasoning trace: the CoT slots (5-19) are null there, so they are dropped
+NOTHINK_POSITIONS = [0, 1, 2, 3, 4, 24, 20, 21, 22, 23]
+EXPECTED_SLOTS = 25  # must match extract_hidden.THINK_SLOTS
+
+
+def _check_layout(buckets):
+    """Reject .pt written by the superseded 22-slot extraction.
+
+    The 22-slot layout is not a prefix of this one: it had no </think> slot, and its slots 20-21 were
+    the first 2 NON-whitespace answer tokens, whereas 20-23 are now taken contiguously from </think>
+    (so slot 20 is the \\n\\n itself). Slots 0-19 still agree, but 20-21 would be plotted under
+    labels that no longer describe them — silently wrong rather than merely truncated, so fail here.
+    """
+    for side in ("train", "test"):
+        for name, tensor in buckets[side].items():
+            got = tensor.shape[2]
+            if got != EXPECTED_SLOTS:
+                raise ValueError(
+                    f"{side}/{name}: activations have {got} token slots, expected {EXPECTED_SLOTS}. "
+                    f"These .pt predate the </think> slot change and their slots 20-21 mean something "
+                    f"different, so they cannot be plotted on the current layout. Re-run the `acts` "
+                    f"stage to regenerate them, or read the 25-slot judge_activations/ instead "
+                    f"(use_judged_classifications=True)."
+                )
 
 
 def _slice_pos(tensor, p):
-    """(L, N, 22, H) -> (L, n, H) at slot p, dropping null (zero-norm) rows.
+    """(L, N, 25, H) -> (L, n, H) at slot p, dropping null (zero-norm) rows.
 
     Buckets are held in fp16 (their on-disk dtype) to bound memory; upcast this one small
     (L, n, H) slice to fp32 here so the downstream mean/cosine reductions stay fp32-accurate.
@@ -125,13 +208,18 @@ def _slice_pos(tensor, p):
     return sl[:, keep]
 
 
-def plot_figure2_thinking(model, model_size, buckets, positions, out_path, ncols=6):
-    """Figure 2 across the 22-slot thinking layout (one panel per slot in `positions`).
+def plot_figure2_thinking(model, model_size, buckets, positions, out_path, mode, ncols=6):
+    """Figure 2 across the 25-slot thinking layout (one panel per slot in `positions`).
 
     Same score as plot_figure2: anchors mu_refused_harmful / mu_accepted_harmless from the train
     families, coral/teal lines (accepted_harmful / refused_harmless) from test. Families are whole
-    (L, N, 22, H) tensors; each panel slices its own slot and drops null rows.
+    (L, N, 25, H) tensors; each panel slices its own slot and drops null rows.
+
+    `mode` is the generation mode these buckets came from ("genthink", "gennothink", ...); it picks
+    the panel labels, which are not the same across modes (see _SLOT_LABELS_BY_MODE).
     """
+    _check_layout(buckets)
+    labels = slot_labels(mode)
     train, test = buckets["train"], buckets["test"]
     n = len(positions)
     ncols = min(ncols, n)
@@ -140,7 +228,7 @@ def plot_figure2_thinking(model, model_size, buckets, positions, out_path, ncols
     axes = axes.ravel()
 
     for ax, p in zip(axes, positions):
-        title = SLOT_LABELS.get(p, str(p))
+        title = labels.get(p, str(p))
         rh_tr = _slice_pos(train["refused_harmful"], p)
         ah_tr = _slice_pos(train["accepted_harmless"], p)
         if rh_tr.shape[1] == 0 or ah_tr.shape[1] == 0:

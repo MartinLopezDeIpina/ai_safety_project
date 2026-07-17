@@ -1,0 +1,26 @@
+{
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_think_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "genthink",
+
+  "_vectors_note": "Direct port of the branch's get_intervene_vectors.py: both directions are harmful-vs-harmless (datasets pooled across accepted AND refused), read at two different slots. Slot 0 = t_inst, slot 1 = t_post. The branch used token_position -1 for t_post, which on this 25-slot layout would be </think> (slot 24), not t_post.",
+  "vectors": [
+    ["hf",      "harmful_all", "harmless_all", 0],
+    ["refusal", "harmful_all", "harmless_all", 1]
+  ],
+  "layer_s": 8,
+  "layer_e": 20,
+  "coeff": 1.0,
+  "_max_token_generate_note": "Measured on 59 real 9b genthink rows: tokens needed just to CLOSE </think> are median 1017, p90 2029, p95 2438, max 3477. At 512 only 18.6% of rows reach an answer; 2048 reaches 91.5%, 4096 reaches 100%. Rows that never close are labelled TRUNCATED and excluded from the rate, never judged.",
+  "max_token_generate": 2048,
+  "max_decode_step_while_intervene": 1,
+  "_batch_size_note": "complete_with_intervention is already batch-aware; the qwen35 branch sets padding_side='left' so batching is correct. At batch 1 a 12-layer band would take ~17h at 2048 tokens.",
+  "batch_size": 16,
+  "left": 0,
+  "right": 50,
+  "experiments": [
+    ["alpaca_data_instruction", "hf",      0, "instruction", 0, 1, 0],
+    ["alpaca_data_instruction", "refusal", 0, "instruction", 0, 1, 0]
+  ]
+}

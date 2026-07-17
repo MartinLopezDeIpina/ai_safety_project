@@ -16,19 +16,24 @@
     "advbench_genthink",
     "advbench_gennothink",
     "advbench_gennothink_stripped",
+    "advbench_gennothink_stripped_v2",
     "jbb_genthink",
     "jbb_gennothink",
     "jbb_gennothink_stripped",
+    "jbb_gennothink_stripped_v2",
     "sorrybench_genthink",
     "sorrybench_gennothink",
-    "sorrybench_gennothink_stripped"
+    "sorrybench_gennothink_stripped",
+    "sorrybench_gennothink_stripped_v2"
   ],
   "harmless": [
     "xstest_genthink",
     "xstest_gennothink",
     "xstest_gennothink_stripped",
+    "xstest_gennothink_stripped_v2",
     "alpaca_genthink",
     "alpaca_gennothink",
-    "alpaca_gennothink_stripped"
+    "alpaca_gennothink_stripped",
+    "alpaca_gennothink_stripped_v2"
   ]
 }

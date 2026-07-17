@@ -1,0 +1,22 @@
+{
+  "_comment": "Local end-to-end rehearsal on the cached Qwen3.5-0.8B. Exercises the full vectors -> intervene -> judge4 -> fig4 path on a small model before trusting 9B results. use_judged=false: 0.8b only has activations/, no judge_activations/. Its .pt are the older 22-slot layout, but slots 0/1 are the same as on the 25-slot 9b, so the vectors stage is exercised identically.",
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_think.json",
+  "use_judged": false,
+  "split": "train",
+  "thinking_mode": "genthink",
+  "vectors": [
+    ["hf",      "refused_harmful", "accepted_harmless", 0],
+    ["refusal", "refused_harmful", "accepted_harmless", 1]
+  ],
+  "layer_s": 10,
+  "layer_e": 12,
+  "coeff": 1.0,
+  "max_token_generate": 256,
+  "max_decode_step_while_intervene": 1,
+  "left": 0,
+  "right": 8,
+  "experiments": [
+    ["alpaca_data_instruction", "hf",      0, "instruction", 0, 1, 0],
+    ["alpaca_data_instruction", "refusal", 0, "instruction", 0, 1, 0]
+  ]
+}

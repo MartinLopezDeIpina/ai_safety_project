@@ -20,7 +20,7 @@ import argparse
 from typing import List, Tuple, Callable, Optional, Union
 from torch import Tensor
 from tqdm import tqdm
-from utils import read_row, formatInp_llama_persuasion, ret_top_attn
+from utils import read_row, formatInp_llama_persuasion, formatInp_thinking, ret_top_attn
 from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 import contextlib
 import functools
@@ -187,13 +187,18 @@ def complete_with_intervention(
                 print('intervening token', tokenizer.convert_ids_to_tokens(tokenized_instructions.input_ids[0])[id])
 
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=[]):
+            # output_scores/output_attentions are requested ONLY when something reads them: scores
+            # are consumed under record_probs below, and .attentions is never read at all. Both
+            # accumulate per decoding step, so they are ~free at the paper's scale (batch 1, 100
+            # tokens) but fatal at the thinking track's (batch 16, 2048 tokens): scores alone would
+            # be 2048 steps x 16 x ~152k vocab, which OOMs an A100-40GB before layer 12 finishes.
             generation_toks = model.generate(
                 input_ids=tokenized_instructions.input_ids.to(model.device),
                 attention_mask=tokenized_instructions.attention_mask.to(model.device),
                 generation_config=generation_config,
                 return_dict_in_generate=True,
-                output_scores=True,
-                output_attentions=True,
+                output_scores=bool(args['record_probs']),
+                output_attentions=False,
                 use_cache=True
             )
                 
@@ -285,6 +290,10 @@ def main():
     parser.add_argument('--arg_key_prompt', default='bad_q', type=str, help='Argument key for prompt')
     parser.add_argument('--remove_inst_inp', default=0, type=int, help='Remove instruction input')
     parser.add_argument('--use_inversion', default=0, type=int, help='Use inversion reply task')
+    parser.add_argument('--thinking_mode', default='', type=str,
+                        help="Qwen3.5 thinking mode (genthink/gennothink/...). When set, prompts are "
+                             "built with formatInp_thinking instead of formatInp_llama_persuasion. "
+                             "Incompatible with --use_inversion 1.")
     parser.add_argument('--inversion_prompt_idx', default=0, type=int, help='Inversion prompt index')
     # Used parameters
     parser.add_argument('--use_jailbreak_test', default=0, type=int, help='Use the jailbreak version of inputs at test')
@@ -343,6 +352,25 @@ def main():
                 trust_remote_code=True,
                 cache_dir='models/qwen'
             )
+        elif MODEL == 'qwen35':
+            # Qwen3.5 thinking family, mirroring inference.py's branch (same repo id and
+            # cache_dir, so this shares the one local copy that inference/extract_hidden use).
+            model_path = f"Qwen/Qwen3.5-{params['model_size'].upper()}"
+            cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'qwen35')
+            tokenizer = AutoTokenizer.from_pretrained(
+                model_path, trust_remote_code=True, cache_dir=cache_dir,
+            )
+            model = AutoModelForCausalLM.from_pretrained(
+                model_path, dtype=torch.float16, device_map="auto",
+                trust_remote_code=True, cache_dir=cache_dir,
+            )
+            tokenizer.pad_token = tokenizer.pad_token or tokenizer.eos_token
+            # Batched decoder-only generation needs LEFT padding: the Qwen tokenizer defaults to
+            # 'right', which puts pads AFTER the prompt so generation continues from padding
+            # instead of the instruction. Batch-1 is unaffected (nothing to pad), so this only
+            # matters when --batch_size > 1, which the thinking track needs: its CoT runs to ~1-3.5k
+            # tokens, and at batch 1 a layer sweep takes ~17h.
+            tokenizer.padding_side = 'left'
         else:
             raise ValueError(f"Unsupported model type: {MODEL}")
     except Exception as e:
@@ -404,13 +432,28 @@ def main():
                         intervention_vector_local = -intervention_vector_local
 
                     def tokenize_instructions_fn(instructions, use_persuade=use_persuade):
-                        inps = [
-                            formatInp_llama_persuasion(
-                                i, use_persuade, model=MODEL, 
-                                use_inversion=params['use_inversion'],
-                                inversion_prompt_idx=params['inversion_prompt_idx']
-                            ) for i in instructions
-                        ]
+                        if params['thinking_mode']:
+                            # Qwen3.5 thinking family: formatInp_llama_persuasion has no qwen35
+                            # template. formatInp_thinking has no inversion support, so this path
+                            # requires use_inversion=0 (true for Section 3.4 / Figure 4).
+                            if params['use_inversion']:
+                                raise ValueError(
+                                    "use_inversion=1 is not supported with --thinking_mode: "
+                                    "formatInp_thinking has no inversion template."
+                                )
+                            inps = [
+                                formatInp_thinking(
+                                    i, thinking_mode=params['thinking_mode'], model=MODEL
+                                ) for i in instructions
+                            ]
+                        else:
+                            inps = [
+                                formatInp_llama_persuasion(
+                                    i, use_persuade, model=MODEL,
+                                    use_inversion=params['use_inversion'],
+                                    inversion_prompt_idx=params['inversion_prompt_idx']
+                                ) for i in instructions
+                            ]
                         return tokenizer(inps, padding=True, return_tensors="pt")
 
                     try:

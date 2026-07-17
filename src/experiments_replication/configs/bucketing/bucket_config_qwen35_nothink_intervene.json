@@ -1,0 +1,18 @@
+{
+  "_comment": "Steering-vector anchors for Section 3.4 / Figure 4, a direct port of the interventions branch's get_intervene_vectors.py. That script pools at DATASET level, not by the accepted/refused split: HARMFUL_DATASETS = (advbench, jbb, sorrybench) and HARMLESS_DATASETS = (alpaca, xstest), each loading BOTH the _accepted and _refused .pt and concatenating along the sample axis. Both directions come from the same two pools read at different token slots (the branch used token_position 1 for tinst and -1 for tpost; on the 25-slot thinking layout those are slots 0 and 1 — -1 here would be </think>, not t_post).",
+
+  "_why_its_own_file": "Deliberately separate from bucket_config_qwen35_think.json. The branch's formula does not use the accepted/refused structure at all, so it needs none of that config's families; keeping it apart also means figure-2 anchor tuning (e.g. adding sorrybench_gennothink_accepted to refused_harmful) cannot silently move the steering vectors.",
+
+  "_why_families_test_is_empty": "build_splits_thinking gives a source ALL its rows when the source appears only in train. The branch applies no train/test split — collect_acts loads whole tensors — so an empty test side reproduces that exactly. test_ratio is therefore unused.",
+
+  "test_ratio": 0.0,
+  "seed": 0,
+  "families_train": [
+    ["harmful_all", ["advbench_gennothink_accepted", "advbench_gennothink_refused",
+                     "jbb_gennothink_accepted", "jbb_gennothink_refused",
+                     "sorrybench_gennothink_accepted", "sorrybench_gennothink_refused"]],
+    ["harmless_all", ["alpaca_gennothink_accepted", "alpaca_gennothink_refused",
+                      "xstest_gennothink_accepted", "xstest_gennothink_refused"]]
+  ],
+  "families_test": []
+}
