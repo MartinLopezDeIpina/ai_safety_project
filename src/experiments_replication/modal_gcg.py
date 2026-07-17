@@ -84,7 +84,8 @@ def run_gcg(mode: str = "gennothink", n_behaviors: int = 15, target_count: int =
             dataset: str = "advbench.json", num_steps: int = 250, search_width: int = 512,
             topk: int = 256, seed: int = 42, max_new_tokens: int = 200,
             verbosity: str = "INFO", run_name: str = "", early_stop: bool = False,
-            use_jb_prompt: bool = False) -> str:
+            use_jb_prompt: bool = False, cot_target: bool = False,
+            close_think: bool = False) -> str:
     """Optimize suffixes and persist to /results/<run_name>_suffixes.jsonl (committed per behavior).
     run_name defaults to mode; give distinct names to run several experiments in parallel without
     clobbering each other on the volume. Returns the results filename."""
@@ -119,6 +120,8 @@ def run_gcg(mode: str = "gennothink", n_behaviors: int = 15, target_count: int =
             verbosity=verbosity,
             early_stop=early_stop,
             use_jb_prompt=use_jb_prompt,
+            cot_target=cot_target,
+            close_think=close_think,
             commit_fn=gcg_results.commit,  # flush each behavior to the volume as it completes
         )
     except Exception:
@@ -156,9 +159,14 @@ def check(suffix: str, query: str = "", mode: str = "gennothink",
     print("query     :", res["query"])
     print("mode      :", res["thinking_mode"], "| jb_prompt:", res["use_jb_prompt"])
     print("suffix    :", res["suffix"])
-    print("VERDICT   :", "ACCEPTED ✅" if res["accepted"] else "REFUSED ❌")
-    print("---------------- generation ----------------")
+    print(f"retok mismatch (optimize-style ids != joined-string ids): {res['retok_mismatch']} "
+          f"(opt={res['n_tokens_opt']} toks, join={res['n_tokens_join']} toks)")
+    print("\n--- (A) OPTIMIZE-STYLE construction (matches the loss) ---")
+    print("VERDICT:", "ACCEPTED ✅" if res["accepted"] else "REFUSED ❌")
     print(res["generation"])
+    print("\n--- (B) JOINED-STRING construction (the old/naive way) ---")
+    print("VERDICT:", "ACCEPTED ✅" if res["accepted_joined"] else "REFUSED ❌")
+    print(res["generation_joined"])
     print("=============================================")
 
 
@@ -197,6 +205,8 @@ def entry(mode: str = "gennothink",
           run_name: str = "",
           early_stop: bool = False,
           use_jb_prompt: bool = False,
+          cot_target: bool = False,
+          close_think: bool = False,
           gpu: str = "B300",
           timeout: int = 18000,
           wait: bool = True,
@@ -220,7 +230,7 @@ def entry(mode: str = "gennothink",
     fn = run_gcg.with_options(gpu=gpu, timeout=timeout)
     handle = fn.spawn(mode, n_behaviors, target_count, dataset, num_steps,
                       search_width, topk, seed, max_new_tokens, verbosity,
-                      run_name, early_stop, use_jb_prompt)
+                      run_name, early_stop, use_jb_prompt, cot_target, close_think)
     if not wait:
         print(f"launched detached; collect later with:\n"
               f"  modal run src/experiments_replication/modal_gcg.py "
