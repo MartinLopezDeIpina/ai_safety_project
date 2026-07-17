@@ -16,7 +16,7 @@
   "max_token_generate": 2048,
   "max_decode_step_while_intervene": 1,
   "_batch_size_note": "complete_with_intervention is already batch-aware; the qwen35 branch sets padding_side='left' so batching is correct. At batch 1 a 12-layer band would take ~17h at 2048 tokens.",
-  "batch_size": 16,
+  "batch_size": 64,
   "left": 0,
   "right": 50,
   "experiments": [

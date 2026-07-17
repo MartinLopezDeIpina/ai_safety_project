@@ -1,0 +1,49 @@
+{
+  "_comment": "gennothink, harmfulness from slot 4 (\\n\\n) vs refusal from slot 24 (</think>), coeff=5, steer PROMPT only.",
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_nothink_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "gennothink",
+  "vectors": [
+    [
+      "hf_s4",
+      "harmful_all",
+      "harmless_all",
+      4
+    ],
+    [
+      "refusal_s24",
+      "harmful_all",
+      "harmless_all",
+      24
+    ]
+  ],
+  "layer_s": 8,
+  "layer_e": 20,
+  "coeff": 5.0,
+  "max_token_generate": 2048,
+  "max_decode_step_while_intervene": 1,
+  "batch_size": 64,
+  "left": 0,
+  "right": 50,
+  "experiments": [
+    [
+      "alpaca_data_instruction",
+      "hf_s4",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ],
+    [
+      "alpaca_data_instruction",
+      "refusal_s24",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ]
+  ]
+}

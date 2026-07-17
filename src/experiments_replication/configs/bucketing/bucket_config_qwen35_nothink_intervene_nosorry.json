@@ -1,0 +1,28 @@
+{
+  "_comment": "Sorrybench-free variant of bucket_config_qwen35_nothink_intervene.json. Same branch formula (harmful vs harmless, accepted AND refused pooled, no train/test split), but harmful_all drops sorrybench. Motivation: at gennothink sorrybench is 440/1054 = 42% of the harmful pool (advbench+jbb contribute only 4 accepted rows), and EXPERIMENT_LOG found Sorry-Bench's conversational phrasing sits on the HARMLESS side of the advbench/jbb harmfulness axis at t_inst -- which is why bucket_config_clean.json excludes it from accepted_harmful@t_inst. If that holds here, pooling it in shrinks the difference-in-means and weakens the steering direction.",
+  "_why_its_own_file": "Deliberately separate from bucket_config_qwen35_think.json. The branch's formula does not use the accepted/refused structure at all, so it needs none of that config's families; keeping it apart also means figure-2 anchor tuning (e.g. adding sorrybench_gennothink_accepted to refused_harmful) cannot silently move the steering vectors.",
+  "_why_families_test_is_empty": "build_splits_thinking gives a source ALL its rows when the source appears only in train. The branch applies no train/test split \u2014 collect_acts loads whole tensors \u2014 so an empty test side reproduces that exactly. test_ratio is therefore unused.",
+  "test_ratio": 0.0,
+  "seed": 0,
+  "families_train": [
+    [
+      "harmful_all",
+      [
+        "advbench_gennothink_accepted",
+        "advbench_gennothink_refused",
+        "jbb_gennothink_accepted",
+        "jbb_gennothink_refused"
+      ]
+    ],
+    [
+      "harmless_all",
+      [
+        "alpaca_gennothink_accepted",
+        "alpaca_gennothink_refused",
+        "xstest_gennothink_accepted",
+        "xstest_gennothink_refused"
+      ]
+    ]
+  ],
+  "families_test": []
+}

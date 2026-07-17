@@ -23,7 +23,7 @@
   "coeff": 1.0,
   "max_token_generate": 2048,
   "max_decode_step_while_intervene": 1,
-  "batch_size": 16,
+  "batch_size": 64,
   "left": 0,
   "right": 50,
   "experiments": [

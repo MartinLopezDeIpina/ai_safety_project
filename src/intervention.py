@@ -431,21 +431,41 @@ def main():
                     if params['reverse_intervention']:
                         intervention_vector_local = -intervention_vector_local
 
+                    def _thinking_prompt(d):
+                        """Qwen3.5 thinking prompt, optionally wrapped for the reply-inversion task.
+
+                        formatInp_thinking has no inversion support and utils.py is a read-only
+                        reference script, so the wrapping is composed here and handed to it as the
+                        instruction text. This mirrors formatInp_llama_persuasion's inversion branch
+                        exactly -- 'User wants to ' + Q + '\\n' + inversion_prompts_choice[idx],
+                        with the same instruction-else-bad_q field precedence -- so the only
+                        difference from the instruct path is which chat template wraps it.
+                        """
+                        if not params['use_inversion']:
+                            return formatInp_thinking(
+                                d, thinking_mode=params['thinking_mode'], model=MODEL)
+                        q = d['instruction'] if 'instruction' in d else d['bad_q']
+                        inverted = ('User wants to ' + q + '\n'
+                                    + inversion_prompts_choice[params['inversion_prompt_idx']])
+                        return formatInp_thinking(
+                            {'instruction': inverted},
+                            thinking_mode=params['thinking_mode'], model=MODEL)
+
                     def tokenize_instructions_fn(instructions, use_persuade=use_persuade):
                         if params['thinking_mode']:
-                            # Qwen3.5 thinking family: formatInp_llama_persuasion has no qwen35
-                            # template. formatInp_thinking has no inversion support, so this path
-                            # requires use_inversion=0 (true for Section 3.4 / Figure 4).
-                            if params['use_inversion']:
+                            if params['use_inversion'] and params['intervene_context_only']:
+                                # ctx_only trims the trailing template so the vector misses the
+                                # appended inversion question. The token count is computed from
+                                # hardcoded per-model suffixes below, none of which match qwen35's
+                                # thinking template (and it differs per thinking_mode). Refuse
+                                # rather than steer the wrong span.
                                 raise ValueError(
-                                    "use_inversion=1 is not supported with --thinking_mode: "
-                                    "formatInp_thinking has no inversion template."
+                                    "--intervene_context_only 1 is not supported with "
+                                    "--thinking_mode: the post-instruction suffix is qwen35- and "
+                                    "mode-specific and is not implemented. Use "
+                                    "--intervene_context_only 0 (steers the whole prompt)."
                                 )
-                            inps = [
-                                formatInp_thinking(
-                                    i, thinking_mode=params['thinking_mode'], model=MODEL
-                                ) for i in instructions
-                            ]
+                            inps = [_thinking_prompt(i) for i in instructions]
                         else:
                             inps = [
                                 formatInp_llama_persuasion(

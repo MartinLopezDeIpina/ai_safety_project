@@ -299,25 +299,37 @@ def _record_query(record):
     return p or ""
 
 
-def _record_answer(record, strip_think=True):
+# Modes whose prompt already CONTAINS </think>, so the model generates the answer directly and the
+# response never holds a think tag. Mirrors extract_hidden.NO_COT_MODES, which are the same modes
+# for the same reason. For these, a missing </think> is normal -- NOT a truncated trace.
+NO_COT_MODES = ("gennothink", "gennothink_stripped_v2")
+
+
+def _record_answer(record, strip_think=True, thinking_mode=""):
     """The answer to judge, or None if the generation never produced one.
 
-    For genthink, drop the reasoning trace and keep the post-</think> text. </think> survives
-    intervention.py's skip_special_tokens=True decode (verified against the Qwen3.5 tokenizer: the
-    think tags are ordinary vocab tokens, not special ones).
+    Two cases, and conflating them is a real bug:
 
-    Returns None when the trace never closed: at max_token_generate=2048 about 8.5% of 9b genthink
-    rows are still reasoning when generation stops (median CoT ~1017 tokens, max ~3477), so there is
-    no answer at all. Those rows must NOT be judged -- passing the truncated reasoning through as if
-    it were the answer would score the model's DELIBERATION ("I cannot help with...") as its
-    behaviour, which is exactly the failure the judge exists to avoid.
+    - Modes that GENERATE the trace (genthink, gennothink_stripped): the response is
+      "<CoT> </think> <answer>", so split on </think> and keep the answer. If </think> is absent the
+      model was still reasoning when generation stopped, so there is NO answer -- return None. At
+      max_token_generate=2048 that is ~22% of 9b genthink rows (median CoT ~1017 tokens, max 3477).
+      Judging those would score the model's DELIBERATION ("I cannot help with...") as its behaviour,
+      which is the exact failure the judge exists to prevent.
+
+    - NO_COT_MODES (gennothink, gennothink_stripped_v2): </think> sits in the PROMPT, so the response
+      is the answer already and never contains a think tag (verified: 0/50 gennothink generations
+      contain one). Here a missing </think> means nothing is wrong; returning None would mark EVERY
+      row TRUNCATED and empty the figure.
     """
     resp = record.get("response", "") or ""
     if not strip_think:
         return resp
-    if "</think>" not in resp:
-        return None
-    return resp.split("</think>")[-1].strip()
+    if "</think>" in resp:
+        return resp.split("</think>")[-1].strip()
+    if thinking_mode in NO_COT_MODES:
+        return resp.strip()          # expected: the prompt held </think>; this IS the answer
+    return None                      # trace never closed -> no answer to judge
 
 
 def _layer_files(run_dir):
@@ -335,7 +347,7 @@ def labels_path(json_path):
 
 
 def judge_run(run_dir, judge_config="configs/eval/judge_config_thinking.json", overwrite=False,
-              judge_batch_size=None):
+              judge_batch_size=None, thinking_mode=""):
     """Label every per-layer JSON in run_dir with the judge LLM -> <stem>.labels.json.
 
     Cached: a layer whose .labels.json exists is skipped unless overwrite=True (the judge is a
@@ -370,7 +382,7 @@ def judge_run(run_dir, judge_config="configs/eval/judge_config_thinking.json", o
             print(f"    layer {layer}: empty, skipped")
             continue
         # Rows whose CoT never closed have no answer: label TRUNCATED without spending judge GPU.
-        answers = [_record_answer(r, strip_think) for r in rows]
+        answers = [_record_answer(r, strip_think, thinking_mode) for r in rows]
         judged_idx = [i for i, a in enumerate(answers) if a is not None]
         labels = ["TRUNCATED"] * len(rows)
         if judged_idx:
@@ -442,7 +454,7 @@ COLORS = ["#E8766C", "#4A6FA5", "#158A8A"]  # harmfulness, refusal, third vector
 
 
 def fig4_path(model, model_size, config_path):
-    """output/<model><size>/figure4<suffix>.png, suffix from the intervene config stem.
+    """output/<model><size>/intervention/figures/figure4<suffix>.png, suffix from the config stem.
 
     Derived from the CONFIG, not from thinking_mode: several experiments share a mode but differ in
     which token slots the vectors come from, and they would all collide on one filename otherwise.
@@ -451,7 +463,7 @@ def fig4_path(model, model_size, config_path):
     stem = os.path.splitext(os.path.basename(config_path))[0]
     prefix = "intervene_config"
     suffix = stem[len(prefix):] if stem.startswith(prefix) else f"_{stem}"
-    return os.path.join(HERE, "output", f"{model}{model_size}", f"figure4{suffix}.png")
+    return os.path.join(intervention_dir(model, model_size), "figures", f"figure4{suffix}.png")
 
 
 def run_key(model, model_size, dataset, vector, reverse, left, right, use_inversion,
@@ -580,7 +592,8 @@ def main():
                 print(f"  [warn] missing, skipped: {d}")
                 continue
             judge_run(d, args.judge_config, overwrite=args.overwrite,
-                      judge_batch_size=args.judge_batch_size)
+                      judge_batch_size=args.judge_batch_size,
+                      thinking_mode=cfg.get("thinking_mode", ""))
 
     if args.stage == "fig4":
         plot_figure4(args.model, args.model_size, cfg,

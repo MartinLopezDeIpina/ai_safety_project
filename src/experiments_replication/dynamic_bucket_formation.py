@@ -283,6 +283,21 @@ def gen_buckets_thinking(model, model_size, bucket_config, use_judged=False):
     return {"train": train_acts, "test": test_acts}
 
 
+# Figure-3 token slots on the 25-slot thinking layout: which slot carries the harmfulness belief
+# (t_inst) and which the refusal belief (t_post). Named explicitly rather than derived: token index
+# -1 is </think> (slot 24) on this layout, not t_post — see _04_intervention.py's header.
+DEFAULT_FIG3_SLOTS = (0, 1)
+
+
+def fig3_slots(bucket_config):
+    """(harmfulness_slot, refusal_slot) from a thinking bucket config; defaults to t_inst/t_post."""
+    path = bucket_config if os.path.isabs(bucket_config) else os.path.join(HERE, bucket_config)
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    return (cfg.get("harmfulness_slot", DEFAULT_FIG3_SLOTS[0]),
+            cfg.get("refusal_slot", DEFAULT_FIG3_SLOTS[1]))
+
+
 if __name__ == "__main__":
     model = sys.argv[1] if len(sys.argv) > 1 else "qwen"
     model_size = sys.argv[2] if len(sys.argv) > 2 else "0.5b"

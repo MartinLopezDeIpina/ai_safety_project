@@ -142,3 +142,41 @@ def plot_figure3(model, model_size, buckets, save_path=None):
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plot_belief_correlation(points, xlim=xlim, ylim=ylim, save_path=save_path)
     print(f"saved {save_path}")
+
+
+# ---------------------------------------------------------------------------
+# Qwen3.5 thinking track. gen_buckets_thinking keeps whole (L, N, 25, H) families keyed by the
+# UNSUFFIXED name — which happens to be exactly POINT_BASES' four values — so slicing two slots and
+# re-suffixing rebuilds the dict plot_figure3 already consumes. The score itself is not reimplemented.
+# ---------------------------------------------------------------------------
+def _flatten_thinking(buckets, slot_harmful, slot_refuse):
+    """Thinking buckets {family: (L, N, 25, H)} -> the {<base>_tinst, <base>_tpost} -> (L, n, H)
+    dict plot_figure3 expects.
+
+    The null-row mask is taken jointly over BOTH slots so the two stay row-aligned: Delta_harmful
+    and Delta_refuse are paired per instruction, and a row dropped at only one slot would shift
+    every later pairing. fp16 -> fp32 per slice, as in _02_3.1_figure2._slice_pos.
+    """
+    out = {}
+    for side in ("train", "test"):
+        flat = {}
+        for base, tensor in buckets[side].items():
+            inst = tensor[:, :, slot_harmful, :].float()
+            post = tensor[:, :, slot_refuse, :].float()
+            keep = ((inst.norm(dim=-1) > 0) & (post.norm(dim=-1) > 0)).all(dim=0)
+            if bool(keep.any()):
+                flat[f"{base}_tinst"], flat[f"{base}_tpost"] = inst[:, keep], post[:, keep]
+        out[side] = flat
+    return out
+
+
+def plot_figure3_thinking(model, model_size, buckets, slot_harmful=0, slot_refuse=1,
+                          save_path=None):
+    """Figure 3 on the 25-slot thinking layout; the score itself is plot_figure3's.
+
+    buckets: {"train"/"test": {family -> (L, N, 25, H)}} from gen_buckets_thinking. Slots default
+    to t_inst/t_post; callers pass whatever the bucket config names (dynamic_bucket_formation.
+    fig3_slots).
+    """
+    plot_figure3(model, model_size, _flatten_thinking(buckets, slot_harmful, slot_refuse),
+                 save_path=save_path)

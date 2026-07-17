@@ -192,6 +192,50 @@ def run_intervention(
     return name, key
 
 
+@app.function(
+    image=image, gpu="A100", volumes={"/cache": hf_cache, "/results": results_vol},
+    secrets=[hf_secret], timeout=14400
+)
+def judge_key(key: str, judge_config: str, judge_batch_size: int, thinking_mode: str,
+              overwrite: bool) -> str:
+    """Label an already-generated run on the results volume: /results/<key>/*.labels.json.
+
+    Separate from run_intervention on purpose: the generations are already committed, so re-judging
+    (a changed judge config, a fixed answer-extraction rule) must not require re-running hours of
+    GPU generation. Reads and writes the volume in place.
+
+    Locally the judge is the bottleneck -- judge_config_thinking.json sets thinking=true and
+    max_new_tokens=4096, and a 16GB card only fits batch 4, giving ~4.6s/row (~3h for 2400 rows).
+    On this GPU the config's own batch_size (64) fits, which is the point of running it here.
+    """
+    os.environ["HF_HUB_CACHE"] = "/cache"
+    os.environ["PYTHONPATH"] = "/root/src"
+    os.chdir("/root/src/experiments_replication")
+    sys.path.insert(0, "/root/src/experiments_replication")
+    sys.path.insert(0, "/root/src")
+
+    import torch
+    print(f"### GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}",
+          flush=True)
+
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "i04", "/root/src/experiments_replication/_04_intervention.py")
+    i04 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(i04)
+
+    run_path = f"/results/{key}"
+    if not os.path.isdir(run_path):
+        raise FileNotFoundError(f"no such run on the volume: /{key}")
+
+    try:
+        i04.judge_run(run_path, judge_config, overwrite=overwrite,
+                      judge_batch_size=judge_batch_size or None, thinking_mode=thinking_mode)
+    finally:
+        results_vol.commit()
+    return key
+
+
 def _local_dest(name: str, key: str) -> str:
     """Non-colliding dir under output/<name>/intervention/generations/: key, else key_2, key_3, …"""
     base = _generations_dir(name)
@@ -253,11 +297,16 @@ def entry(
     use_inversion: int = 0,
     inversion_prompt_idx: int = 1,
     thinking_mode: str = "genthink",
-    batch_size: int = 16,
+    batch_size: int = 64,
     gpu: str = "A100",
     timeout: int = 14400,
     wait: bool = True,
     collect_only: bool = False,
+    judge: bool = False,
+    judge_only: bool = False,
+    judge_config: str = "configs/eval/judge_config_thinking.json",
+    judge_batch_size: int = 64,
+    judge_overwrite: bool = False,
 ):
     """Launch (and optionally collect) one intervention run.
 
@@ -285,6 +334,17 @@ def entry(
             print(f"  not ready on volume yet (skipped): {key}")
         return
 
+    if judge_only:
+        # Label an already-generated run in place on the volume. No generation, no 9B download.
+        jfn = judge_key.with_options(gpu=gpu, timeout=timeout)
+        h = jfn.spawn(key, judge_config, judge_batch_size, thinking_mode, judge_overwrite)
+        if not wait:
+            print(f"\nLaunched judge detached for {key}.")
+            return
+        h.get()
+        _pull(_name(model, model_size), key)
+        return
+
     fn = run_intervention.with_options(gpu=gpu, timeout=timeout)
     handle = fn.spawn(
         model, model_size, left, right, dataset, vector,
@@ -293,6 +353,16 @@ def entry(
         max_token_generate, max_decode_step_while_intervene,
         use_inversion, inversion_prompt_idx, thinking_mode, batch_size,
     )
+
+    if not wait and judge:
+        # --judge chains the judge AFTER handle.get(), which the --no-wait path never reaches. Fail
+        # loudly rather than silently dropping the flag: the generations would land fine and the
+        # labels would just never appear, which looks like a judge crash rather than a dropped flag.
+        raise ValueError(
+            "--judge cannot be combined with --no-wait: the judge is chained after the generation "
+            "handle resolves, which a detached launch never waits for. Launch with --no-wait, then "
+            "label the finished run with --judge-only (same flags), which is a separate GPU job."
+        )
 
     if not wait:
         print("\nLaunched detached; results commit to the 'intervention-results' volume as the run "
@@ -305,4 +375,9 @@ def entry(
         return
 
     handle.get()  # blocks until the run finishes
+    if judge:
+        # Judge on the same GPU class right after generating: the generations are already on the
+        # volume, so this only pays for the 4B judge download, not another 9B one.
+        jfn = judge_key.with_options(gpu=gpu, timeout=timeout)
+        jfn.remote(key, judge_config, judge_batch_size, thinking_mode, judge_overwrite)
     _pull(_name(model, model_size), key)
