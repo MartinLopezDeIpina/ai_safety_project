@@ -236,6 +236,79 @@ Figures likely usable
   - output/qwen359b/figure3_qwen35_nothink.png.
   - output/qwen359b/figure3_qwen35_nothink_stripped.png.
 
+How to phrase Figure 2 vs Figure 3 claims
+- Figure 2 is mainly a localization figure:
+  - It shows where layer-wise representations resemble refused-harmful vs accepted-harmless anchors.
+  - Good claim: safety-relevant information is present and shifts across prompt / think-template / CoT / answer-boundary positions in thinking models.
+  - Avoid using Figure 2 alone as the main proof of "harmfulness and refusal are separate"; it is better evidence for where the signal appears.
+- Figure 3 is the stronger separation figure:
+  - Delta_harmful and Delta_refuse are plotted as two independent axes.
+  - Good claim: accepted harmful examples can be high-harmfulness but low-refusal, while refused harmless examples can be high-refusal but low-harmfulness.
+  - This supports the central claim that harmfulness and refusal are encoded separately rather than as one monolithic safety direction.
+- Combined wording:
+  - "Figure 3 supports representational separability, while Figure 2 shows that in thinking models the relevant refusal/harmfulness information is distributed across more token positions than in the original two-token setup."
+
+
+6. Extra material from related local projects
+
+Use these as appendix / exploratory material, not as core contributions, unless the final report has
+space and we add more evaluation rigor.
+
+Mini-project: CoT length and projection-score diagnostics
+- Source:
+  - ai-safety-mini-projects/project/src/data_probe/cot_investigation_summary.csv
+  - ai-safety-mini-projects/project/src/data_probe/figures/data_probe_cot_length.png
+  - ai-safety-mini-projects/project/src/data_probe/figures/data_probe_layer_sweep.png
+  - ai-safety-mini-projects/project/src/plot_data_probe_paper.py
+- What it does:
+  - Runs Qwen3-thinking layer sweeps for harmfulness/refusal steering directions.
+  - Compares inversion vs non-inversion settings, reverse vs non-reverse steering.
+  - Tracks CoT presence/length and projection scores at t_inst and t_post_inst across layers.
+- Useful observation:
+  - In the summary CSV, CoT appears in 100% of the inspected rows for all modes.
+  - The average CoT length is shorter in inversion settings than non-inversion settings:
+    - harmfulness probe: inv0_rev0 avg ~688.6 tokens, inv0_rev1 ~670.6; inv1_rev0 ~511.8, inv1_rev1 ~420.7.
+    - refusal probe: inv0_rev0 avg ~689.3 tokens, inv0_rev1 ~672.3; inv1_rev0 ~465.8, inv1_rev1 ~418.7.
+  - Projection scores vary strongly by layer and sometimes become extreme in late layers, suggesting that the effect of steering is layer-dependent rather than uniform across the network.
+- Suggested wording:
+  - "As an auxiliary appendix, we visualize how inversion-style interventions co-vary with CoT length and projection scores."
+  - "Inversion settings consistently shorten the observed CoT relative to non-inversion settings while preserving the same layer-wise probe structure."
+  - "This is useful to the paper because it moves beyond static prompt-boundary probes: it tracks how steering directions interact with the reasoning trajectory itself."
+  - "The layer-wise projection scores suggest that harmfulness/refusal directions remain meaningful during CoT generation, but their effect depends strongly on which layer is intervened."
+- Best placement:
+  - Appendix, after the main text, as "Auxiliary CoT diagnostics".
+  - One figure for CoT length and optionally one figure for layer-wise projection scores.
+
+Section 4 jailbreak geometry / compliance from ai_safety_project
+- Source:
+  - ai_safety_project/src/experiments_replication/_04_4_jailbreak_plot.py
+  - ai_safety_project/src/experiments_replication/_04_harmful_compliance_eval.py
+  - ai_safety_project/src/experiments_replication/_04_train_qwen2_gcg.py
+  - ai_safety_project/src/experiments_replication/output/qwen7b/section4_jailbreak/section4_jailbreak_scatter.png
+  - ai_safety_project/src/experiments_replication/output/qwen7b/section4_jailbreak/harmful_compliance_eval/all_harmful_compliance_summary.json
+- What it does:
+  - Places jailbreak prompt families into the same Delta_harmful / Delta_refuse space as Figure 3.
+  - Prompt families include template jailbreak / GPTFuzzer, evil persona, GCG suffix, Qwen2-trained GCG suffix, and persuasion.
+  - Adds a heuristic harmful-compliance evaluator that separates explicit refusal, benign diversion, and harmful compliance.
+- Useful numbers from the current run:
+  - evil_persona: 50/50 refusals, 0/50 harmful compliance.
+  - gcg_suffix: 1/20 harmful compliance, 15/20 refusals, 4/20 benign diversions.
+  - gptfuzzer_template: 27/50 harmful compliance, 23/50 benign diversions, 0/50 refusals.
+  - persuasion: 11/50 harmful compliance, 8/50 refusals, 31/50 benign diversions.
+  - qwen2_gcg_suffix: 0/20 harmful compliance, 15/20 refusals, 5/20 benign diversions.
+- Interpretation:
+  - This is a nice extension of the original jailbreak-analysis story: not all jailbreaks occupy the same region of harmfulness/refusal space.
+  - Template jailbreaks move toward positive Delta_harmful but negative Delta_refuse: the model may still encode harmfulness while refusal is suppressed.
+  - Evil persona clusters at negative Delta_harmful but positive Delta_refuse and has 50/50 refusals, so in this run it preserves a refusal-like state rather than creating compliance.
+  - GCG suffixes are scattered across the plane, meaning suffix optimization does not produce a single uniform latent effect; some suffixes lower refusal while others remain refusal-like.
+  - Persuasion prompts mostly sit in the lower-left region, consistent with non-refusal diversions and weaker direct harmfulness/refusal signatures.
+  - Because the compliance evaluator is heuristic, present the table as an audit / sanity check, not as definitive safety evaluation.
+- Best placement:
+  - Appendix "Auxiliary jailbreak geometry".
+  - Optional short mention in Introduction/contributions:
+    "We additionally include exploratory appendices visualizing jailbreak prompt families and CoT-length diagnostics."
+  - Avoid making this a main contribution unless we replace the heuristic labels with judge labels or manual verification.
+
 Numbers already checked
 - Qwen3.5-9B judged refusal rates:
   - genthink: harmful 93.9%, harmless 0.3%.
@@ -246,4 +319,3 @@ Numbers already checked
   - full: 10 accepted, 30 refused, 25.0% acceptance.
   - stripped: 7 accepted, 33 refused, 17.5% acceptance.
   - hypothesis "stripped accepts more" is false.
-
