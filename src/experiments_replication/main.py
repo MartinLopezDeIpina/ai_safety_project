@@ -78,10 +78,12 @@ def _main_thinking(model, model_size, left, right, stages,
             compute_all_activations_thinking(model, model_size,
                                              classified_subdir="judge_classifications",
                                              acts_subdir="judge_activations", only_modes=only_modes,
-                                             max_acts_per_bucket=max_acts_per_bucket)
+                                             max_acts_per_bucket=max_acts_per_bucket,
+                                             only_datasets=only_datasets)
         else:
             compute_all_activations_thinking(model, model_size, only_modes=only_modes,
-                                             max_acts_per_bucket=max_acts_per_bucket)
+                                             max_acts_per_bucket=max_acts_per_bucket,
+                                             only_datasets=only_datasets)
 
     if any(s in stages for s in ("gen_buckets", "fig", "fig3")):
         # figures 2/3 optionally from judge_activations/ (judge-corrected). use_judge implies judged
@@ -185,11 +187,12 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
     do_sample) come from sampling_config (a json path, resolved against this dir; default
     sampling_config.json).
 
-    only_datasets: comma-separated dataset names (e.g. "alpaca") to restrict to; None generates all. A
-    named dataset runs all of its generation configs (gentinst/gentpost or
+    only_datasets: comma-separated dataset names (e.g. "alpaca", "dan_advbench,dan_jbb") to restrict
+    to; None generates all. A named dataset runs all of its generation configs (gentinst/gentpost or
     genthink/gennothink/gennothink_stripped[_v2]). Affects `infer` on both tracks, and on the thinking
-    track `eval` too — a partial infer must be evaluated with the same scope, or eval reads
-    generations that were never produced.
+    track `eval` and `acts` too — a partial infer must be evaluated and extracted with the same scope,
+    or eval reads generations that were never produced and acts re-extracts every other dataset's
+    splits (its classified dir is a glob, not a run list).
 
     only_modes: (thinking track only) comma-separated thinking modes (e.g. "gennothink_stripped") to
     restrict `infer` and `eval` to; None runs all. Scope both stages to a single generation type.

@@ -166,6 +166,22 @@ RUNS_THINKING = [
     ("alpaca_data_instruction.json", "alpaca_gennothink.json", "gennothink"),
     ("alpaca_data_instruction.json", "alpaca_gennothink_stripped.json", "gennothink_stripped"),
     ("alpaca_data_instruction.json", "alpaca_gennothink_stripped_v2.json", "gennothink_stripped_v2"),
+    # DAN: the same advbench/jbb questions wrapped in the jailbreak template (data/dan_prompt.txt),
+    # to populate the otherwise starved accepted-harmful clusters. The wrapping is carried by the
+    # dan=True field on each data/dan_*.json row and applied in utils.formatInp_thinking, so these
+    # runs need no special handling here. Scope a run to them via only_datasets="dan_advbench,dan_jbb".
+    ("dan_advbench.json", "dan_advbench_genthink.json", "genthink"),
+    ("dan_advbench.json", "dan_advbench_gennothink.json", "gennothink"),
+    ("dan_jbb.json", "dan_jbb_genthink.json", "genthink"),
+    ("dan_jbb.json", "dan_jbb_gennothink.json", "gennothink"),
+    # plane-crash-survivors jailbreak smoke (data/plane_advbench.json rows carry
+    # jailbreak="plane_crash_jailbreak.txt"); same row-carried mechanism as the dan runs.
+    ("plane_advbench.json", "plane_advbench_genthink.json", "genthink"),
+    ("plane_advbench.json", "plane_advbench_gennothink.json", "gennothink"),
+    # testing/training-mode jailbreak smoke (data/test_advbench.json rows carry
+    # jailbreak="test_prompt.txt").
+    ("test_advbench.json", "test_advbench_genthink.json", "genthink"),
+    ("test_advbench.json", "test_advbench_gennothink.json", "gennothink"),
 ]
 
 

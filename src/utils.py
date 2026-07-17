@@ -1,4 +1,5 @@
 import json
+import os
 import numpy as np
 import pickle
 import openai
@@ -127,6 +128,19 @@ def formatInp_llama_persuasion(d,use_persuade=False,use_adv=False,use_ss=False,m
         return template.format(d['ss_prompt'])
 
 
+_JAILBREAK_CACHE = {}
+
+
+def _jailbreak_prompt(fname):
+    """A jailbreak template stored under data/ (e.g. 'dan_prompt.txt',
+    'plane_crash_jailbreak.txt'), read once and cached by filename."""
+    if fname not in _JAILBREAK_CACHE:
+        repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(repo, 'data', fname), encoding='utf-8') as f:
+            _JAILBREAK_CACHE[fname] = f.read().strip()
+    return _JAILBREAK_CACHE[fname]
+
+
 def formatInp_thinking(d, thinking_mode='genthink', model='qwen35'):
     """Qwen3.5 thinking-model prompt builder (clone of the qwen branch of
     formatInp_llama_persuasion). All modes share the same post-instruction block; they differ
@@ -140,12 +154,23 @@ def formatInp_thinking(d, thinking_mode='genthink', model='qwen35'):
                              template tokens removed; the model autocompletes assistant\\n<think>...)
     """
     # instruction text: same precedence as formatInp_llama_persuasion's non-persuade branch.
+    row = d if isinstance(d, dict) else None
     if isinstance(d, dict) and 'prompt' in d:
         d = d['prompt']
     if isinstance(d, dict):
         q = d.get('instruction') or d.get('question') or d.get('bad_q') or ''
     else:
         q = d
+    # Rows may carry a jailbreak wrapper: jailbreak="<file under data/>" (general), or the legacy
+    # dan=True (== jailbreak="dan_prompt.txt"). The (clean, unmodified) query is wrapped in that
+    # template here, before the mode suffixes, so every thinking mode gets it and so generation
+    # (inference.py) and extraction (extract_hidden.py) build the same prompt from the same row. The
+    # stored query stays clean, keeping the judge's view unchanged.
+    jb_file = None
+    if row is not None:
+        jb_file = row.get('jailbreak') or ('dan_prompt.txt' if row.get('dan') else None)
+    if jb_file:
+        q = _jailbreak_prompt(jb_file) + "\n\n" + q
     if thinking_mode == 'gennothink_stripped':
         # strip the trailing template tokens; the model must autocomplete assistant\n<think>...
         return f"<|im_start|>user\n{q}<|im_end|>\n<|im_start|>"

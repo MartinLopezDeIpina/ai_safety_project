@@ -1,0 +1,41 @@
+{
+  "_comment": "NULL CONTROL: a random direction, norm-matched per layer to refusal_s24, steered at the same coeff=5. refusal_s24 elicits up to 70% refusal at coeff=5, but its norm there is ~2x a typical activation -- so 'the direction causes refusal' and 'any shove this big breaks the model' predict the same curve. If random_s24 also elicits refusal, the effect is magnitude and the result collapses. If it stays at baseline, the effect is directional.",
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_nothink_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "gennothink",
+  "vectors": [
+    [
+      "refusal_s24",
+      "harmful_all",
+      "harmless_all",
+      24
+    ]
+  ],
+  "layer_s": 8,
+  "layer_e": 20,
+  "coeff": 5.0,
+  "max_token_generate": 2048,
+  "max_decode_step_while_intervene": 1,
+  "batch_size": 64,
+  "left": 0,
+  "right": 50,
+  "experiments": [
+    [
+      "alpaca_data_instruction",
+      "random_s24",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ]
+  ],
+  "random_seed": 0,
+  "random_vectors": [
+    [
+      "random_s24",
+      "refusal_s24"
+    ]
+  ]
+}

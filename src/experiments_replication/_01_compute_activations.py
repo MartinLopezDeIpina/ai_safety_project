@@ -13,6 +13,8 @@ import os
 import subprocess
 import sys
 
+from _00_run_inference import _dataset_key
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.dirname(HERE)
 EXTRACT_SCRIPT = os.path.join(SRC_DIR, "extract_hidden.py")
@@ -136,7 +138,7 @@ def _thinking_mode_of(name):
 def compute_all_activations_thinking(model, model_size,
                                      classified_subdir="classified_generations",
                                      acts_subdir="activations", only_modes=None,
-                                     max_acts_per_bucket=None):
+                                     max_acts_per_bucket=None, only_datasets=None):
     """Extract 22-slot activations for each thinking classified generation into acts_subdir.
 
     thinking_mode is read from the filename (genthink / gennothink / gennothink_stripped): gennothink
@@ -146,6 +148,10 @@ def compute_all_activations_thinking(model, model_size,
 
     only_modes: comma-separated thinking modes (e.g. "gennothink_stripped") to restrict extraction to;
     None extracts every classified split.
+    only_datasets: comma-separated dataset names (e.g. "dan_advbench,dan_jbb") to restrict extraction
+    to; None extracts every classified split. Mirrors _00_run_inference's only_datasets so a partial
+    infer/eval can be extracted with the same scope instead of re-extracting the whole dir (this dir is
+    a glob, so mode-only scoping would still pick up every other dataset's splits).
     max_acts_per_bucket: cap the number of rows extracted PER bucket (per classified split file) to the
     first N — bounds each .pt to (L, N, 22, H) so figure/bucket loading doesn't OOM. None = no cap. The
     cap is per-file, so buckets are never mixed.
@@ -155,6 +161,8 @@ def compute_all_activations_thinking(model, model_size,
 
     wanted = {m.strip() for m in (only_modes.split(",") if isinstance(only_modes, str)
                                   else (only_modes or [])) if m and m.strip()}
+    wanted_ds = {d.strip() for d in (only_datasets.split(",") if isinstance(only_datasets, str)
+                                     else (only_datasets or [])) if d and d.strip()}
     right = max_acts_per_bucket if max_acts_per_bucket else 100000  # extract_hidden slices rows[:right]
 
     for src_pth in sorted(glob.glob(os.path.join(classified_dir, "*.json"))):
@@ -163,6 +171,10 @@ def compute_all_activations_thinking(model, model_size,
             continue  # skip non-split JSON (e.g. judge_log.json)
         thinking_mode = _thinking_mode_of(name)
         if wanted and thinking_mode not in wanted:
+            continue
+        # name is a stem; _dataset_key takes a filename ('dan_advbench_genthink_accepted.json' ->
+        # 'dan_advbench'), so the '_accepted'/'_refused' suffix is irrelevant to the split on '_gen'.
+        if wanted_ds and _dataset_key(name + ".json") not in wanted_ds:
             continue
         with open(src_pth, encoding="utf-8") as f:
             if not json.load(f):
