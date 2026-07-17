@@ -1,0 +1,249 @@
+IDEA BANK FOR REPORT
+Title direction: LLMs Encode Harmfulness and Refusal Separately: A Generalization to Thinking Models
+
+Goal of this file
+- Use this as a writing map for Abstract, Introduction, and Related Work.
+- Core story: the original paper shows harmfulness and refusal are separable latent concepts in non-reasoning chat models. Our project asks whether this separation still holds when the model has a thinking / chain-of-thought phase, where refusal may be formed, revised, or suppressed during reasoning.
+
+
+1. Abstract: ideas to include
+
+Main motivation
+- Prior work, especially "LLMs Encode Harmfulness and Refusal Separately", argues that LLM safety behavior is not one monolithic signal. The model can internally represent that a prompt is harmful while separately deciding whether to refuse.
+- This matters more for reasoning / thinking models because they generate a chain of thought before the final answer. The refusal decision may no longer be localized only at the boundary between user prompt and assistant response.
+
+What we do
+- Replicate the original hidden-state geometry analysis: compare harmfulness and refusal scores from activations at key token positions.
+- Extend the analysis to Qwen3.5 thinking-style generation modes:
+  - genthink: the model generates a reasoning trace.
+  - gennothink: the prompt contains an empty think block and the model answers directly.
+  - gennothink_stripped / v2: diagnostic variants that remove or alter post-instruction / think-template tokens.
+- Use judge-corrected classifications because simple refusal-string matching can misread thinking traces. A reasoning trace can mention refusal language even when the final answer complies, so final-answer-only judging is important.
+
+Concrete repo findings worth mentioning
+- In Qwen3.5-9B judged outputs, behavioral safety is stable across thinking modes:
+  - genthink harmful refusal: 93.9% (992/1056), harmless refusal: 0.3% (7/2191).
+  - gennothink harmful refusal: 94.6% (1003/1060), harmless refusal: 1.0% (22/2298).
+  - gennothink_stripped harmful refusal: 94.4% (1001/1060), harmless refusal: 2.3% (53/2298).
+  - gennothink_stripped_v2 harmful-only subset: 99.5% refusal (617/620); harmless data absent in this run.
+- A small Qwen3.5-0.8B diagnostic found that stripping post-instruction tokens did not increase harmful acceptance on 40 AdvBench rows:
+  - full prompt: 10/40 accepted, 25.0%.
+  - stripped prompt: 7/40 accepted, 17.5%.
+  - This is a useful negative result: refusal in thinking-style setups is not explained by simply keeping or removing a single post-instruction token.
+- The current replication code builds Figure 2 style score curves over 25 token slots in the thinking layout, not just t_inst and t_post. This lets the report discuss where harmfulness/refusal signals appear during the prompt, think block, closing </think>, and first answer tokens.
+- The current code also builds Figure 3 style Delta_harmful vs Delta_refuse scatter plots, testing whether harmfulness and refusal remain partially independent in the latent space.
+- Intervention configs and vectors exist for Qwen3.5-9B, including harmfulness vectors, refusal vectors, and random norm-matched controls. Use this carefully unless the final judged intervention labels are regenerated / verified.
+
+Possible abstract skeleton
+- Sentence 1: Safety-aligned LLMs must distinguish harmful requests from harmless ones and decide whether to refuse, but recent work suggests these are encoded separately.
+- Sentence 2: We study whether this separation generalizes to thinking models, where intermediate reasoning can change the model's safety state before the final response.
+- Sentence 3: We replicate the original activation-space analysis and extend it to Qwen3.5-9B under thinking, non-thinking, and stripped-template generation modes.
+- Sentence 4: We find that external refusal behavior remains strong across modes, but the relevant latent positions become more distributed across the think template, reasoning trace, </think>, and answer tokens.
+- Sentence 5: Our results suggest that harmfulness/refusal separation remains a useful lens for reasoning models, but simple single-position refusal steering is insufficient because chain-of-thought can carry or reconstruct refusal/compliance information.
+
+
+2. Introduction: ideas to include
+
+Opening problem
+- Modern chat models are trained to be helpful and harmless. In practice, refusal behavior has two failure modes:
+  - under-refusal: model complies with harmful requests.
+  - over-refusal: model refuses benign requests.
+- A key question is whether models internally know a prompt is harmful, or whether refusal is just a surface behavior learned from safety fine-tuning.
+
+Original paper's contribution
+- "LLMs Encode Harmfulness and Refusal Separately" gives a clean framing:
+  - t_inst, the last token of the user instruction, carries a harmfulness signal.
+  - t_post-inst, the last token after the prompt/template, carries a refusal-behavior signal.
+  - The two are not identical: a model may encode harmfulness without refusing, or refuse without the prompt being genuinely harmful.
+- This explains why jailbreaks can suppress refusal while leaving internal harmfulness detection intact, and why latent harmfulness features can be used as a guard.
+
+Why thinking models change the question
+- Reasoning models insert a long internal reasoning phase between the user instruction and final answer.
+- This breaks the simple "one boundary token decides refusal" picture:
+  - The model may recognize harmfulness early.
+  - The chain of thought may reinforce refusal.
+  - The chain of thought may rationalize compliance.
+  - Template tokens like <think>, </think>, and early answer tokens can become safety-relevant positions.
+- Therefore, the report's research question can be:
+  - Does the harmfulness/refusal separation found in non-thinking LLMs persist in thinking models?
+  - If yes, where are the two signals located across the reasoning trace?
+  - Does removing or changing post-instruction / think-template tokens change refusal behavior?
+  - Are single-vector interventions still meaningful when CoT participates in the decision?
+
+Our implementation / experimental setup from repo
+- Models and tracks:
+  - Original-style instruction track exists for qwen7b and llama38b with Figure 2 and Figure 3 outputs.
+  - Main extension is Qwen3.5, especially qwen35 9b, with thinking=True pipeline.
+- Datasets:
+  - Harmful: AdvBench, JailbreakBench (jbb), SorryBench.
+  - Harmless: XSTest, Alpaca.
+- Bucketing:
+  - Families are formed by behavior and prompt type: refused_harmful, accepted_harmful, accepted_harmless, refused_harmless.
+  - Train/test splits are deterministic.
+  - Judge-corrected splits are used for thinking models to avoid confusing reasoning text with final behavior.
+- Token layout:
+  - Original paper: mainly t_inst and t_post-inst.
+  - Our thinking track: 25-slot layout with prompt tokens, think tokens, middle/last CoT slots, </think>, newline after </think>, and first answer tokens.
+- Figures:
+  - Figure 2 analog: score s^l(h) = cosine to refused_harmful anchor minus cosine to accepted_harmless anchor, plotted across layers and token slots.
+  - Figure 3 analog: Delta_harmful vs Delta_refuse scatter, testing whether the two axes separate behavior clusters.
+  - Figure 4/intervention configs: harmfulness/refusal steering on harmless Alpaca instructions, with random norm-matched control. Treat as optional or future-work unless labels are verified.
+
+Findings to frame in Introduction
+- Behavioral result: Qwen3.5-9B refuses harmful prompts at around 94-95% across genthink, gennothink, and stripped modes, while over-refusal on harmless data stays low.
+- Negative diagnostic: removing post-instruction tokens did not make Qwen3.5-0.8B more compliant on AdvBench. This suggests the safety mechanism is not reducible to a single t_post token in the thinking setup.
+- Latent-analysis motivation: because behavior is similar across modes, the interesting question is not just "does the model refuse?", but "where and how does the model represent harmfulness and refusal internally?"
+- Expected thesis:
+  - Harmfulness/refusal separation is still a good organizing principle.
+  - However, thinking models spread refusal-related computation across the reasoning trace and template boundary, so single-position or single-direction explanations become less complete.
+
+Possible contribution bullets
+- We reproduce the harmfulness/refusal latent geometry analysis on available instruction-tuned model outputs.
+- We adapt the analysis to thinking models by introducing a 25-slot activation layout that tracks prompt, CoT, </think>, and answer positions.
+- We evaluate Qwen3.5-9B across thinking, non-thinking, and stripped-template variants using judge-corrected behavior labels.
+- We provide diagnostics showing that post-instruction token removal alone does not explain refusal behavior in thinking models.
+- We connect the results to recent work showing that CoT can both stabilize refusal and create new jailbreak surfaces.
+
+
+3. Related Work: papers to include and how to use them
+
+Recommended structure
+- Group the section by theme rather than listing papers one by one:
+  1. Activation steering and refusal directions in non-reasoning LLMs.
+  2. Harmfulness/refusal separation and over-refusal geometry.
+  3. Refusal and safety in reasoning / chain-of-thought models.
+  4. Monitoring and intervention during reasoning.
+
+Core paper: must cite
+- Zhao et al., "LLMs Encode Harmfulness and Refusal Separately" (arXiv:2507.11878)
+  - Use as the direct baseline.
+  - Key idea: harmfulness and refusal correspond to separable latent directions / positions.
+  - Our report extends this from ordinary chat models to thinking models.
+  - Link: https://arxiv.org/abs/2507.11878
+
+Activation steering / refusal-direction foundations
+- Arditi et al., "Refusal in Language Models Is Mediated by a Single Direction" (arXiv:2406.11717)
+  - Use to introduce directional ablation and the single-refusal-direction view.
+  - Important contrast: this works well for non-reasoning chat models, but reasoning models may be less single-position / single-direction.
+  - Link: https://arxiv.org/abs/2406.11717
+- Rimsky et al., "Steering Llama 2 via Contrastive Activation Addition" (arXiv:2312.06681)
+  - Use for additive steering / contrastive activation addition as the general method family behind steering vectors.
+  - Link: https://arxiv.org/abs/2312.06681
+- Turner et al., "Activation Addition: Steering Language Models Without Optimization" (arXiv:2308.10248)
+  - Optional if you need another standard steering reference.
+  - Use as earlier activation-engineering background.
+  - Link: https://arxiv.org/abs/2308.10248
+
+Geometry of refusal and over-refusal
+- Wollschlager et al., "The Geometry of Refusal in Large Language Models: Concept Cones and Representational Independence" (arXiv:2502.17420)
+  - Use to complicate the single-direction story: refusal may be multi-dimensional or organized as concept cones.
+  - Connect to our caution that reasoning-model refusal may not be captured by one vector.
+  - Link: https://arxiv.org/abs/2502.17420
+- Wang et al., "Surgical, Cheap, and Flexible: Mitigating False Refusal in Language Models via Single Vector Ablation" (arXiv:2410.03415)
+  - Use for over-refusal and false-refusal vector ablation.
+  - Connect to our harmless refusal rates on XSTest/Alpaca.
+  - Link: https://arxiv.org/abs/2410.03415
+- Maskey et al., "Over-Refusal and Representation Subspaces: A Mechanistic Analysis of Task-Conditioned Refusal in Aligned LLMs" (arXiv:2603.27518)
+  - Use to distinguish harmful refusal from over-refusal: harmful refusal can look global, while over-refusal is task-dependent and higher-dimensional.
+  - This supports discussing why low harmless refusal in our Qwen3.5 runs matters separately from high harmful refusal.
+  - Link: https://arxiv.org/abs/2603.27518
+
+Reasoning / CoT models and refusal
+- Yamaguchi, Etheridge, and Arditi, "Where Do Reasoning Models Refuse?" (arXiv:2507.03167)
+  - Very relevant. Use it to motivate the exact question "where" refusal is formed in CoT models.
+  - Key connection: CoT causally influences refusal; ablating refusal directions works less reliably than in non-reasoning models.
+  - Link: https://arxiv.org/abs/2507.03167
+- Yang et al., "Beyond a Single Direction: Chain-of-Thought Disrupts Simple Steering of Refusal" (arXiv:2605.26772)
+  - Very relevant. Use it to argue that refusal in LRMs is jointly encoded in residual activations and CoT semantics.
+  - Connect directly to our multi-slot Qwen3.5 analysis and caution about single-vector intervention.
+  - Link: https://arxiv.org/abs/2605.26772
+- Yong and Bach, "Self-Jailbreaking: Language Models Can Reason Themselves Out of Safety Alignment After Benign Reasoning Training" (OpenReview / ICLR 2026)
+  - Use for the phenomenon where reasoning changes perceived harmfulness and creates compliance rationalizations.
+  - Connect to the original paper's separation: the model can know harmfulness early but later reason itself into treating the request as benign.
+  - Link: https://openreview.net/forum?id=akbtPEZnDZ
+- Zhao et al., "Chain-of-Thought Hijacking" (OpenReview, 2025/2026)
+  - Use for CoT as an attack surface: long benign reasoning can dilute attention to harmful tokens and reduce refusal.
+  - Connect to our interest in CoT token slots and attention over harmful instruction tokens.
+  - Link: https://openreview.net/forum?id=kQRjcBmFAD
+- "Refusal Falls off a Cliff: How Safety Alignment Fails in Reasoning?" (arXiv:2510.06036)
+  - Use for the idea that refusal can be high during intermediate reasoning but drop near final/template tokens.
+  - This is a natural related work for our </think> and answer-token slot analysis.
+  - Link: https://arxiv.org/abs/2510.06036
+- "Can We Predict Alignment Before Models Finish Thinking? Towards Monitoring Misaligned Reasoning Models" (arXiv:2507.12428)
+  - Use if you want a monitoring paragraph: probes on activations can predict final unsafe behavior before the model completes CoT.
+  - Connect to our Figure 3 style latent axes and potential future latent guard for thinking models.
+  - Link: https://arxiv.org/abs/2507.12428
+- Venhoff et al., "Understanding Reasoning in Thinking Language Models via Steering Vectors" (arXiv:2506.18167)
+  - Use for steering vectors in thinking models, but not necessarily safety-specific.
+  - Good bridge from general reasoning-behavior steering to our safety/refusal steering.
+  - Link: https://arxiv.org/abs/2506.18167
+
+Which 5-10 papers should be prioritized
+- Minimum strong set of 7:
+  1. LLMs Encode Harmfulness and Refusal Separately.
+  2. Refusal in Language Models Is Mediated by a Single Direction.
+  3. Steering Llama 2 via Contrastive Activation Addition.
+  4. Where Do Reasoning Models Refuse?
+  5. Beyond a Single Direction: Chain-of-Thought Disrupts Simple Steering of Refusal.
+  6. Self-Jailbreaking.
+  7. Chain-of-Thought Hijacking.
+- Add these if space allows:
+  8. The Geometry of Refusal in LLMs: Concept Cones and Representational Independence.
+  9. Surgical, Cheap, and Flexible: Mitigating False Refusal via Single Vector Ablation.
+  10. Refusal Falls off a Cliff.
+
+Papers from the chat that are less central
+- General over-refusal papers are useful, but do not let them dominate the Related Work unless the report has an explicit over-refusal section. Our main story is harmfulness/refusal separation in thinking models, not only false refusal mitigation.
+- "Understanding Reasoning in Thinking Language Models via Steering Vectors" is relevant as method background, but less central than the CoT refusal papers because it studies reasoning behaviors such as uncertainty/backtracking rather than safety refusal specifically.
+
+
+4. How to connect Related Work to our report's novelty
+
+Key contrast paragraph idea
+- Earlier steering work shows that refusal in standard chat models can often be manipulated by a single activation direction.
+- The original harmfulness/refusal paper refines this by showing that harmfulness detection and refusal behavior are separable.
+- Recent reasoning-model papers show that CoT changes the refusal mechanism: the model may make, revise, or suppress safety decisions during reasoning.
+- Our report sits at this intersection: we test the harmfulness/refusal separation lens under thinking-model generation and inspect not only t_inst/t_post, but also CoT and template positions.
+
+Claim to avoid over-stating
+- Avoid saying "we prove refusal is not single-direction in Qwen3.5" unless the intervention and cosine/ablation results are fully verified.
+- Safer phrasing: "Our results suggest that the single-position view is incomplete for thinking models" or "the codebase is designed to test whether refusal directions depend on CoT/template slots."
+
+Potential final intro thesis sentence
+- "Overall, our experiments suggest that harmfulness/refusal separation remains a useful conceptual lens for thinking models, but the operational locus of refusal shifts from a single post-instruction boundary toward a distributed process involving the think template, reasoning trace, and answer boundary."
+
+
+5. Local evidence checklist from repo
+
+Files/scripts to cite internally while writing
+- final_as/README.md: original paper summary and key findings.
+- final_as/src/experiments_replication/_02_3.1_figure2.py: Figure 2 replication and thinking-slot extension.
+- final_as/src/experiments_replication/_03_3.2_figure3.py: Delta_harmful vs Delta_refuse scatter.
+- final_as/src/experiments_replication/_04_intervention.py: steering vectors and intervention pipeline.
+- final_as/src/experiments_replication/_table1_compare_acceptance_rates.py: judged refusal-rate table.
+- final_as/src/experiments_replication/output/try_think_without_tpost/summary.json: t_post stripping diagnostic.
+- final_as/src/experiments_replication/configs/bucketing/bucket_config_qwen35_think.json: genthink harmfulness_slot=0, refusal_slot=1.
+- final_as/src/experiments_replication/configs/bucketing/bucket_config_qwen35_nothink.json: gennothink harmfulness_slot=4, refusal_slot=24.
+
+Figures likely usable
+- Original/instruction-style:
+  - output/qwen7b/figure2_clean.png, figure3_clean.png.
+  - output/llama38b/figure2_clean.png, figure3_clean.png.
+- Thinking Qwen3.5:
+  - output/qwen359b/figure2_qwen35_think_judge.png.
+  - output/qwen359b/figure2_qwen35_nothink_judge.png.
+  - output/qwen359b/figure3_qwen35_think.png.
+  - output/qwen359b/figure3_qwen35_nothink.png.
+  - output/qwen359b/figure3_qwen35_nothink_stripped.png.
+
+Numbers already checked
+- Qwen3.5-9B judged refusal rates:
+  - genthink: harmful 93.9%, harmless 0.3%.
+  - gennothink: harmful 94.6%, harmless 1.0%.
+  - gennothink_stripped: harmful 94.4%, harmless 2.3%.
+  - stripped_v2: harmful 99.5% on AdvBench+JBB only; no harmless rows in the table.
+- Qwen3.5-0.8B post-token stripping diagnostic:
+  - full: 10 accepted, 30 refused, 25.0% acceptance.
+  - stripped: 7 accepted, 33 refused, 17.5% acceptance.
+  - hypothesis "stripped accepts more" is false.
+
