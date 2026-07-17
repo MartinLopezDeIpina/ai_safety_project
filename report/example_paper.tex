@@ -133,24 +133,9 @@ Across Qwen3.5-9B judged outputs, harmful refusal remains high across generation
 
 A smaller post-token stripping diagnostic on Qwen3.5-0.8B also does not support a single-token account: removing post-instruction tokens decreases harmful-prompt acceptance from 25.0\% to 17.5\% on the inspected AdvBench subset. This suggests that refusal in thinking-style prompting is not reducible to merely keeping or removing one post-instruction token.
 
-\subsection{Localization Changes in Thinking Models}
+\subsection{Figure 2: Localization Changes in Thinking Models}
 
-The Figure~2-style score in Appendix~\ref{fig:fig2-thinking} should be interpreted primarily as localization evidence: it shows where the representation resembles refused-harmful versus accepted-harmless anchors across layers and token positions. In the original paper, the relevant positions are mainly $t_{\text{inst}}$ and $t_{\text{post-inst}}$; in the thinking setting, comparable structure appears across think-template and answer-boundary positions as well. Thus, safety-relevant information remains present, but is distributed over more positions in reasoning models.
-\subsection{Harmfulness and Refusal Remain Separable Axes}
-
-The Figure~3-style scatter in Appendix~\ref{fig:fig3-thinking} provides the stronger evidence for separability. The $x$-axis measures harmfulness, while the $y$-axis measures refusal. A single monolithic safety direction would tend to collapse harmfulness and refusal into one axis. Instead, behavior categories can separate along the two dimensions: accepted harmful examples can retain high harmfulness while having low refusal, and refused harmless examples can show refusal without corresponding harmfulness. This is the key evidence that harmfulness and refusal are encoded separately. The thinking-model result therefore supports the original paper's conceptual claim, while also showing that the token positions carrying refusal are less localized than in non-reasoning models.
-\subsection{Jailbreak Geometry Also Supports Decoupling}
-
-The jailbreak analysis is relevant to the original paper's central claim because jailbreaks test whether refusal can be suppressed without erasing harmfulness recognition. We therefore project jailbreak prompt families into the same $\Delta$ harmful / $\Delta$ refuse plane (Appendix~\ref{fig:appendix-jailbreak-scatter}). Template jailbreaks move toward positive harmfulness but negative refusal, the expected signature of suppressing refusal while preserving a harmfulness representation. Evil-persona prompts form a different pattern: they shift away from the ordinary harmful-instruction region but retain positive refusal, and in the heuristic audit all 50 evil-persona examples are refused. GCG suffixes are more heterogeneous, indicating that suffix optimization can push prompts into several harmfulness/refusal regimes rather than one uniform jailbreak state. Thus, the jailbreak geometry extends the separability claim beyond clean harmful/harmless prompts to adversarial prompt families.
-\subsection{Auxiliary Projection Probes Track CoT Dynamics}
-
-The mini-project projection probes provide a complementary contribution: instead of only asking where the prompt-boundary representations lie, they track how steering directions interact with the generated reasoning process itself. Across the Qwen3-thinking layer sweep, CoT is preserved in all inspected modes, but inversion-style settings shorten the generated reasoning trace relative to non-inversion settings. The same runs show strong layer dependence in the $t_{\text{inst}}$ and $t_{\text{post-inst}}$ projection scores, especially in later layers. This supports the broader thesis of the report: once a model reasons before answering, harmfulness/refusal analysis should include not only static prompt positions but also the trajectory and length of the reasoning process. We include the detailed CoT-length and projection-score plots in Appendix~\ref{sec:appendix-cot-probes}.
-
-
-\appendix
-\section{Auxiliary Analyses}
-
-\subsection{Main Representation Figures}
+Figure~\ref{fig:fig2-thinking} shows the Figure~2-style score across the thinking layout. This figure should be interpreted primarily as localization evidence: it shows where the representation resembles refused-harmful versus accepted-harmless anchors across layers and token positions. In the original paper, the relevant positions are mainly $t_{\text{inst}}$ and $t_{\text{post-inst}}$; in the thinking setting, comparable structure appears across think-template and answer-boundary positions as well. Thus, Figure~2 supports the claim that safety-relevant information remains present, but is distributed over more positions in reasoning models.
 
 \begin{figure*}[t]
 \centering
@@ -159,16 +144,34 @@ The mini-project projection probes provide a complementary contribution: instead
 \label{fig:fig2-thinking}
 \end{figure*}
 
+\subsection{Figure 3: Harmfulness and Refusal Remain Separable Axes}
+
+Figure~\ref{fig:fig3-thinking} provides the stronger evidence for separability. The $x$-axis measures harmfulness, while the $y$-axis measures refusal. A single monolithic safety direction would tend to collapse harmfulness and refusal into one axis. Instead, behavior categories can separate along the two dimensions: accepted harmful examples can retain high harmfulness while having low refusal, and refused harmless examples can show refusal without corresponding harmfulness. This is the key evidence that harmfulness and refusal are encoded separately. The thinking-model result therefore supports the original paper's conceptual claim, while also showing that the token positions carrying refusal are less localized than in non-reasoning models.
+
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.62\textwidth]{figures/qwen35_figure3_think.png}
+\includegraphics[width=0.5\textwidth]{figures/qwen35_figure3_think.png}
 \caption{Figure~3-style harmfulness/refusal scatter for Qwen3.5-9B in the thinking setting. The two axes separate input harmfulness from refusal behavior, supporting the claim that the concepts are represented separately rather than as one monolithic safety signal.}
 \label{fig:fig3-thinking}
 \end{figure*}
 
+\subsection{Auxiliary Projection Probes Track CoT Dynamics}
+
+The projection probes provide a complementary contribution: instead of only asking where the prompt-boundary representations lie, they track how steering directions interact with the generated reasoning process itself. Across the Qwen3-thinking layer sweep, CoT is preserved in all inspected modes, but inversion-style settings shorten the generated reasoning trace relative to non-inversion settings. The same runs show strong layer dependence in the $t_{\text{inst}}$ and $t_{\text{post-inst}}$ projection scores, especially in later layers. This supports the broader thesis of the report: once a model reasons before answering, harmfulness/refusal analysis should include not only static prompt positions but also the trajectory and length of the reasoning process. We include the detailed CoT-length and projection-score plots in Appendix~\ref{sec:appendix-cot-probes}.
+
+
+\appendix
+\section{Auxiliary Analyses}
+
 \subsection{Jailbreak Geometry}
 
-Appendix Figure~\ref{fig:appendix-jailbreak-scatter} visualizes the jailbreak-family geometry discussed in the main results. Appendix Table~\ref{tab:appendix-compliance} gives the corresponding heuristic compliance audit.
+As an auxiliary analysis, we project several jailbreak prompt families into the same $\Delta$ harmful / $\Delta$ refuse space used for the main representation analysis. The goal is not to replace a full judge-based safety evaluation, but to check whether qualitatively different jailbreak mechanisms occupy different regions of the harmfulness/refusal plane. The resulting geometry is informative because the attack families do not collapse into one generic ``jailbreak'' cluster.
+
+The refused-harmful baseline occupies the upper-right region: both $\Delta$ harmful and $\Delta$ refuse are positive, matching the intended interpretation that the model recognizes the requests as harmful and refuses them. Template jailbreaks move in the opposite direction: they stay near positive $\Delta$ harmful but shift to negative $\Delta$ refuse, which is exactly the pattern expected from a jailbreak that does not erase the model's harmfulness representation but suppresses the refusal behavior. This mirrors the original paper's claim that jailbreaks can decouple harmfulness recognition from refusal.
+
+The evil-persona prompts form a very different cluster. They have negative $\Delta$ harmful but positive $\Delta$ refuse, suggesting that the persona framing changes the prompt representation away from the ordinary harmful-instruction region while still eliciting a refusal-like state. In the heuristic audit, this family produces 50/50 refusals, so in this run the evil-persona wrapper appears to strengthen or preserve refusal rather than inducing compliance.
+
+The GCG suffix prompts are more heterogeneous. Some points lie near the template-jailbreak region with low or negative refusal, while others retain positive refusal. This spread suggests that suffix optimization does not create one uniform latent effect; instead, individual suffixes can push the model into different harmfulness/refusal regimes. The persuasion prompts mostly occupy the lower-left region, with negative $\Delta$ harmful and negative $\Delta$ refuse, consistent with many responses becoming non-refusal diversions rather than direct harmful compliance. Overall, the scatter supports using the two-axis harmfulness/refusal geometry to compare jailbreak mechanisms, not only clean harmful and harmless prompts.
 
 \begin{figure*}[t]
 \centering
