@@ -37,3 +37,13 @@ venv/
 # and are regenerable with `_04_intervention.py --stage judge4`.
 **/intervention/generations/**/*.labels.json
 **/intervention_vectors/**
+# report
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+**/example_paper.pdf
