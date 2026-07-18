@@ -85,7 +85,7 @@ def run_gcg(mode: str = "gennothink", n_behaviors: int = 15, target_count: int =
             topk: int = 256, seed: int = 42, max_new_tokens: int = 200,
             verbosity: str = "INFO", run_name: str = "", early_stop: bool = False,
             use_jb_prompt: bool = False, cot_target: bool = False,
-            close_think: bool = False) -> str:
+            close_think: bool = False, left: int = 0) -> str:
     """Optimize suffixes and persist to /results/<run_name>_suffixes.jsonl (committed per behavior).
     run_name defaults to mode; give distinct names to run several experiments in parallel without
     clobbering each other on the volume. Returns the results filename."""
@@ -122,6 +122,7 @@ def run_gcg(mode: str = "gennothink", n_behaviors: int = 15, target_count: int =
             use_jb_prompt=use_jb_prompt,
             cot_target=cot_target,
             close_think=close_think,
+            left=left,
             commit_fn=gcg_results.commit,  # flush each behavior to the volume as it completes
         )
     except Exception:
@@ -207,6 +208,7 @@ def entry(mode: str = "gennothink",
           use_jb_prompt: bool = False,
           cot_target: bool = False,
           close_think: bool = False,
+          left: int = 0,
           gpu: str = "B300",
           timeout: int = 18000,
           wait: bool = True,
@@ -230,7 +232,7 @@ def entry(mode: str = "gennothink",
     fn = run_gcg.with_options(gpu=gpu, timeout=timeout)
     handle = fn.spawn(mode, n_behaviors, target_count, dataset, num_steps,
                       search_width, topk, seed, max_new_tokens, verbosity,
-                      run_name, early_stop, use_jb_prompt, cot_target, close_think)
+                      run_name, early_stop, use_jb_prompt, cot_target, close_think, left)
     if not wait:
         print(f"launched detached; collect later with:\n"
               f"  modal run src/experiments_replication/modal_gcg.py "

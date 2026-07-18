@@ -36,3 +36,4 @@ venv/
 # generations/). These labels are a pure function of those generations plus judge_config_thinking.json
 # and are regenerable with `_04_intervention.py --stage judge4`.
 **/intervention/generations/**/*.labels.json
+**/intervention_vectors/**

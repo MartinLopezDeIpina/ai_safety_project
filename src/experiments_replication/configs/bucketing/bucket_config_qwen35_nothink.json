@@ -4,15 +4,15 @@
   "harmfulness_slot": 4,
   "refusal_slot": 24,
   "families_train": [
-    ["refused_harmful", ["advbench_gennothink_refused", "jbb_gennothink_refused", "sorrybench_gennothink_accepted"]],
+    ["refused_harmful", ["advbench_gennothink_refused", "jbb_gennothink_refused"]],
     ["accepted_harmless", ["alpaca_gennothink_accepted", "xstest_gennothink_accepted"]],
-    ["accepted_harmful", ["advbench_gennothink_accepted", "jbb_gennothink_accepted", "sorrybench_gennothink_accepted"]],
+    ["accepted_harmful", ["gcg_advbench_gennothink_accepted"]],
     ["refused_harmless", []]
   ],
   "families_test": [
     ["refused_harmful", ["advbench_gennothink_refused", "jbb_gennothink_refused"]],
     ["accepted_harmless", ["alpaca_gennothink_accepted", "xstest_gennothink_accepted"]],
-    ["accepted_harmful", ["advbench_gennothink_accepted", "jbb_gennothink_accepted", "sorrybench_gennothink_accepted"]],
+    ["accepted_harmful", ["gcg_advbench_gennothink_accepted"]],
     ["refused_harmless", ["xstest_gennothink_refused"]]
   ]
 }

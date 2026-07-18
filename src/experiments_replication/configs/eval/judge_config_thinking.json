@@ -24,7 +24,8 @@
     "sorrybench_genthink",
     "sorrybench_gennothink",
     "sorrybench_gennothink_stripped",
-    "sorrybench_gennothink_stripped_v2"
+    "sorrybench_gennothink_stripped_v2",
+    "gcg_advbench_gennothink"
   ],
   "harmless": [
     "xstest_genthink",

@@ -257,6 +257,7 @@ def run_attack(
     use_jb_prompt=False,
     cot_target=False,
     close_think=False,
+    left=0,
     commit_fn=None,
 ):
     """Run GCG over the first ``max_attempts`` rows of ``dataset``, stopping once ``target_count``
@@ -279,7 +280,9 @@ def run_attack(
     if use_jb_prompt:
         from jailbreak_prompt import prompt as jb_template
 
-    rows = _read_jsonl(os.path.join(_DATA, dataset))[:max_attempts]
+    # Attack rows [left, left+max_attempts) — `left` lets a run cover a slice (e.g. behaviors 35..50)
+    # so it complements another run instead of redoing rows from 0.
+    rows = _read_jsonl(os.path.join(_DATA, dataset))[left:left + max_attempts]
     model, tokenizer = load_model()
 
     config = GCGConfig(
@@ -328,7 +331,7 @@ def run_attack(
         )
 
         record = {
-            "index": i,
+            "index": left + i,
             "query": q,
             "suffix": result.best_string,
             "target": target,

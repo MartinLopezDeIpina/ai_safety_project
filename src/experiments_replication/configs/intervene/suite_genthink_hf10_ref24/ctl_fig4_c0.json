@@ -1,0 +1,52 @@
+{
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_think_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "genthink",
+  "vectors": [
+    [
+      "hf_s10",
+      "harmful_all",
+      "harmless_all",
+      10
+    ],
+    [
+      "refusal_s24",
+      "harmful_all",
+      "harmless_all",
+      24
+    ]
+  ],
+  "random_vectors": [
+    [
+      "random_hf_s10",
+      "hf_s10"
+    ],
+    [
+      "random_refusal_s24",
+      "refusal_s24"
+    ]
+  ],
+  "random_seed": 0,
+  "layer_s": 8,
+  "layer_e": 20,
+  "max_decode_step_while_intervene": 1,
+  "batch_size": 64,
+  "left": 0,
+  "right": 50,
+  "_figure": "ctl_fig4",
+  "coeff": 0.0,
+  "max_token_generate": 4096,
+  "_comment": "Unsteered baseline for Figure 4 (harmless). Expect ~0% refusal.",
+  "experiments": [
+    [
+      "alpaca_data_instruction",
+      "hf_s10",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ]
+  ]
+}

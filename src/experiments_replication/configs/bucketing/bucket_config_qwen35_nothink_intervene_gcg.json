@@ -1,0 +1,18 @@
+{
+  "_comment": "GCG variant of bucket_config_qwen35_nothink_intervene.json. Same branch formula (harmful_all vs harmless_all, pooled across accepted AND refused, no train/test split), but the accepted-harmful examples now come from gcg_advbench (the GCG-attacked advbench that the model actually accepts) instead of the ~2 naive advbench/jbb 'acceptances', which were false positives. Kept sorrybench (accepted+refused) and the naive advbench/jbb REFUSED rows. Dropped advbench_gennothink_accepted and jbb_gennothink_accepted (2 rows each, misclassified). gcg_advbench_gennothink_refused is deliberately left out: those carry the adversarial suffix tokens, which shift the representation.",
+
+  "_caveat": "harmful_all is still ~93% refused (74 accepted vs ~997 refused) and harmless_all ~88% accepted, so v_hf = mu(harmful_all) - mu(harmless_all) remains partly a refused-vs-accepted (refusal) contrast. This is the pooled branch formula as requested; for a de-confounded harmfulness direction the pools would need balancing.",
+
+  "test_ratio": 0.0,
+  "seed": 0,
+  "families_train": [
+    ["harmful_all", ["gcg_advbench_gennothink_accepted",
+                     "advbench_gennothink_refused",
+                     "jbb_gennothink_refused",
+                     "sorrybench_gennothink_accepted",
+                     "sorrybench_gennothink_refused"]],
+    ["harmless_all", ["alpaca_gennothink_accepted", "alpaca_gennothink_refused",
+                      "xstest_gennothink_accepted", "xstest_gennothink_refused"]]
+  ],
+  "families_test": []
+}

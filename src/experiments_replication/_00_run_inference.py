@@ -182,6 +182,12 @@ RUNS_THINKING = [
     # jailbreak="test_prompt.txt").
     ("test_advbench.json", "test_advbench_genthink.json", "genthink"),
     ("test_advbench.json", "test_advbench_gennothink.json", "gennothink"),
+    # GCG accepted-harmful: qwen35 refuses naive harmful prompts, so gcg_attack.py produced
+    # accepted-harmful queries (jailbreak template + query + adversarial suffix). The generations file
+    # is pre-built by qwen35_jailbreak/gcg_to_generations.py (bad_q already carries jb+query+suffix,
+    # ori_output the attack reply), so there is NO infer step for this row — only eval/acts read it.
+    # Scope to it with only_datasets="gcg_advbench".
+    ("gennothink_gcg_advbench.json", "gcg_advbench_gennothink.json", "gennothink"),
 ]
 
 
@@ -304,7 +310,8 @@ def evaluate_thinking(model, model_size, use_judge=False,
     if use_judge:
         sys.path.insert(0, HERE)
         from judge_llm import reclassify_opposing
-        reclassify_opposing(model, model_size, judge_config, only_modes=only_modes)
+        reclassify_opposing(model, model_size, judge_config, only_modes=only_modes,
+                            only_datasets=only_datasets)
 
 
 def run_all_inference(model, model_size, left, right, only_datasets=None):

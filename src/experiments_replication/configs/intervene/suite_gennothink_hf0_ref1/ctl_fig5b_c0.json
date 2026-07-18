@@ -1,0 +1,53 @@
+{
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_nothink_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "gennothink",
+  "vectors": [
+    [
+      "hf_s0",
+      "harmful_all",
+      "harmless_all",
+      0
+    ],
+    [
+      "refusal_s1",
+      "harmful_all",
+      "harmless_all",
+      1
+    ]
+  ],
+  "random_vectors": [
+    [
+      "random_hf_s0",
+      "hf_s0"
+    ],
+    [
+      "random_refusal_s1",
+      "refusal_s1"
+    ]
+  ],
+  "random_seed": 0,
+  "layer_s": 8,
+  "layer_e": 20,
+  "max_decode_step_while_intervene": 1,
+  "batch_size": 64,
+  "left": 0,
+  "right": 200,
+  "_figure": "ctl_fig5b",
+  "coeff": 0.0,
+  "eval_mode": "inversion",
+  "max_token_generate": 100,
+  "_comment": "Unsteered baseline for Figure 5b (harmful). Expect mostly 'Certainly'.",
+  "experiments": [
+    [
+      "advbench",
+      "hf_s0",
+      0,
+      "bad_q",
+      0,
+      1,
+      1
+    ]
+  ]
+}

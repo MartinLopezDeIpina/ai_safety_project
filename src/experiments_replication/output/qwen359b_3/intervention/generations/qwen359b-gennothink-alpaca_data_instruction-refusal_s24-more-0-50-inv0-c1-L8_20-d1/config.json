@@ -1,0 +1,36 @@
+{
+  "_comment": "Config reconstructed from the run key \u2014 this directory is self-describing. Steering vector 'refusal_s24' from slot 24 (</think>); branch formula mu(harmful_all) - mu(harmless_all), datasets pooled across accepted AND refused, no train/test split. Re-run with modal_intervene.py using exactly these values.",
+  "_run_key": "qwen359b-gennothink-alpaca_data_instruction-refusal_s24-more-0-50-inv0-c1-L8_20-d1",
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_nothink_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "gennothink",
+  "vectors": [
+    [
+      "refusal_s24",
+      "harmful_all",
+      "harmless_all",
+      24
+    ]
+  ],
+  "layer_s": 8,
+  "layer_e": 20,
+  "coeff": 1.0,
+  "max_token_generate": 2048,
+  "max_decode_step_while_intervene": 1,
+  "_max_decode_step_note": "1 = steer the PROMPT only (prefill); -1 = steer the prompt AND every generated token.",
+  "batch_size": 64,
+  "left": 0,
+  "right": 50,
+  "experiments": [
+    [
+      "alpaca_data_instruction",
+      "refusal_s24",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ]
+  ]
+}

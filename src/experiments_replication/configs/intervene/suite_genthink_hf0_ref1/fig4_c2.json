@@ -1,0 +1,79 @@
+{
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_think_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "genthink",
+  "vectors": [
+    [
+      "hf_s0",
+      "harmful_all",
+      "harmless_all",
+      0
+    ],
+    [
+      "refusal_s1",
+      "harmful_all",
+      "harmless_all",
+      1
+    ]
+  ],
+  "random_vectors": [
+    [
+      "random_hf_s0",
+      "hf_s0"
+    ],
+    [
+      "random_refusal_s1",
+      "refusal_s1"
+    ]
+  ],
+  "random_seed": 0,
+  "layer_s": 8,
+  "layer_e": 20,
+  "max_decode_step_while_intervene": 1,
+  "batch_size": 64,
+  "left": 0,
+  "right": 50,
+  "_figure": "fig4",
+  "coeff": 2.0,
+  "max_token_generate": 4096,
+  "_comment": "Figure 4 (elicit refusal, harmless), coeff=2. Lines: hf_s0, refusal_s1, and their norm-matched random twins. A real direction that rises while its random twin stays flat is a directional effect.",
+  "experiments": [
+    [
+      "alpaca_data_instruction",
+      "hf_s0",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ],
+    [
+      "alpaca_data_instruction",
+      "refusal_s1",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ],
+    [
+      "alpaca_data_instruction",
+      "random_hf_s0",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ],
+    [
+      "alpaca_data_instruction",
+      "random_refusal_s1",
+      0,
+      "instruction",
+      0,
+      1,
+      0
+    ]
+  ]
+}

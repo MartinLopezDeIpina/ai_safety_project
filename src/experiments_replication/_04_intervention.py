@@ -107,39 +107,82 @@ def run_dir(model, model_size, key):
     return os.path.join(generations_dir(model, model_size), key)
 
 
+def _stream_family_mean(acts_dir, sources, slot):
+    """Per-source streaming mean of hidden states at one slot, dropping null (zero-norm) rows.
+
+    Loads each source .pt mmap'd and slices ONLY the requested slot, so the full (L,N,25,H) pool is
+    never materialised. gen_buckets_thinking instead cats every source at all 25 slots (~16GB for a
+    gennothink harmful pool), which OOMs a <32GB machine. The null-drop matches _slice_pos exactly,
+    and a mean is order-independent, so this returns the same vector as the in-memory path.
+
+    Returns (mean (L,H) fp32, n_rows_used).
+    """
+    total, n = None, 0
+    for src in sources:
+        path = os.path.join(acts_dir, src + ".pt")
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"activation source not found: {path}")
+        t = torch.load(path, map_location="cpu", mmap=True)[:, :, slot, :].float()  # (L,N,H)
+        t = t[:, (t.norm(dim=-1) > 0).all(dim=0)]       # drop null rows (matches _slice_pos)
+        if t.shape[1]:
+            s = t.sum(dim=1)
+            total = s if total is None else total + s
+            n += t.shape[1]
+        del t
+    return (None, 0) if n == 0 else (total / n, n)
+
+
 def build_vectors(model, model_size, cfg, save=True):
     """Compose steering directions from bucket families -> {name: (L, H) fp32}.
 
     Each cfg["vectors"] entry is [name, pos_family, neg_family, slot]: the direction is the
     difference of the two families' per-layer means at that slot. Anchors come from cfg["split"]
-    (default "train", matching Figure 2's anchors).
+    (default "train"). Streams per source (low memory) -- build_vectors is only ever called with an
+    intervene bucket config (families_test empty, no ratio split), so all rows of each source are
+    used; a ratio-split config (shared train/test source) is rejected rather than silently
+    mis-sampled.
     """
-    buckets = gen_buckets_thinking(model, model_size, cfg["bucket_config"],
-                                   use_judged=cfg.get("use_judged", True))
+    from dynamic_bucket_formation import _acts_dir
+
+    bc = cfg["bucket_config"]
+    bc_path = bc if os.path.isabs(bc) else os.path.join(HERE, bc)
+    with open(bc_path, encoding="utf-8") as f:
+        bcfg = json.load(f)
+
     split_name = cfg.get("split", "train")
-    if split_name not in buckets:
-        raise KeyError(f"split {split_name!r} not in buckets (have {sorted(buckets)})")
-    split = buckets[split_name]
+    fam_key = f"families_{split_name}"
+    if fam_key not in bcfg:
+        raise KeyError(f"{fam_key!r} not in bucket config {bc}")
+    train_srcs = {s for _, ss in bcfg.get("families_train", []) for s in ss}
+    test_srcs = {s for _, ss in bcfg.get("families_test", []) for s in ss}
+    if train_srcs & test_srcs:
+        raise ValueError(
+            f"bucket config {bc} shares sources between train and test ({sorted(train_srcs & test_srcs)}), "
+            f"which implies a ratio split build_vectors does not stream. Use an intervene bucket "
+            f"config (families_test empty)."
+        )
+    families = {name: srcs for name, srcs in bcfg[fam_key]}
+    acts_dir = _acts_dir(model, model_size, cfg.get("use_judged", True))
 
     vectors = {}
     for name, pos_family, neg_family, slot in cfg["vectors"]:
         for family in (pos_family, neg_family):
-            if family not in split:
+            if family not in families:
                 raise KeyError(
                     f"vector {name!r}: family {family!r} missing from the {split_name} split "
-                    f"(have {sorted(split)}). Check bucket_config's families_{split_name}."
+                    f"(have {sorted(families)}). Check bucket_config's {fam_key}."
                 )
-        pos = _slice_pos(split[pos_family], slot)  # (L, n, H) fp32
-        neg = _slice_pos(split[neg_family], slot)
-        for family, tensor in ((pos_family, pos), (neg_family, neg)):
-            if tensor.shape[1] == 0:
+        pos_mean, n_pos = _stream_family_mean(acts_dir, families[pos_family], slot)
+        neg_mean, n_neg = _stream_family_mean(acts_dir, families[neg_family], slot)
+        for family, nn in ((pos_family, n_pos), (neg_family, n_neg)):
+            if nn == 0:
                 raise ValueError(
                     f"vector {name!r}: family {family!r} has no non-null rows at slot {slot} "
                     f"({SLOT_LABELS.get(slot, '?')}). That slot is null for every row."
                 )
-        vectors[name] = pos.mean(dim=1) - neg.mean(dim=1)  # (L, H)
+        vectors[name] = pos_mean - neg_mean  # (L, H)
         print(f"  {name:16s} = mu({pos_family}) - mu({neg_family}) @ slot {slot} "
-              f"({SLOT_LABELS.get(slot, '?')})  [{pos.shape[1]} vs {neg.shape[1]} rows] "
+              f"({SLOT_LABELS.get(slot, '?')})  [{n_pos} vs {n_neg} rows] "
               f"-> {tuple(vectors[name].shape)}")
 
     # Norm-matched random controls: cfg["random_vectors"] = [[name, vector_to_match], ...]
@@ -150,12 +193,16 @@ def build_vectors(model, model_size, cfg, save=True):
     # enough shove at this layer breaks the model into refusal-shaped output" both predict the same
     # curve. A random direction with the SAME per-layer norm separates them: if it also elicits
     # refusal, the effect is magnitude, not direction, and the whole result collapses.
-    for name, match in cfg.get("random_vectors", []):
+    for i, (name, match) in enumerate(cfg.get("random_vectors", [])):
         if match not in vectors:
             raise KeyError(f"random vector {name!r} matches {match!r}, which is not in this config's "
                            f"vectors (have {sorted(vectors)})")
         ref = vectors[match]
-        g = torch.Generator().manual_seed(cfg.get("random_seed", 0))
+        # Per-vector seed offset: multiple random controls in one config must be INDEPENDENT random
+        # directions, not the same draw at different norms. Sharing one seed makes them collinear
+        # (cos ~ 1), which is a degenerate control and trips the cos>0.9 sanity check below.
+        seed = cfg.get("random_seed", 0) + i
+        g = torch.Generator().manual_seed(seed)
         r = torch.randn(ref.shape, generator=g, dtype=ref.dtype)
         # match the reference's norm layer by layer, so the perturbation size is identical at every
         # steered layer and only the direction differs
@@ -163,7 +210,7 @@ def build_vectors(model, model_size, cfg, save=True):
         vectors[name] = r
         cos = torch.nn.functional.cosine_similarity(r, ref, dim=-1).abs().mean()
         print(f"  {name:16s} = random, norm-matched to {match} "
-              f"(seed {cfg.get('random_seed', 0)}, |cos| to {match} = {cos:.4f})")
+              f"(seed {seed}, |cos| to {match} = {cos:.4f})")
 
     if save:
         out_dir = vectors_dir(model, model_size, cfg.get("thinking_mode", ""))

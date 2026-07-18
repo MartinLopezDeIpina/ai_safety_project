@@ -1,0 +1,89 @@
+{
+  "bucket_config": "configs/bucketing/bucket_config_qwen35_think_intervene.json",
+  "use_judged": true,
+  "split": "train",
+  "thinking_mode": "genthink",
+  "vectors": [
+    [
+      "hf_s3",
+      "harmful_all",
+      "harmless_all",
+      3
+    ],
+    [
+      "refusal_s15",
+      "harmful_all",
+      "harmless_all",
+      15
+    ]
+  ],
+  "random_vectors": [
+    [
+      "random_hf_s3",
+      "hf_s3"
+    ],
+    [
+      "random_refusal_s15",
+      "refusal_s15"
+    ]
+  ],
+  "random_seed": 0,
+  "layer_s": 8,
+  "layer_e": 20,
+  "max_decode_step_while_intervene": 1,
+  "batch_size": 64,
+  "left": 0,
+  "right": 50,
+  "_figure": "fig5b",
+  "coeff": 2.0,
+  "eval_mode": "inversion",
+  "max_token_generate": 4096,
+  "_comment": "Figure 5b (reply inversion, harmful), coeff=2. Model should say 'Certainly'. Prediction: REVERSE harmfulness flips it to 'No' (now seen as harmless); reverse refusal fails to.",
+  "experiments": [
+    [
+      "advbench",
+      "hf_s3",
+      1,
+      "bad_q",
+      0,
+      1,
+      1
+    ],
+    [
+      "advbench",
+      "refusal_s15",
+      0,
+      "bad_q",
+      0,
+      1,
+      1
+    ],
+    [
+      "advbench",
+      "refusal_s15",
+      1,
+      "bad_q",
+      0,
+      1,
+      1
+    ],
+    [
+      "advbench",
+      "random_hf_s3",
+      0,
+      "bad_q",
+      0,
+      1,
+      1
+    ],
+    [
+      "advbench",
+      "random_refusal_s15",
+      0,
+      "bad_q",
+      0,
+      1,
+      1
+    ]
+  ]
+}
