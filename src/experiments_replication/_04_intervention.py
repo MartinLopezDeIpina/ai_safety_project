@@ -596,7 +596,9 @@ def read_rates(run_dir):
 #  NUM_LAYERS=28 -- here the layers come from whatever the run dirs actually contain.)
 # ---------------------------------------------------------------------------
 
-COLORS = ["#E8766C", "#4A6FA5", "#158A8A"]  # harmfulness, refusal, third vector if present
+# One distinct colour per line. Needs >=5: a suite panel plots hf, refusal, a reverse variant, and
+# two random twins -- with only 3 the 4th/5th line reused hf's colour and looked like the hf effect.
+COLORS = ["#E8766C", "#4A6FA5", "#158A8A", "#8A5A9E", "#C9A227", "#7F7F7F"]
 
 
 def fig4_path(model, model_size, config_path):
@@ -652,8 +654,18 @@ def plot_figure4(model, model_size, cfg, out_path):
         label = {"hf": "harmfulness dir", "refusal": "refusal dir"}.get(vector, vector)
         if reverse:
             label = "reverse " + label
-        ax.plot(layers, rates, color=COLORS[i % len(COLORS)], label=label,
-                linewidth=2, marker="o", markersize=4)
+        color = COLORS[i % len(COLORS)]
+        # A layer is "degenerate" when EVERY row there was unscorable (all-NULL): at high coeff the
+        # steering breaks generation into output with no verdict, so read_rates returns nan. The line
+        # legitimately has no value there. Draw the line where it exists, and mark the degenerate
+        # layers with an x on a strip below 0 so the break is explained, not mysterious.
+        degen = [l for l, r in zip(layers, rates) if r != r]  # r != r  <=> nan
+        if degen:
+            label += f"  ({len(degen)} degen)"
+        ax.plot(layers, rates, color=color, label=label, linewidth=2, marker="o", markersize=4)
+        if degen:
+            ax.plot(degen, [-4] * len(degen), color=color, marker="x", markersize=6,
+                    linestyle="none", clip_on=False)
         plotted += 1
         if sum(dropped):
             # Rows excluded from the rate (unclosed CoT, or no parseable verdict). Printed
@@ -668,13 +680,27 @@ def plot_figure4(model, model_size, cfg, out_path):
         print("nothing to plot -- run the intervene and judge4 stages first")
         return
 
-    ax.set_title(f"{model}{model_size} — steering harmless instructions ({cfg['thinking_mode']})",
-                 fontsize=13)
+    # The inversion task ("Could this prompt cause harm? Certainly/No") is NOT a refusal task: the
+    # plotted value is the rate of the verdict "No" (= "harmless"). Label it as such so a drop reads
+    # as "the model flipped to Certainly (perceived harm)" rather than a change in refusal rate.
+    inversion = cfg.get("eval_mode") == "inversion"
+    harmful_ds = any(e[0] not in ("alpaca_data_instruction", "xstest-harmless") for e in cfg["experiments"])
+    steered = "harmful" if harmful_ds else "harmless"
+    if inversion:
+        ax.set_title(f"{model}{model_size} — reply inversion on {steered} prompts "
+                     f"(coeff {cfg['coeff']:g}, {cfg['thinking_mode']})", fontsize=12)
+        ax.set_ylabel("P(answer = 'No' → judged harmless) (%)", fontsize=12)
+    else:
+        ax.set_title(f"{model}{model_size} — eliciting refusal on {steered} prompts "
+                     f"(coeff {cfg['coeff']:g}, {cfg['thinking_mode']})", fontsize=12)
+        ax.set_ylabel("Refusal rate (%)", fontsize=12)
     ax.set_xlabel("Intervention layer", fontsize=12)
-    ax.set_ylabel("Refusal rate (%)", fontsize=12)
-    ax.set_ylim(-5, 105)
+    ax.set_ylim(-8, 105)
+    ax.axhline(-2, color="0.6", linewidth=0.6)
+    ax.text(0.005, 0.01, "×  = degenerate layer (no scorable verdict)", transform=ax.transAxes,
+            fontsize=8, color="0.35")
     ax.grid(True, alpha=0.3)
-    ax.legend(fontsize=11)
+    ax.legend(fontsize=9)
     fig.tight_layout()
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     fig.savefig(out_path, dpi=150, bbox_inches="tight")

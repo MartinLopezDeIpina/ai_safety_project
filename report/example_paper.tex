@@ -33,6 +33,7 @@
 \usepackage{amssymb}
 \usepackage{mathtools}
 \usepackage{amsthm}
+\usepackage{calligra}
 
 % if you use cleveref..
 \usepackage[capitalize,noabbrev]{cleveref}
@@ -55,17 +56,17 @@
 %    and comment out the line below the next line to turn off comments
 %\usepackage[disable,textsize=tiny]{todonotes}
 \usepackage[textsize=tiny]{todonotes}
+\usetikzlibrary{arrows.meta}
 
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{LLMs Encode Harmfulness and Refusal Separately}
+\icmltitlerunning{On the Separation of Harmfulness and Refusal in Reasoning Language Models}
 
 \begin{document}
 
 \twocolumn[
-\icmltitle{LLMs Encode Harmfulness and Refusal Separately \\
-           A Generalization To Thinking Models}
+\icmltitle{On the Separation of Harmfulness and Refusal in Reasoning Language Models}
 
 \icmlsetsymbol{equal}{*}
 
@@ -95,23 +96,34 @@ Recent work suggests that safety behavior in language models is not governed by 
 
 \section{Introduction}
 
-Safety-aligned large language models (LLMs) are expected to answer benign requests while refusing harmful ones. Failures in either direction matter: under-refusal creates unsafe compliance, while over-refusal blocks useful benign requests \citep{wang2024surgical, maskey2026overrefusal}. A central question is therefore whether models represent safety as one monolithic behavior, or whether they separately encode the harmfulness of a request and the decision to refuse it.
+Safety-aligned large language models (LLMs) are expected to answer benign requests while refusing harmful ones. Failures in either direction matter: under-refusal creates unsafe compliance, while over-refusal blocks useful benign requests \citep{wang2024surgical, maskey2026overrefusal}. Prior work often assumes that harmfulness is encoded by the
+refusal direction (inster cite), but Zhao J. proved that LLMs encode harmfulness and refusal separately on instruct models \citep{zhao2025harmfulness}. 
 
-Prior work gives evidence for the second view. \citet{zhao2025harmfulness} show that harmfulness and refusal can be separated in model representations: harmfulness is visible at the last instruction token, while refusal behavior is visible at the post-instruction boundary. This distinction explains why a model can still internally recognize a request as harmful even when a jailbreak suppresses the final refusal.
+Instruct models are trained to expect a chat template to recognize messages, Figure \ref{fig:tokens} ilustrates the chat template for different configurations on Qwen3.5 (insert cite). On this setting, the authors define \textbf{tinst} as the last token on the user query, and \textbf{tpost} as the last token on the prompt token. After finding that stripping the tpost token induces 22\% more accepted harmful queries, several experiments were conducted to show that the tinst token's activations encode harmfulness to a greater magnitude (replicated in Section \ref{todo}), whereas the tpost token encodes refusal to a greater magnitude. It was later causally proven that these two directions are distinct (replicated in Section \ref{todo}).
 
-Reasoning models make this picture less straightforward. A thinking model may identify harmfulness early, reason about policy or intent during its CoT, and only later decide how to answer. This raises the question we study: \textbf{does harmfulness/refusal separation still hold in thinking models, and where does refusal live once reasoning tokens are introduced?}
+\begin{figure*}[h]
+\centering
+\resizebox{\textwidth}{!}{%
+\input{figures/tokens.tex}
+}
+\caption{Chat template tokenization for thinking (a) and non-thinking (b) generation.}
+\label{fig:tokens}
+\end{figure*}
 
-We answer this by extending the original two-position analysis to thinking-model generations. Our main finding is that the separation remains a useful lens, but the localization changes: Figure~2-style layer curves show that safety-relevant scores move across prompt, think-template, CoT, and answer-boundary positions, while Figure~3-style scatter plots still separate harmfulness from refusal behavior. We additionally include auxiliary appendices on jailbreak prompt families and CoT-length/projection diagnostics.
+Reasoning models make this picture less straightforward. A thinking model may identify harmfulness early, reason about policy or intent during its CoT, and only later decide how to answer. This raises the question we study: \textbf{does harmfulness/refusal separation still hold in thinking models, and where does refusal live once reasoning tokens are introduced?} 
 
-\section{Related Work}
+For this matter, we search on thinking models on two different generation configurations: generation with a reasoning trace and generation without reasoning trace. Figure \ref{fig:tokens} rows a and b show the tokenizer template for these two configurations. 
 
-\paragraph{Activation steering and refusal directions.} Work on activation steering shows that behaviorally meaningful directions can be extracted from hidden states and used to modify model behavior without retraining \citep{turner2023activation, rimsky2024steering}. In safety settings, \citet{arditi2024refusal} show that refusal in chat models can often be mediated by a single residual-stream direction. This provides a natural starting point for studying refusal as a geometric object in activation space.
 
-\paragraph{Harmfulness, refusal, and over-refusal.} Our work directly builds on \citet{zhao2025harmfulness}, who argue that harmfulness and refusal are encoded separately rather than as a single safety axis. Related work complicates the geometry of refusal: refusal may occupy a concept cone or multiple directions rather than one vector \citep{wollschlager2025geometry, joad2026more}, and over-refusal can be task-dependent even when harmful refusal is comparatively low-dimensional \citep{wang2024surgical, maskey2026overrefusal}.
+\section{Datasets and Setup}
 
-\paragraph{Reasoning models and CoT safety.} Recent work suggests that reasoning changes the refusal mechanism. \citet{yamaguchi2026where} show that where and whether reasoning models refuse depends on CoT content, and \citet{yang2026beyond} find that simple refusal steering becomes less reliable once CoT is fixed. Other work shows that reasoning can create new jailbreak surfaces or alter safety decisions during generation \citep{yong2026selfjailbreaking, zhao2026cothijacking, refusalcliff2025}. These findings motivate analyzing not only prompt-boundary tokens, but also thinking and answer-boundary positions.
 
-\paragraph{Monitoring reasoning.} Finally, probe-based monitoring work asks whether unsafe final behavior can be predicted before a model finishes thinking \citep{predictalignment2025}. Steering-vector analyses of reasoning behavior more broadly also suggest that latent directions can reveal structure inside thinking models \citep{venhoff2025understanding}.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/dataset.png}
+\caption{Figure~2-style score curves for Qwen3.5-9B in the thinking setting. The multi-slot layout extends the original $t_{\text{inst}}$/$t_{\text{post-inst}}$ analysis to prompt, think-template, CoT, \texttt{</think>}, and answer positions.}
+\label{fig:fig2-thinking}
+\end{figure*}
 
 \section{Methodology}
 
@@ -158,6 +170,19 @@ Figure~\ref{fig:fig3-thinking} provides the stronger evidence for separability. 
 \subsection{Auxiliary Projection Probes Track CoT Dynamics}
 
 The projection probes provide a complementary contribution: instead of only asking where the prompt-boundary representations lie, they track how steering directions interact with the generated reasoning process itself. Across the Qwen3-thinking layer sweep, CoT is preserved in all inspected modes, but inversion-style settings shorten the generated reasoning trace relative to non-inversion settings. The same runs show strong layer dependence in the $t_{\text{inst}}$ and $t_{\text{post-inst}}$ projection scores, especially in later layers. This supports the broader thesis of the report: once a model reasons before answering, harmfulness/refusal analysis should include not only static prompt positions but also the trajectory and length of the reasoning process. We include the detailed CoT-length and projection-score plots in Appendix~\ref{sec:appendix-cot-probes}.
+
+\section{Conclusions}
+\section{Limitations}
+
+\section{Related Work}
+
+\paragraph{Activation steering and refusal directions.} Work on activation steering shows that behaviorally meaningful directions can be extracted from hidden states and used to modify model behavior without retraining \citep{turner2023activation, rimsky2024steering}. In safety settings, \citet{arditi2024refusal} show that refusal in chat models can often be mediated by a single residual-stream direction. This provides a natural starting point for studying refusal as a geometric object in activation space.
+
+\paragraph{Harmfulness, refusal, and over-refusal.} Our work directly builds on \citet{zhao2025harmfulness}, who argue that harmfulness and refusal are encoded separately rather than as a single safety axis. Related work complicates the geometry of refusal: refusal may occupy a concept cone or multiple directions rather than one vector \citep{wollschlager2025geometry, joad2026more}, and over-refusal can be task-dependent even when harmful refusal is comparatively low-dimensional \citep{wang2024surgical, maskey2026overrefusal}.
+
+\paragraph{Reasoning models and CoT safety.} Recent work suggests that reasoning changes the refusal mechanism. \citet{yamaguchi2026where} show that where and whether reasoning models refuse depends on CoT content, and \citet{yang2026beyond} find that simple refusal steering becomes less reliable once CoT is fixed. Other work shows that reasoning can create new jailbreak surfaces or alter safety decisions during generation \citep{yong2026selfjailbreaking, zhao2026cothijacking, refusalcliff2025}. These findings motivate analyzing not only prompt-boundary tokens, but also thinking and answer-boundary positions.
+
+\paragraph{Monitoring reasoning.} Finally, probe-based monitoring work asks whether unsafe final behavior can be predicted before a model finishes thinking \citep{predictalignment2025}. Steering-vector analyses of reasoning behavior more broadly also suggest that latent directions can reveal structure inside thinking models \citep{venhoff2025understanding}.
 
 
 \appendix

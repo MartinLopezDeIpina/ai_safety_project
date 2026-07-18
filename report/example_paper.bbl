@@ -1,54 +1,84 @@
-\begin{thebibliography}{8}
+\begin{thebibliography}{15}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Author(2021)]{anonymous}
-Author, N.~N.
-\newblock Suppressed for anonymity, 2021.
+\bibitem[Arditi et~al.(2024)Arditi, Obeso, Syed, Paleka, Panickssery, Gurnee, and Nanda]{arditi2024refusal}
+Arditi, A., Obeso, O., Syed, A., Paleka, D., Panickssery, N., Gurnee, W., and Nanda, N.
+\newblock Refusal in language models is mediated by a single direction.
+\newblock In \emph{Advances in Neural Information Processing Systems}, volume~37, pp.\  136037--136083, 2024.
 
-\bibitem[Duda et~al.(2000)Duda, Hart, and Stork]{DudaHart2nd}
-Duda, R.~O., Hart, P.~E., and Stork, D.~G.
-\newblock \emph{Pattern Classification}.
-\newblock John Wiley and Sons, 2nd edition, 2000.
+\bibitem[Chan(2025)]{predictalignment2025}
+Chan, Y.~S.
+\newblock Can we predict alignment before models finish thinking? towards monitoring misaligned reasoning models.
+\newblock arXiv preprint arXiv:2507.12428, 2025.
 
-\bibitem[Kearns(1989)]{kearns89}
-Kearns, M.~J.
-\newblock \emph{Computational Complexity of Machine Learning}.
-\newblock PhD thesis, Department of Computer Science, Harvard University, 1989.
+\bibitem[Joad et~al.(2026)Joad, Hawasly, Boughorbel, Durrani, and Sencar]{joad2026more}
+Joad, F., Hawasly, M., Boughorbel, S., Durrani, N., and Sencar, H.~T.
+\newblock There is more to refusal in large language models than a single direction.
+\newblock arXiv preprint arXiv:2602.02132, 2026.
 
-\bibitem[Langley(2000)]{langley00}
-Langley, P.
-\newblock Crafting papers on machine learning.
-\newblock In Langley, P. (ed.), \emph{Proceedings of the 17th International
-  Conference on Machine Learning (ICML 2000)}, pp.\  1207--1216, Stanford, CA,
-  2000. Morgan Kaufmann.
+\bibitem[Maskey et~al.(2026)Maskey, Dras, and Naseem]{maskey2026overrefusal}
+Maskey, U., Dras, M., and Naseem, U.
+\newblock Over-refusal and representation subspaces: A mechanistic analysis of task-conditioned refusal in aligned {LLMs}.
+\newblock arXiv preprint arXiv:2603.27518, 2026.
 
-\bibitem[Michalski et~al.(1983)Michalski, Carbonell, and
-  Mitchell]{MachineLearningI}
-Michalski, R.~S., Carbonell, J.~G., and Mitchell, T.~M. (eds.).
-\newblock \emph{Machine Learning: An Artificial Intelligence Approach, Vol. I}.
-\newblock Tioga, Palo Alto, CA, 1983.
+\bibitem[Rimsky et~al.(2024)Rimsky, Gabrieli, Schulz, Tong, Hubinger, and Turner]{rimsky2024steering}
+Rimsky, N., Gabrieli, N., Schulz, J., Tong, M., Hubinger, E., and Turner, A.~M.
+\newblock Steering {Llama} 2 via contrastive activation addition.
+\newblock arXiv preprint arXiv:2312.06681, 2024.
 
-\bibitem[Mitchell(1980)]{mitchell80}
-Mitchell, T.~M.
-\newblock The need for biases in learning generalizations.
-\newblock Technical report, Computer Science Department, Rutgers University,
-  New Brunswick, MA, 1980.
+\bibitem[Turner et~al.(2023)Turner, Thiergart, Leech, Udell, Vazquez, Mini, and MacDiarmid]{turner2023activation}
+Turner, A.~M., Thiergart, L., Leech, G., Udell, D., Vazquez, J.~J., Mini, U., and MacDiarmid, M.
+\newblock Activation addition: Steering language models without optimization.
+\newblock arXiv preprint arXiv:2308.10248, 2023.
 
-\bibitem[Newell \& Rosenbloom(1981)Newell and Rosenbloom]{Newell81}
-Newell, A. and Rosenbloom, P.~S.
-\newblock Mechanisms of skill acquisition and the law of practice.
-\newblock In Anderson, J.~R. (ed.), \emph{Cognitive Skills and Their
-  Acquisition}, chapter~1, pp.\  1--51. Lawrence Erlbaum Associates, Inc.,
-  Hillsdale, NJ, 1981.
+\bibitem[Venhoff et~al.(2025)Venhoff, Arcuschin, Torr, Conmy, and Nanda]{venhoff2025understanding}
+Venhoff, C., Arcuschin, I., Torr, P., Conmy, A., and Nanda, N.
+\newblock Understanding reasoning in thinking language models via steering vectors.
+\newblock arXiv preprint arXiv:2506.18167, 2025.
+\newblock Workshop on Reasoning and Planning for Large Language Models.
 
-\bibitem[Samuel(1959)]{Samuel59}
-Samuel, A.~L.
-\newblock Some studies in machine learning using the game of checkers.
-\newblock \emph{IBM Journal of Research and Development}, 3\penalty0
-  (3):\penalty0 211--229, 1959.
+\bibitem[Wang et~al.(2025)Wang, Hu, R\"ottger, and Plank]{wang2024surgical}
+Wang, X., Hu, C., R\"ottger, P., and Plank, B.
+\newblock Surgical, cheap, and flexible: Mitigating false refusal in language models via single vector ablation.
+\newblock In \emph{The Thirteenth International Conference on Learning Representations (ICLR)}, 2025.
+
+\bibitem[Wollschl\"ager et~al.(2025)Wollschl\"ager, Elstner, Geisler, Cohen-Addad, G\"unnemann, and Gasteiger]{wollschlager2025geometry}
+Wollschl\"ager, T., Elstner, J., Geisler, S., Cohen-Addad, V., G\"unnemann, S., and Gasteiger, J.
+\newblock The geometry of refusal in large language models: Concept cones and representational independence.
+\newblock In \emph{Proceedings of the 42nd International Conference on Machine Learning (ICML)}, 2025.
+
+\bibitem[Yamaguchi et~al.(2025)Yamaguchi, Etheridge, and Arditi]{yamaguchi2026where}
+Yamaguchi, K., Etheridge, B., and Arditi, A.
+\newblock Where do reasoning models refuse?
+\newblock arXiv preprint arXiv:2507.03167, 2025.
+
+\bibitem[Yang et~al.(2026)Yang, Meier, Zhao, Ruas, and Gipp]{yang2026beyond}
+Yang, K.-J., Meier, D., Zhao, J., Ruas, T., and Gipp, B.
+\newblock Beyond a single direction: Chain-of-thought disrupts simple steering of refusal.
+\newblock arXiv preprint arXiv:2605.26772, 2026.
+
+\bibitem[Yin et~al.(2025)Yin, Leong, Yang, Huang, Li, Wang, Yoon, YunXing, XingYu, and Gu]{refusalcliff2025}
+Yin, Q., Leong, C.~T., Yang, L., Huang, W., Li, W., Wang, X., Yoon, J., YunXing, XingYu, and Gu, J.
+\newblock Refusal falls off a cliff: How safety alignment fails in reasoning?
+\newblock arXiv preprint arXiv:2510.06036, 2025.
+
+\bibitem[Yong \& Bach(2025)Yong and Bach]{yong2026selfjailbreaking}
+Yong, Z.-X. and Bach, S.~H.
+\newblock Self-jailbreaking: Language models can reason themselves out of safety alignment after benign reasoning training.
+\newblock arXiv preprint arXiv:2510.20956, 2025.
+
+\bibitem[Zhao et~al.(2025{\natexlab{a}})Zhao, Fu, Schaeffer, Sharma, and Barez]{zhao2026cothijacking}
+Zhao, J., Fu, T., Schaeffer, R., Sharma, M., and Barez, F.
+\newblock Chain-of-thought hijacking.
+\newblock arXiv preprint arXiv:2510.26418, 2025{\natexlab{a}}.
+
+\bibitem[Zhao et~al.(2025{\natexlab{b}})Zhao, Huang, Wu, Bau, and Shi]{zhao2025harmfulness}
+Zhao, J., Huang, J., Wu, Z., Bau, D., and Shi, W.
+\newblock {LLMs} encode harmfulness and refusal separately.
+\newblock arXiv preprint arXiv:2507.11878, 2025{\natexlab{b}}.
 
 \end{thebibliography}
