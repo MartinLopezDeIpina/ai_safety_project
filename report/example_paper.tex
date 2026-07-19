@@ -35,7 +35,7 @@
 \usepackage{calligra}
 \usepackage{graphicx}
 \usepackage{subcaption}
-\usepackage{cuted}
+\usepackage{cuted}  
 
 % if you use cleveref..
 \usepackage[capitalize,noabbrev]{cleveref}
@@ -141,7 +141,7 @@ We base our manual bucketing on the following basis: \emph{(i)} Qwen3.5 has been
 
 
 \section{Methodology}
-In this section, we present our approach with the experiments we conducted. We first test in Section \ref{sec:strip} whether stripping the last tokens also decreases refusal like in Instruct models. Since that proves not effective, we then search for potential tokens with a strong harmful and refusal signal on Section \ 
+In this section, we present our approach with the experiments we conducted. We first test in Section \ref{sec:strip} whether stripping the last tokens also decreases refusal like in Instruct models. Since that proves not effective, we then search for potential tokens with a strong harmful and refusal signal on Section \ref{sec:activations}. We find that the tpost and gen1 tokens encode our desired behaviour on the non-thinking configuration. We confirm this belief in Section \ref{sec:corr}, clustering the buckets in a harmful and refusal score space. In Section \ref{sec:elicit_refusal} then we steer both directions individualy on harmless data points to elicit high refusal rates. We then try an inversion generation experiment in Section (insert cite) to causaly prove the direction separation. We fail to prove the separation, hence our conclusions. 
 
 \subsection{Token stripping generation} \label{sec:strip}
 We compare the refusal rate of 4 generation configurations on the AdvBench and JBB datasets. This corresponds to the thinking, non-thinking, and two stripped versions. For stripped version a, we only remove the last \texttt{\textbackslash n\textbackslash n} from the non-thinking configuration, which is codified as only one token. For stripped version b, we strip everything in the thinking configuration until the <|im\_start|> token. Results are shown in Table \ref{tab:refusal-rate}. Contrary to the Instruct models, none of the configurations shows a decrease in the refusal rate.
@@ -163,14 +163,14 @@ Strip B      & 98.9\% \\
 \end{table}
 
 \subsection{Activation visualization}
+\label{sec:activations}
 We plot each token's mean activations to search for harmfulness and refusal encoding patterns. Taking activations for a chosen token, we implement Equation \ref{eq:refusal_score}. We first compute the centroid of the correctly behaved clusters, $\mu_{\text{harmful}}^{\text{refused}}$ and $\mu_{\text{harmless}}^{\text{accepted}}$, using the bucketing explained in Section \ref{sec:datasets}. After this, $s_l$ is defined as the similarity of the mean activations for the chosen token at layer $l$. All the buckets are divided into an equal ratio train and test sets, to ensure that no activation is compared against a mean that cointains it's own value. 
 
-\begin{strip}
+
 \begin{equation}
-s_l(h_l) = \text{cos\_sim}\left(h_l, \mu_l^{\text{refused harmful}}\right) - \text{cos\_sim}\left(h_l, \mu_l^{\text{accepted harmless}}\right)
+\resizebox{0.92\linewidth}{!}{$\displaystyle s_l(h_l) = \text{cos\_sim}\left(h_l, \mu_l^{\text{refused harmful}}\right) - \text{cos\_sim}\left(h_l, \mu_l^{\text{accepted harmless}}\right)$}
 \label{eq:refusal_score}
 \end{equation}
-\end{strip}
 
 We use the activations of the opposing expected behavior to test the following hypothesis: if a token's representation is closer to the cluster matching its harmfulness label than to the cluster matching its expected behavior, then that token encodes harmfulness more strongly than refusal, and vice versa. For example, if accepted harmful query activations are closer to the refused harmful centroid, then this token encodes harmfulness to a greater magnitude than refusal; if instead they are closer to the accepted harmless centroid, then the refusal direction is more present. The same logic applies to refused harmless activations.
 
@@ -218,9 +218,53 @@ The thinking configuration tokens show less promising results. Appendix (insert 
 \label{fig:grid}
 \end{figure*}
 
-\subsection{}
+\subsection{Correlation between beliefs of harmfulness and refusal replication}
+\label{sec:corr}
+In this section, we plot the harmful score (Equation \ref{eq:delta_harmful}) and refusal score \ref{eq:delta_refuse} of each activation bucket for the non-thinking configuration using tpost as the harmful token and gen1 as the refusal token. We apply the same train and test split as in Section \ref{sec:activations}
+
+\begin{equation}
+\resizebox{0.92\linewidth}{!}{$\displaystyle \Delta_{\text{harmful}} = \frac{1}{L}\sum_{l=1}^{L}\left(\text{cos\_sim}\left(h_l^{t_{\text{post}}}, \mu_{l,\,\text{harmful}}^{t_{\text{post}}}\right) - \text{cos\_sim}\left(h_l^{t_{\text{post}}}, \mu_{l,\,\text{harmless}}^{t_{\text{post}}}\right)\right)$}
+\label{eq:delta_harmful}
+\end{equation}
+\begin{equation}
+\resizebox{0.92\linewidth}{!}{$\displaystyle \Delta_{\text{refuse}} = \frac{1}{L}\sum_{l=1}^{L}\left(\text{cos\_sim}\left(h_l^{t_{\text{gen1}}}, \mu_{l,\,\text{refuse}}^{t_{\text{gen1}}}\right) - \text{cos\_sim}\left(h_l^{t_{\text{gen1}}}, \mu_{l,\,\text{accept}}^{t_{\text{gen1}}}\right)\right)$}
+\label{eq:delta_refuse}
+\end{equation}
+
+Figure \ref{fig:figure3_qwen35_nothink} shows the resulting clusters, the four clusters are clearly defined on it's corresponging space. We note that the magnitude of the score is nearly half as the replication for the Qwen2 model, suggesting that although both directions are present, the directions might not be as distinct as expected.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/figure3_qwen35_nothink.png}
+\caption{Non-thinking generation activations for tpost and gen1 tokens clustered according to refusal and harmful score.}
+\label{fig:figure3_qwen35_nothink}
+\end{figure}
+
+\subsection{Refusal elicitation}
+\label{eq:elicit_refusal}
+We test our tinst and gen1 tokens activations to check whether we can elicit refusal. For each layer, we extract the harmful vector substracting the tpost token's mean harmless activation from the tpost mean harmful activation (Equation \ref{eq:v_harmful}). We apply the same logic with the refusal vector in Equation \ref{eq:v_refuse}. Afterwards, the computed vector on each layer is added to the model's residual stream while generating a response, multiplied by a magnitude coefficient. 
+
+\begin{equation}
+v_l^{\text{harmful}} = \mu_{l,\,\text{harmful}}^{t_{\text{post}}} - \mu_{l,\,\text{harmless}}^{t_{\text{post}}}
+\label{eq:v_harmful}
+\end{equation}
+\begin{equation}
+v_l^{\text{refuse}} = \mu_{l,\,\text{refuse}}^{t_{\text{gen1}}} - \mu_{l,\,\text{accept}}^{t_{\text{gen1}}}
+\label{eq:v_refuse}
+\end{equation}
+\begin{equation}
+h_l' = h_l + c * v_l^{\text{harmful}}
+\label{eq:h_prime}
+\end{equation}
 
 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/fig4.png}
+\caption{}
+\label{fig:fig4}
+\end{figure}
 
 \paragraph{Behavioral buckets.} We group examples by both prompt type and observed behavior: accepted harmful, refused harmful, accepted harmless, and refused harmless. These buckets let us distinguish whether a representation tracks input harmfulness, output refusal, or a mixture of both.
 

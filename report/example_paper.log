@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2025/dev/Debian) (preloaded format=pdflatex 2026.1.9)  19 JUL 2026 10:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2025/dev/Debian) (preloaded format=pdflatex 2026.1.9)  19 JUL 2026 13:05
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -801,54 +801,41 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
+LaTeX Warning: Reference `sec:elicit_refusal' on page 2 undefined on input line 144.
+
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
 [2 <./figures/dataset.png>]
-CUTED [- LAST -]
-Extra skip:118.86484pt
-Left:247.31462pt/0.0pt
-Right:126.28487pt/2.16492pt
-Split: 245.41345pt
-Output:245.41345pt
-Pageshrink: 0.0pt
-Pagestretch: 0.0pt
-@colht:650.43pt
-CUTED [output]: 245.41345pt
-CUTED [leftcolumn badness]: 86
-CUTED [rightcolumn badness]: 10000
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-<figures/tinst_qwen2.png, id=56, 513.47835pt x 383.031pt>
+<figures/tinst_qwen2.png, id=58, 513.47835pt x 383.031pt>
 File: figures/tinst_qwen2.png Graphic file (type png)
 <use figures/tinst_qwen2.png>
 Package pdftex.def Info: figures/tinst_qwen2.png  used on input line 188.
 (pdftex.def)             Requested size: 117.08008pt x 87.33548pt.
-<figures/tpost_qwen2.png, id=57, 513.47835pt x 383.031pt>
+<figures/tpost_qwen2.png, id=59, 513.47835pt x 383.031pt>
 File: figures/tpost_qwen2.png Graphic file (type png)
 <use figures/tpost_qwen2.png>
 Package pdftex.def Info: figures/tpost_qwen2.png  used on input line 189.
 (pdftex.def)             Requested size: 117.08008pt x 87.33548pt.
-<figures/think_tinst.png, id=58, 513.47835pt x 382.66965pt>
+<figures/think_tinst.png, id=60, 513.47835pt x 382.66965pt>
 File: figures/think_tinst.png Graphic file (type png)
 <use figures/think_tinst.png>
 Package pdftex.def Info: figures/think_tinst.png  used on input line 196.
 (pdftex.def)             Requested size: 117.08008pt x 87.25308pt.
-<figures/think_tpost.png, id=59, 513.8397pt x 382.66965pt>
+<figures/think_tpost.png, id=61, 513.8397pt x 382.66965pt>
 File: figures/think_tpost.png Graphic file (type png)
 <use figures/think_tpost.png>
 Package pdftex.def Info: figures/think_tpost.png  used on input line 197.
 (pdftex.def)             Requested size: 117.08008pt x 87.18886pt.
-<figures/nothink_tinst.png, id=60, 513.8397pt x 382.66965pt>
+<figures/nothink_tinst.png, id=62, 513.8397pt x 382.66965pt>
 File: figures/nothink_tinst.png Graphic file (type png)
 <use figures/nothink_tinst.png>
 Package pdftex.def Info: figures/nothink_tinst.png  used on input line 204.
 (pdftex.def)             Requested size: 117.08008pt x 87.18886pt.
-<figures/nothink_tpost.png, id=61, 513.8397pt x 382.66965pt>
+<figures/nothink_tpost.png, id=63, 513.8397pt x 382.66965pt>
 File: figures/nothink_tpost.png Graphic file (type png)
 <use figures/nothink_tpost.png>
 Package pdftex.def Info: figures/nothink_tpost.png  used on input line 205.
@@ -857,77 +844,96 @@ File: figures/nothink_tpost.png Graphic file (type png)
 <use figures/nothink_tpost.png>
 Package pdftex.def Info: figures/nothink_tpost.png  used on input line 212.
 (pdftex.def)             Requested size: 117.08008pt x 87.18886pt.
-<figures/nothink_gen1.png, id=62, 513.47835pt x 382.66965pt>
+<figures/nothink_gen1.png, id=64, 513.47835pt x 382.66965pt>
 File: figures/nothink_gen1.png Graphic file (type png)
 <use figures/nothink_gen1.png>
 Package pdftex.def Info: figures/nothink_gen1.png  used on input line 213.
 (pdftex.def)             Requested size: 117.08008pt x 87.25308pt.
+<figures/figure3_qwen35_nothink.png, id=69, 440.847pt x 396.40096pt>
+File: figures/figure3_qwen35_nothink.png Graphic file (type png)
+<use figures/figure3_qwen35_nothink.png>
+Package pdftex.def Info: figures/figure3_qwen35_nothink.png  used on input line 238.
+(pdftex.def)             Requested size: 176.15813pt x 158.39426pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Underfull \vbox (badness 1320) has occurred while \output is active []
+
 
 
 [3]
+
+<figures/fig4.png, id=90, 1036.87375pt x 735.74875pt>
+File: figures/fig4.png Graphic file (type png)
+<use figures/fig4.png>
+Package pdftex.def Info: figures/fig4.png  used on input line 264.
+(pdftex.def)             Requested size: 176.15813pt x 124.99704pt.
+
+
+[4 <./figures/tinst_qwen2.png> <./figures/tpost_qwen2.png> <./figures/think_tinst.png> <./figures/think_tpost.png> <./figures/nothink_tinst.png> <./figures/nothink_tpost.png> <./figures/nothink_gen1.png> <./figures/figure3_qwen35_nothink.png> <./figures/fig4.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-<figures/qwen35_figure2_think_judge.png, id=78, 1814.9406pt x 1293.633pt>
+<figures/qwen35_figure2_think_judge.png, id=110, 1814.9406pt x 1293.633pt>
 File: figures/qwen35_figure2_think_judge.png Graphic file (type png)
 <use figures/qwen35_figure2_think_judge.png>
-Package pdftex.def Info: figures/qwen35_figure2_think_judge.png  used on input line 249.
+Package pdftex.def Info: figures/qwen35_figure2_think_judge.png  used on input line 293.
 (pdftex.def)             Requested size: 390.25948pt x 278.16515pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-[4 <./figures/tinst_qwen2.png> <./figures/tpost_qwen2.png> <./figures/think_tinst.png> <./figures/think_tpost.png> <./figures/nothink_tinst.png> <./figures/nothink_tpost.png> <./figures/nothink_gen1.png>]
-<figures/qwen35_figure3_think.png, id=98, 441.5697pt x 396.40096pt>
+<figures/qwen35_figure3_think.png, id=112, 441.5697pt x 396.40096pt>
 File: figures/qwen35_figure3_think.png Graphic file (type png)
 <use figures/qwen35_figure3_think.png>
-Package pdftex.def Info: figures/qwen35_figure3_think.png  used on input line 260.
+Package pdftex.def Info: figures/qwen35_figure3_think.png  used on input line 304.
 (pdftex.def)             Requested size: 243.91124pt x 218.95872pt.
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
-
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-[5 <./figures/qwen35_figure2_think_judge.png>]
+[5]
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[6 <./figures/qwen35_figure3_think.png>]
-<figures/section4_jailbreak_scatter.png, id=162, 460.72125pt x 399.6531pt>
+[6 <./figures/qwen35_figure2_think_judge.png>]
+<figures/section4_jailbreak_scatter.png, id=183, 460.72125pt x 399.6531pt>
 File: figures/section4_jailbreak_scatter.png Graphic file (type png)
 <use figures/section4_jailbreak_scatter.png>
-Package pdftex.def Info: figures/section4_jailbreak_scatter.png  used on input line 298.
+Package pdftex.def Info: figures/section4_jailbreak_scatter.png  used on input line 342.
 (pdftex.def)             Requested size: 351.23279pt x 304.67253pt.
-<figures/data_probe_cot_length.png, id=165, 751.608pt x 243.309pt>
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+<figures/data_probe_cot_length.png, id=186, 751.608pt x 243.309pt>
 File: figures/data_probe_cot_length.png Graphic file (type png)
 <use figures/data_probe_cot_length.png>
-Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 332.
+Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 376.
 (pdftex.def)             Requested size: 463.42987pt x 150.02211pt.
-<figures/data_probe_layer_sweep.png, id=166, 787.9839pt x 503.481pt>
+<figures/data_probe_layer_sweep.png, id=187, 787.9839pt x 503.481pt>
 File: figures/data_probe_layer_sweep.png Graphic file (type png)
 <use figures/data_probe_layer_sweep.png>
-Package pdftex.def Info: figures/data_probe_layer_sweep.png  used on input line 339.
+Package pdftex.def Info: figures/data_probe_layer_sweep.png  used on input line 383.
 (pdftex.def)             Requested size: 463.42987pt x 296.10626pt.
- (./example_paper.bbl
+(./example_paper.bbl
+
+[7 <./figures/qwen35_figure3_think.png>]
 
 
+
+[8 <./figures/section4_jailbreak_scatter.png>]
 Underfull \hbox (badness 2334) in paragraph at lines 75--78
 []\T1/ptm/m/n/10 (+20) Zhao, J., Fu, T., Scha-ef-fer, R., Sharma, M., and
  []
 
 )
 
-[7] [8 <./figures/section4_jailbreak_scatter.png> <./figures/data_probe_cot_length.png>] [9 <./figures/data_probe_layer_sweep.png>] (./example_paper.aux)
+
+
+[9
+
+ <./figures/data_probe_cot_length.png>] [10 <./figures/data_probe_layer_sweep.png>] (./example_paper.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -940,18 +946,18 @@ Package rerunfilecheck Info: File `example_paper.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 29109 strings out of 473197
- 541751 string characters out of 5718606
- 947416 words of memory out of 5000000
- 51581 multiletter control sequences out of 15000+600000
- 611246 words of font info for 247 fonts, out of 8000000 for 9000
+ 29158 strings out of 473197
+ 542732 string characters out of 5718606
+ 948187 words of memory out of 5000000
+ 51616 multiletter control sequences out of 15000+600000
+ 612456 words of font info for 250 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,11n,101p,1073b,742s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on example_paper.pdf (9 pages, 2835372 bytes).
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on example_paper.pdf (10 pages, 2991696 bytes).
 PDF statistics:
- 264 PDF objects out of 1000 (max. 8388607)
- 196 compressed objects within 2 object streams
- 56 named destinations out of 1000 (max. 500000)
- 53326 words of extra memory for PDF output out of 61914 (max. 10000000)
+ 299 PDF objects out of 1000 (max. 8388607)
+ 222 compressed objects within 3 object streams
+ 65 named destinations out of 1000 (max. 500000)
+ 55384 words of extra memory for PDF output out of 61914 (max. 10000000)
 
