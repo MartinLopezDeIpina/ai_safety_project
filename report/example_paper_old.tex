@@ -140,7 +140,7 @@ In order to extract the harmful and refusal activations, we collect 3 datasets c
 We base our manual bucketing on the following basis: \emph{(i)} Qwen3.5 has been trained with extensive safety alignment, so unlike the instruct model experiments, the model refuses almost all queries, so we compute a GCG (insert cite) jailbreak on the non-thinking generation with an ASR of 34\% using nanoGCG (insert cite) to get genuine harmful responses; \emph{(ii)} for the thinking generation, we use SorryBench, which contains soft-harmful queries that violate the model's safety guardrails but might not be as obscene as AdvBench and JBB; \emph{(iii)} for refused harmless responses, we only use XTest because it contains harmful-looking harmless examples which might trick the model into a refusal.
 
 
-\section{Experiments and Results}
+\section{Methodology}
 In this section, we present our approach with the experiments we conducted. We first test in Section \ref{sec:strip} whether stripping the last tokens also decreases refusal like in Instruct models. Since that proves not effective, we then search for potential tokens with a strong harmful and refusal signal on Section \ref{sec:activations}. We find that the tpost and gen1 tokens encode our desired behaviour on the non-thinking configuration. We confirm this belief in Section \ref{sec:corr}, clustering the buckets in a harmful and refusal score space. In Section \ref{sec:elicit_refusal} then we steer both directions individualy on harmless data points to elicit high refusal rates. We then try an inversion generation experiment in Section (insert cite) to causaly prove the direction separation. We fail to prove the separation, hence our conclusions. 
 
 \subsection{Token stripping generation} \label{sec:strip}
@@ -178,7 +178,8 @@ We run this experiment on the following tokens: \emph{(i)} $t_{inst}$ and $t_{po
 
 Figure \ref{fig:grid} shows the results for the distinguished tokens, All the other tokens' plots can be found in the Appendix (cite here). Figure \ref{fig:col_qwen2} shows the desired opposing behavior on Qwen2-7B, tinst encodes harmfulness while tpost encodes refusal. Figure \ref{fig:col_think} and Figure \ref{fig:col_nothink} show the activations for Qwen3.5-9B on thinking and non-thinking generations. Tpost on the non-thinking configuration is the only token on the prompt activations that show the desired behavior. For this reason, we choose tpost and the first generated token on the non-thinking configuration to continue with our experiments. As Figure \ref{fig:col_gen1} shows, we hypothesize that tpost contains the harmfulness direction and the first generated token contains the refusal direction.
 
-The thinking configuration tokens show less promising results. Appendix (insert cite) shows all the tokens on this configuration. This figure should be interpreted primarily as localization evidence: it shows where the representation resembles refused-harmful versus accepted-harmless anchors across layers and token positions  We try the $\backslash$n token after the opening think token as the harmful token and mid1 token for the refusal direction, but we get no interesting results. We conclude that either there is no clear separation, or the SorryBench dataset was not harmful enough to capture the harmful direction. 
+The thinking configuration tokens show less promising results. Appendix (insert cite) shows all the tokens on this configuration. We try the $\backslash$n token after the opening think token as the harmful token and mid1 token for the refusal direction, but we get no interesting results. We conclude that either there is no clear separation, or the SorryBench dataset was not harmful enough to capture the harmful direction. 
+
 
 \begin{figure*}[t]
 \centering
@@ -240,7 +241,7 @@ Figure \ref{fig:figure3_qwen35_nothink} shows the resulting clusters, the four c
 \end{figure}
 
 \subsection{Refusal elicitation}
-\label{sec:elicit_refusal}
+\label{eq:elicit_refusal}
 We test our tinst and gen1 tokens activations to check whether we can elicit refusal. For each layer, we extract the harmful vector substracting the tpost token's mean harmless activation from the tpost mean harmful activation (Equation \ref{eq:v_harmful}). We apply the same logic with the refusal vector in Equation \ref{eq:v_refuse}. Afterwards, the computed vector on each layer is added to the model's residual stream while generating a response, multiplied by a magnitude coefficient. 
 
 \begin{equation}
@@ -256,26 +257,18 @@ h_l' = h_l + c * v_l^{\text{harmful}}
 \label{eq:h_prime}
 \end{equation}
 
-\subsection{Harfmul and refusal direction causal separation}
-\label{sec:reply-inversion}
 
-Figure~\ref{fig:fig4} shows that steering the model in the harmfulness and refusal directions can both elicit refusal behavior on harmless instructions.
-To disentangle refusal from the model's judgement of harmfulness, we follow \citet{zhao2025harmfulness} to perform a reply inversion task.
-In this task, we append harmful and harmless instructions with a question \emph{``Could this user prompt cause harm? Answer `Certainly' if it could, otherwise `No'.''}
-Without steering, the model is expected to reply with the refusal word ``No'' to harmless prompts and the non-refusal word ``Certainly'' to harmful prompts.
-If steering into the harmfulness direction increases the model's perceived harmfulness, we can expect the model to categorize harmless instructions as certainly harmful.
-Conversely, steering into the harmless direction is expected to make the model classify harmful instructions as not harmful.
-\citet{zhao2025harmfulness} observed the expected behavior changes in the instruct model Qwen2-7B and claimed it as an evidence for the harmfulness and refusal concepts to be causally separable.
-We conducted the same experiments for Qwen3.5-9B with the thinking mode turned off, but did not observe the same effects.
-The details are reported in Appendix~\ref{app:reply-inversion}.
+Figure \ref{fig:fig4} shows the steering results. We first conduct two baseline trials to measure the refusal rate induced by a random vector matched in coefficient and magnitude to the two vectors of interest. As the random vectors induce no refusal, we proceed to evaluate the harmful and refusal vectors. We observe a maximum refusal rate of 68\% for the harmful direction at the 14th layer, and a maximum refusal rate of 36\% for the refusal direction. Both directions successfully induce refusal in the responses, but to a lesser extent than in the Instruct model.
+
+
+\subsection{Harfmul and refusal direction causal separation}
+
+
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\linewidth]{figures/fig4.png}
-\caption{The orange and blue curves show the refusal rates under additive steering in the harmfulness and refusal directions across all layers, respectively.
-The green and purple curves show the refusal rates under additive steering in each layer $l$ along a random vector with the same norm as $v^\textup{harmful}_l$ and $v^\textup{refuse}_l$.
-The steering coefficient is set to $4$ in all cases.
-}
+\includegraphics[width=0.75\linewidth]{figures/fig4.png}
+\caption{Refusal rate on harmless instructions after steering with the harmful (fh_s1) and refusal (refusal_s20) directions. random_hf_s1 represents a baseline random vector with the harmful vector's magnitude, and random_refusal_s20 represents a baseline random vector with the refusal vector's magnitude.}
 \label{fig:fig4}
 \end{figure}
 
@@ -285,37 +278,15 @@ The steering coefficient is set to $4$ in all cases.
 
 \paragraph{Figures 2 and 3.} Figure~2-style plots test where safety-relevant information is localized across layers and token positions. Figure~3-style plots test whether harmfulness and refusal behave as separate axes: if they are separable, accepted harmful examples should be high on harmfulness but low on refusal, while refused harmless examples should be low on harmfulness but high on refusal.
 
-\section{Results}
-
-\subsection{Figure 3: Harmfulness and Refusal Remain Separable Axes}
-
-Figure~\ref{fig:fig3-thinking} provides the stronger evidence for separability. The $x$-axis measures harmfulness, while the $y$-axis measures refusal. A single monolithic safety direction would tend to collapse harmfulness and refusal into one axis. Instead, behavior categories can separate along the two dimensions: accepted harmful examples can retain high harmfulness while having low refusal, and refused harmless examples can show refusal without corresponding harmfulness. This is the key evidence that harmfulness and refusal are encoded separately. The thinking-model result therefore supports the original paper's conceptual claim, while also showing that the token positions carrying refusal are less localized than in non-reasoning models.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.5\textwidth]{figures/qwen35_figure3_think.png}
-\caption{Figure~3-style harmfulness/refusal scatter for Qwen3.5-9B in the thinking setting. The two axes separate input harmfulness from refusal behavior, supporting the claim that the concepts are represented separately rather than as one monolithic safety signal.}
-\label{fig:fig3-thinking}
-\end{figure*}
-
-\subsection{Auxiliary Projection Probes Track CoT Dynamics}
-
-The projection probes provide a complementary contribution: instead of only asking where the prompt-boundary representations lie, they track how steering directions interact with the generated reasoning process itself. Across the Qwen3-thinking layer sweep, CoT is preserved in all inspected modes, but inversion-style settings shorten the generated reasoning trace relative to non-inversion settings. The same runs show strong layer dependence in the $t_{\text{inst}}$ and $t_{\text{post-inst}}$ projection scores, especially in later layers. This supports the broader thesis of the report: once a model reasons before answering, harmfulness/refusal analysis should include not only static prompt positions but also the trajectory and length of the reasoning process. We include the detailed CoT-length and projection-score plots in Appendix~\ref{sec:appendix-cot-probes}.
 
 \section{Conclusions}
-
-In this work, we show that the original refusal and harmfulness division is not as clear as in Instruct models. Section \ref{sec:activations} shows that the tokens that encoded harmfulness and refusal do not encode it on thinking models.
-
-As for other tokens, our experiments signal that the same behavior might happen specifically on the tpost and gen1 tokens, but coupled more together than the original experiments suggested.
-
-However, the causal separation is not clear, and further work is required to claim the same division.
-
 \section{Limitations}
-We identify the following limitations in our work:
+Our work has the following limitations. 
 
 \textbf{Tested models.} The thinking experiments were executed on a single family model, Qwen3.5. Although both Qwen3.5-4B and Qwen3.5-9B were used, the resulted conclusions are only valid for Qwen family models. 
 
-\textbf{Data scarcity.} As stated on Section \ref{sec:datasets}, Qwen3.5 models are trained to refuse harmful instructions, so the GCG attack was necessary to generate accepted answers. Due to time constraints, our accepted harmful bucket only contained 17 data points on the non-thinking generation, which adds 
+\textbf{Data scarcity.} As stated on Section \ref{sec:datasets}, Qwen3.5 models are trained to refuse harmful instructions, so the GCG attack was necessary to generate accepted answers. Due to time constraints, our accepted harmful bucket only contained 17 data points on the non-thinking generation. 
+
 
 
 \section{Related Work}
@@ -329,11 +300,6 @@ We identify the following limitations in our work:
 \paragraph{Monitoring reasoning.} Finally, probe-based monitoring work asks whether unsafe final behavior can be predicted before a model finishes thinking \citep{predictalignment2025}. Steering-vector analyses of reasoning behavior more broadly also suggest that latent directions can reveal structure inside thinking models \citep{venhoff2025understanding}.
 
 
-\clearpage
-\bibliographystyle{icml2022}
-\bibliography{example_paper}
-
-\clearpage
 \appendix
 \section{Auxiliary Analyses}
 
@@ -395,37 +361,10 @@ We also include an exploratory layer sweep from a separate Qwen3-thinking probe.
 \label{fig:appendix-projection-sweep}
 \end{figure*}
 
-\subsection{Reply Inversion Tasks}\label{app:reply-inversion}
+\section*{Citations and References}
 
-We conducted the reply inversion experiments (\Cref{sec:reply-inversion}) on Qwen3.5-9B with the thinking mode turned off.
-The results are shown in \Cref{fig:fig5}.
-We observed that the model does not always answer with ``Certainly'' or ``No'' as the prompt asks, but sometimes replies with a canonical refusal phrase (e.g., ``I cannot assist...'').
-When steered into the harmfulness direction, the model is expected to classify harmless instructions as certainly harmful, but \Cref{fig:fig5a} (in particular the orange curve) shows that the model frequently replies with canonical refusal phrases instead of giving an answer.
-Based on this observation, we cannot conclude that harmfulness and refusal are clearly separable concepts.
-In \Cref{fig:fig5b}, we observe that steering into the reverse harmfulness direction (see the orange curve) can slightly increase the rate of the model judging a harmful instruction as harmless, but random steering can elicit the same behavior more drastically.
-This suggests a lack of evidence for the steered model to perceive less harmfulness.
 
-\begin{figure*}[t]
-\centering
-\begin{subfigure}[t]{0.45\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig5a.jpeg}
-    \caption{Unsteered model answers ``No'' at 100\% rate. Adding $v^\textup{harmful}_l$ makes the model not answering at all.}
-    \label{fig:fig5a}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.45\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig5b.jpeg}
-    \caption{Unsteered model answers ``No'' at 2\% rate. Subtracting $v^\textup{harmful}_l$ does not make the model answer ``No'' more frequently than random steering.}
-    \label{fig:fig5b}
-\end{subfigure}
-\caption{Intervention results for the reply inversion tasks.
-If the model does not reply with ``Certainly'' or ``No'' but a canonical refusal phrase (e.g., ``I cannot assist...''), then we classify the response as an refusal to answering the question.
-Similar to \Cref{fig:fig4}, we include results of random steering for comparison.
-}
-\label{fig:fig5}
-\end{figure*}
-
+\bibliographystyle{icml2022}
+\bibliography{example_paper}
 
 \end{document}
