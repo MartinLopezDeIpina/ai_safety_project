@@ -93,15 +93,16 @@
 
 
 \begin{abstract}
-Recent work suggests that safety behavior in language models is not governed by a single latent signal: models can encode whether a request is harmful separately from whether they refuse it. We study whether this separation persists in reasoning or ``thinking'' models, where a chain of thought intervenes between the user request and the final answer. Across Qwen3.5 thinking, non-thinking, and stripped-template settings, we find that refusal behavior remains strong on harmful prompts while harmless over-refusal remains low. At the representation level, the harmfulness/refusal lens continues to organize model behavior, but refusal-related information is less cleanly localized at a single post-instruction boundary and instead interacts with think-template and reasoning positions. These results suggest that harmfulness/refusal separation remains useful for reasoning models, while simple single-token accounts of refusal become incomplete.
+Recent work suggests that safety behavior in language models is not governed by a single latent signal: models can encode whether a request is harmful separately from whether they refuse it. We study whether this separation persists in reasoning or ``thinking'' models, where a chain of thought intervenes between the user request and the final answer. We design a harmful and harmless dataset pipeline to test this. Across Qwen3.5 thinking, non-thinking, and stripped-template settings, we conduct multiple activation analyses to separate refusal from harmfulness. The results suggest that although these directions are no longer present at the same positions as in the Instruct models, the same separation is visible at different token positions. However, causal division is yet to be confirmed.
+
 \end{abstract}
 
 \section{Introduction}
 
 Safety-aligned large language models (LLMs) are expected to answer benign requests while refusing harmful ones. Failures in either direction matter: under-refusal creates unsafe compliance, while over-refusal blocks useful benign requests \citep{wang2024surgical, maskey2026overrefusal}. Prior work often assumes that harmfulness is encoded by the
-refusal direction (inster cite), but Zhao J. showed that LLMs encode harmfulness and refusal separately on instruct models \citep{zhao2025harmfulness}. 
+refusal direction \citep{arditi2024refusallanguagemodelsmediated}, but Zhao J. showed that LLMs encode harmfulness and refusal separately in instruct models \citep{zhao2025harmfulness}. We build on this work to design our experiments, and will refer to it throughout the remainder of this paper.
 
-Instruct models are trained to expect a chat template in order to recognize messages; Figure \ref{fig:tokens} illustrates the chat template for different configurations on Qwen3.5 (insert cite). In this setting, the authors define \textbf{tinst} as the last token of the user query, and \textbf{tpost} as the last token of the prompt tokens. After finding that stripping the tpost token induces 22\% more accepted harmful queries, the authors conducted several experiments to show that the tinst token's activations encode harmfulness to a greater magnitude (replicated in Section \ref{todo}), whereas the tpost token encodes refusal to a greater magnitude. It was later causally shown that these two directions are distinct (replicated in Section \ref{todo}).
+Instruct models are trained to expect a chat template in order to recognize messages; Figure \ref{fig:tokens} illustrates the chat template for different configurations in Qwen3.5 \citep{qwen3.5}. In this setting, the authors define $t_{\text{inst}}$ as the last token of the user query, and $t_{\text{post}}$ as the last token of the prompt tokens. After finding that stripping the $t_{\text{post}}$ token induces 22\% more accepted harmful queries, they conducted several activation analyses to show that the $t_{\text{inst}}$ token's activations encode harmfulness to a greater magnitude, whereas the $t_{\text{post}}$ token encodes refusal to a greater magnitude. It was later demonstrated that the two directions are separated.
 
 \begin{figure*}[h]
 \centering
@@ -114,17 +115,16 @@ Instruct models are trained to expect a chat template in order to recognize mess
 
 Reasoning models make this picture less straightforward. A thinking model may identify harmfulness early, reason about policy or intent during its CoT, and only later decide how to answer. This raises the question we study: \textbf{does harmfulness/refusal separation still hold in thinking models, and where does refusal live once reasoning tokens are introduced?} 
 
-For this matter, we search on thinking models on two different generation configurations: generation with a reasoning trace and generation without reasoning trace. Figure \ref{fig:tokens} rows a and b show the tokenizer template for these two configurations.
+For this matter, we search in thinking models under two different generation configurations: generation with a reasoning trace and generation without a reasoning trace. Figure \ref{fig:tokens}, rows b and c, show the tokenizer template for these two configurations.
 
-
-\section{Datasets and Setup}
+\section{Setup and Datasets}
 \label{sec:datasets}
 
-In this section, we explain our experiments' datasets and configuration.
+In this section, we describe the datasets and configuration used in our experiments.
 
-We first reproduced the original paper's experiments on Qwen2-7B (insert cite) and Llama3-8B (insert cite). After that, we ran our experiments on Qwen3.5-9B. We use the recommended sampling configuration, see Appendix (insert cite). For the judge model, we use Qwen3.5-4B, with few-shot examples containing thinking traces to reduce overthinking (insert cite).
+We first reproduced the original paper's experiments on Qwen2-7B \citep{qwen2} and Llama3-8B \citep{llama3modelcard}. We then ran our experiments on Qwen3.5-9B, using the recommended sampling configuration (see Appendix \ref{ap:confg}). For the judge model, Qwen3.5-4B was used, with few-shot examples containing thinking traces to reduce overthinking \citep{ge2025innatereasoningenoughincontext}.
 
-In order to extract the harmful and refusal activations, we collect 3 datasets containing harmful queries: AdvBench (insert cite), SorryBench (insert cite) and JBB (insert cite), and 2 datasets containing harmless queries: XTest (insert cite) and Alpaca (insert cite). After that, we conduct the two-step pipeline shown in Figure \ref{fig:datasets}:
+In order to extract the harmful and refusal activations, we collect 3 datasets containing harmful queries: AdvBench \citep{chen2022should}, SorryBench \citep{xie2025sorrybenchsystematicallyevaluatinglarge} and JailbreakBench (JBB) \citep{chao2024jailbreakbench}, and 2 datasets containing harmless queries: XTest \citep{röttger2024xstesttestsuiteidentifying} and Alpaca \citep{alpaca}.We then apply the two-step pipeline shown in Figure \ref{fig:datasets}:
 
 \begin{figure*}[t]
 \centering
@@ -135,16 +135,15 @@ In order to extract the harmful and refusal activations, we collect 3 datasets c
 
 \textbf{Dataset manual bucketing}. The datasets are first combined according to their behavior (harmful or harmless) and generation configuration (thinking or non-thinking).
 
-\textbf{Response evaluation}. After running the datasets' queries through the model, the generated responses are classified as refused (the model refused to answer due to safety concerns) or accepted (the model answered the query). The responses are first evaluated with a direct match against a common refusal sentence list (insert cite). After this, a judge model evaluates only the opposing behavior buckets, which are more likely to be misclassified (accepted harmful and refused harmless buckets).
+\textbf{Response evaluation}. After running the datasets' queries through the model, the generated responses are classified as refused (the model refused to answer due to safety concerns) or accepted (the model answered the query). The responses are first evaluated with a direct match against a common refusal sentence list \citep{zou2023universaltransferableadversarialattacks}. Then, a judge model evaluates only the opposing-behavior buckets, which are more likely to be misclassified (accepted harmful and refused harmless buckets).
 
-We base our manual bucketing on the following basis: \emph{(i)} Qwen3.5 has been trained with extensive safety alignment, so unlike the instruct model experiments, the model refuses almost all queries, so we compute a GCG (insert cite) jailbreak on the non-thinking generation with an ASR of 34\% using nanoGCG (insert cite) to get genuine harmful responses; \emph{(ii)} for the thinking generation, we use SorryBench, which contains soft-harmful queries that violate the model's safety guardrails but might not be as obscene as AdvBench and JBB; \emph{(iii)} for refused harmless responses, we only use XTest because it contains harmful-looking harmless examples which might trick the model into a refusal.
-
+Our manual bucketing is based on the following: \emph{(i)} Qwen3.5 has been trained with extensive safety alignment, so unlike in the instruct model experiments, the model refuses almost all queries; we therefore compute a Greedy Coordinate Gradient (GCG) \citep{zou2023universal} jailbreak on the non-thinking generation with an ASR of 34\% using nanoGCG to obtain genuine harmful responses; \emph{(ii)} for the thinking generation, we use SorryBench, which contains soft-harmful queries that violate the model's safety guardrails but might not be as obscene as AdvBench and JBB; \emph{(iii)} for refused harmless responses, we only use XTest because it contains harmful-looking harmless examples that might trick the model into a refusal.
 
 \section{Experiments and Results}
-In this section, we present our approach with the experiments we conducted. We first test in Section \ref{sec:strip} whether stripping the last tokens also decreases refusal like in Instruct models. Since that proves not effective, we then search for potential tokens with a strong harmful and refusal signal on Section \ref{sec:activations}. We find that the tpost and gen1 tokens encode our desired behaviour on the non-thinking configuration. We confirm this belief in Section \ref{sec:corr}, clustering the buckets in a harmful and refusal score space. In Section \ref{sec:elicit_refusal} then we steer both directions individualy on harmless data points to elicit high refusal rates. We then try an inversion generation experiment in Section (insert cite) to causaly prove the direction separation. We fail to prove the separation, hence our conclusions. 
+In this section, we present our approach along with the experiments we conducted. We first test in Section \ref{sec:strip} whether stripping the last tokens also decreases refusal as in Instruct models. Since this proves ineffective, we then search for potential tokens with a strong harmful and refusal signal in Section \ref{sec:activations}. We find that the tpost and gen1 tokens encode our desired behavior in the non-thinking configuration. We confirm this in Section \ref{sec:corr} by clustering the buckets in a harmful and refusal score space. In Section \ref{sec:elicit_refusal}, we then steer both directions individually on harmless data points to elicit high refusal rates. We then try the inversion generation experiment proposed by the authors in Section \ref{sec:reply-inversion} to causally prove the direction separation. The results are inconclusive, suggesting that this experiment may not be well suited to these models, which motivates our conclusions.
 
 \subsection{Token stripping generation} \label{sec:strip}
-We compare the refusal rate of 4 generation configurations on the AdvBench and JBB datasets. This corresponds to the thinking, non-thinking, and two stripped versions. For stripped version a, we only remove the last \texttt{\textbackslash n\textbackslash n} from the non-thinking configuration, which is codified as only one token. For stripped version b, we strip everything in the thinking configuration until the <|im\_start|> token. Results are shown in Table \ref{tab:refusal-rate}. Contrary to the Instruct models, none of the configurations shows a decrease in the refusal rate.
+We compare the refusal rate across 4 generation configurations on the AdvBench and JBB datasets. These correspond to the thinking, non-thinking, and two stripped versions. For stripped version A, we only remove the last \texttt{\textbackslash n\textbackslash n} from the non-thinking configuration, which is encoded as a single token. For stripped version B, we strip everything in the thinking configuration up to the <|im\_start|> token. Results are shown in Table \ref{tab:refusal-rate}. Contrary to the Instruct models, none of the configurations shows a decrease in refusal rate.
 
 \begin{table}[h]
 \centering
@@ -164,7 +163,8 @@ Strip B      & 98.9\% \\
 
 \subsection{Activation visualization}
 \label{sec:activations}
-We plot each token's mean activations to search for harmfulness and refusal encoding patterns. Taking activations for a chosen token, we implement Equation \ref{eq:refusal_score}. We first compute the centroid of the correctly behaved clusters, $\mu_{\text{harmful}}^{\text{refused}}$ and $\mu_{\text{harmless}}^{\text{accepted}}$, using the bucketing explained in Section \ref{sec:datasets}. After this, $s_l$ is defined as the similarity of the mean activations for the chosen token at layer $l$. All the buckets are divided into an equal ratio train and test sets, to ensure that no activation is compared against a mean that cointains it's own value. 
+
+We plot each token's mean activations to search for harmfulness and refusal encoding patterns. Taking the activations for a chosen token, we compute Equation \ref{eq:refusal_score}. We first compute the centroids of the correctly behaved clusters, $\mu_{\text{harmful}}^{\text{refused}}$ and $\mu_{\text{harmless}}^{\text{accepted}}$, using the bucketing explained in Section \ref{sec:datasets}. Then, $s_l$ is defined as the similarity of the mean activations for the chosen token at layer $l$. All the buckets are split into equally sized train and test sets, to ensure that no activation is compared against a mean that contains its own value.
 
 
 \begin{equation}
@@ -174,11 +174,9 @@ We plot each token's mean activations to search for harmfulness and refusal enco
 
 We use the activations of the opposing expected behavior to test the following hypothesis: if a token's representation is closer to the cluster matching its harmfulness label than to the cluster matching its expected behavior, then that token encodes harmfulness more strongly than refusal, and vice versa. For example, if accepted harmful query activations are closer to the refused harmful centroid, then this token encodes harmfulness to a greater magnitude than refusal; if instead they are closer to the accepted harmless centroid, then the refusal direction is more present. The same logic applies to refused harmless activations.
 
-We run this experiment on the following tokens: \emph{(i)} $t_{inst}$ and $t_{post}$ tokens; \emph{(ii)} $\backslash$n and thinking tag tokens; \emph{(iii)} a set of 15 selected tokens in the CoT, for which we take the first 5 tokens of the CoT, the last 5 tokens of the CoT, and 5 selected middle tokens — for the middle tokens, we divide the CoT into 5 groups (excluding the first and last 5) and take the middle index of each group; \emph{(iv)} the first 3 generated tokens.
+We run this experiment on the following tokens: \emph{(i)} $t_{inst}$ and $t_{post}$ tokens; \emph{(ii)} \textbackslash n and thinking tag tokens; \emph{(iii)} a set of 15 selected tokens in the CoT: the first 5 tokens of the CoT, the last 5 tokens of the CoT, and 5 selected middle tokens. For the middle tokens, we divide the CoT into 5 groups (excluding the first and last 5) and take the middle index of each group; \emph{(iv)} the first 3 generated tokens.
 
-Figure \ref{fig:grid} shows the results for the distinguished tokens, All the other tokens' plots can be found in the Appendix (cite here). Figure \ref{fig:col_qwen2} shows the desired opposing behavior on Qwen2-7B, tinst encodes harmfulness while tpost encodes refusal. Figure \ref{fig:col_think} and Figure \ref{fig:col_nothink} show the activations for Qwen3.5-9B on thinking and non-thinking generations. Tpost on the non-thinking configuration is the only token on the prompt activations that show the desired behavior. For this reason, we choose tpost and the first generated token on the non-thinking configuration to continue with our experiments. As Figure \ref{fig:col_gen1} shows, we hypothesize that tpost contains the harmfulness direction and the first generated token contains the refusal direction.
-
-The thinking configuration tokens show less promising results. Appendix (insert cite) shows all the tokens on this configuration. This figure should be interpreted primarily as localization evidence: it shows where the representation resembles refused-harmful versus accepted-harmless anchors across layers and token positions  We try the $\backslash$n token after the opening think token as the harmful token and mid1 token for the refusal direction, but we get no interesting results. We conclude that either there is no clear separation, or the SorryBench dataset was not harmful enough to capture the harmful direction. 
+Figure \ref{fig:grid} shows the results for the distinguished tokens; all the other tokens' plots can be found in the Appendix (cite here). Figure \ref{fig:col_qwen2} shows the desired opposing behavior on Qwen2-7B: tinst encodes harmfulness while tpost encodes refusal. Figure \ref{fig:col_think} and Figure \ref{fig:col_nothink} show the activations for Qwen3.5-9B on thinking and non-thinking generations. Tpost in the non-thinking configuration is the only token among the prompt activations that shows the desired behavior. For this reason, we choose tpost and the first generated token in the non-thinking configuration to continue our experiments. As Figure \ref{fig:col_gen1} shows, we hypothesize that $t_{post}$ contains the harmfulness direction and the first generated token ($t_{gen1}$)  contains the refusal direction.
 
 \begin{figure*}[t]
 \centering
@@ -216,6 +214,8 @@ The thinking configuration tokens show less promising results. Appendix (insert 
 \caption{}
 \label{fig:grid}
 \end{figure*}
+
+The thinking configuration tokens show less promising results. Appendix \ref{ap:plots} shows all the tokens on this configuration. This figure should be interpreted primarily as localization evidence: it shows where the representation resembles refused-harmful versus accepted-harmless anchors across layers and token positions  We try the $\backslash$n token after the opening think token as the harmful token and mid1 token for the refusal direction, but we get no interesting results. We conclude that either there is no clear separation, or the SorryBench dataset was not harmful enough to capture the harmful direction. 
 
 \subsection{Correlation between beliefs of harmfulness and refusal replication}
 \label{sec:corr}
@@ -335,6 +335,165 @@ We identify the following limitations in our work:
 
 \clearpage
 \appendix
+\section{Configuration details}
+\label{ap:confg}
+
+The generation was configured with the following decoding parameters:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\texttt{temperature} & $1.0$ \\
+\texttt{top\_p} & $0.95$ \\
+\texttt{top\_k} & $20$ \\
+\texttt{min\_p} & $0.0$ \\
+\texttt{presence\_penalty} & $1.5$ \\
+\bottomrule
+\end{tabular}
+\caption{Decoding hyperparameters used for generation in Qwen3.5-9B.}
+\label{tab:config}
+\end{table}
+
+\section{Activations Plots}
+\label{ap:plots}
+\begin{figure*}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/00_slot00.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/01_slot01.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/02_slot02.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/03_slot03.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/04_slot04.png}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/05_slot24.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/06_slot20.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/07_slot21.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/08_slot22.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/nothink_run/09_slot23.png}
+    \end{subfigure}
+
+    \caption{No-think run.}
+    \label{fig:app_nothink}
+\end{figure*}
+
+
+\begin{figure*}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/00_slot00.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/01_slot01.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/02_slot02.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/03_slot03.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/04_slot04.png}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/05_slot05.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/06_slot06.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/07_slot07.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/08_slot08.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/09_slot09.png}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/10_slot10.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/11_slot11.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/12_slot12.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/13_slot13.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/14_slot14.png}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/15_slot15.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/16_slot16.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/17_slot17.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/18_slot18.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/19_slot19.png}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/20_slot24.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/21_slot20.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/22_slot21.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/23_slot22.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\textwidth]{figures/think_run/24_slot23.png}
+    \end{subfigure}
+
+    \caption{Think run.}
+    \label{fig:app_think}
+\end{figure*}
+
 \section{Auxiliary Analyses}
 
 \subsection{Jailbreak Geometry}

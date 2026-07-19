@@ -3,44 +3,49 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: example_paper.aux
 The style file: icml2022.bst
 Database file #1: example_paper.bib
-You've used 15 entries,
+Warning--to sort, need author or key in qwen2
+Warning--empty author in qwen2
+Warning--empty journal in qwen2
+Warning--empty journal in llama3modelcard
+You've used 27 entries,
             2773 wiz_defined-function locations,
-            659 strings with 8120 characters,
-and the built_in function-call counts, 8022 in all, are:
-= -- 638
-> -- 709
-< -- 4
-+ -- 238
-- -- 222
-* -- 678
-:= -- 1256
-add.period$ -- 46
-call.type$ -- 15
-change.case$ -- 119
-chr.to.int$ -- 14
-cite$ -- 30
-duplicate$ -- 277
-empty$ -- 540
-format.name$ -- 239
-if$ -- 1654
-int.to.chr$ -- 2
+            705 strings with 10684 characters,
+and the built_in function-call counts, 15024 in all, are:
+= -- 1165
+> -- 1431
+< -- 6
++ -- 483
+- -- 453
+* -- 1332
+:= -- 2386
+add.period$ -- 82
+call.type$ -- 27
+change.case$ -- 232
+chr.to.int$ -- 24
+cite$ -- 59
+duplicate$ -- 490
+empty$ -- 936
+format.name$ -- 481
+if$ -- 3049
+int.to.chr$ -- 4
 int.to.str$ -- 1
-missing$ -- 3
-newline$ -- 84
-num.names$ -- 60
-pop$ -- 284
+missing$ -- 8
+newline$ -- 144
+num.names$ -- 104
+pop$ -- 544
 preamble$ -- 1
-purify$ -- 104
+purify$ -- 205
 quote$ -- 0
-skip$ -- 276
+skip$ -- 497
 stack$ -- 0
-substring$ -- 86
-swap$ -- 36
+substring$ -- 111
+swap$ -- 52
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 165
-warning$ -- 0
-while$ -- 48
+type$ -- 297
+warning$ -- 4
+while$ -- 81
 width$ -- 0
-write$ -- 191
+write$ -- 333
+(There were 4 warnings)

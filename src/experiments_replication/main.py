@@ -262,14 +262,13 @@ if __name__ == "__main__":
     # Experiments-only smoke for qwen 0.5b (activations already computed). Uncomment the GPU
     # stages to regenerate generations/classified_generations/activations from scratch.
     # main("qwen", "0.5b", stages=("infer", "eval", "acts"))
-    main("qwen", "7b",
+    main("qwen35", "9b",
          stages=("fig",),  # note the trailing comma
-         #bucket_config="configs/bucketing/bucket_config_qwen35_think.json",
-         bucket_config="configs/bucketing/bucket_config_clean.json",
+         bucket_config="configs/bucketing/bucket_config_qwen35_think.json",
          bucket_config_nothink="configs/bucketing/bucket_config_qwen35_nothink.json",
          bucket_config_stripped="configs/bucketing/bucket_config_qwen35_nothink_stripped.json",
          bucket_config_stripped_v2="configs/bucketing/bucket_config_qwen35_nothink_stripped_v2.json",
-         thinking=False,
+         thinking=True,
          use_judged_classifications=True,
          one_image_per_figure=True)
     """
