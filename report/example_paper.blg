@@ -3,49 +3,44 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: example_paper.aux
 The style file: icml2022.bst
 Database file #1: example_paper.bib
-Warning--I didn't find a database entry for "turner2022activation"
-Warning--I didn't find a database entry for "zhao2024harmfulness"
-Warning--I didn't find a database entry for "yamaguchi2025where"
-Warning--I didn't find a database entry for "predictalignment2024"
-You've used 24 entries,
+You've used 27 entries,
             2773 wiz_defined-function locations,
-            699 strings with 21081 characters,
-and the built_in function-call counts, 44826 in all, are:
-= -- 2927
-> -- 6928
-< -- 4
-+ -- 2313
-- -- 2286
-* -- 4963
-:= -- 7784
-add.period$ -- 73
-call.type$ -- 24
-change.case$ -- 834
-chr.to.int$ -- 21
-cite$ -- 48
-duplicate$ -- 437
-empty$ -- 841
-format.name$ -- 2312
-if$ -- 8381
+            707 strings with 21552 characters,
+and the built_in function-call counts, 46138 in all, are:
+= -- 3033
+> -- 7034
+< -- 5
++ -- 2349
+- -- 2319
+* -- 5064
+:= -- 7991
+add.period$ -- 82
+call.type$ -- 27
+change.case$ -- 854
+chr.to.int$ -- 24
+cite$ -- 54
+duplicate$ -- 484
+empty$ -- 939
+format.name$ -- 2348
+if$ -- 8653
 int.to.chr$ -- 4
 int.to.str$ -- 1
 missing$ -- 6
-newline$ -- 129
-num.names$ -- 96
-pop$ -- 1736
+newline$ -- 144
+num.names$ -- 108
+pop$ -- 1786
 preamble$ -- 1
-purify$ -- 810
+purify$ -- 827
 quote$ -- 0
-skip$ -- 1072
+skip$ -- 1119
 stack$ -- 0
-substring$ -- 104
-swap$ -- 51
+substring$ -- 110
+swap$ -- 54
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 264
+type$ -- 297
 warning$ -- 0
-while$ -- 75
+while$ -- 84
 width$ -- 0
-write$ -- 299
-(There were 4 warnings)
+write$ -- 335
