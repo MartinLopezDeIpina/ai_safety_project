@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.11.13)  19 JUL 2026 17:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.11.13)  19 JUL 2026 18:06
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -845,32 +845,31 @@ File: figures/fig4.png Graphic file (type png)
 <use figures/fig4.png>
 Package pdftex.def Info: figures/fig4.png  used on input line 281.
 (pdftex.def)             Requested size: 199.64731pt x 141.65732pt.
+<figures/fig5a.jpeg, id=144, 1111.15125pt x 1113.15875pt>
+File: figures/fig5a.jpeg Graphic file (type jpg)
+<use figures/fig5a.jpeg>
+Package pdftex.def Info: figures/fig5a.jpeg  used on input line 313.
+(pdftex.def)             Requested size: 219.51863pt x 219.91014pt.
+<figures/fig5b.jpeg, id=145, 1111.15125pt x 1113.15875pt>
+File: figures/fig5b.jpeg Graphic file (type jpg)
+<use figures/fig5b.jpeg>
+Package pdftex.def Info: figures/fig5b.jpeg  used on input line 320.
+(pdftex.def)             Requested size: 219.51863pt x 219.91014pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [4 <./figures/tinst_qwen2.png> <./figures/tpost_qwen2.png> <./figures/think_tinst.png> <./figures/think_tpost.png> <./figures/nothink_tinst.png> <./figures/nothink_tpost.png> <./figures/nothink_gen1.png> <./figures/figure3_qwen35_nothink.png> <./figures/fig4.png>]
-<figures/fig5a.jpeg, id=164, 1111.15125pt x 1113.15875pt>
-File: figures/fig5a.jpeg Graphic file (type jpg)
-<use figures/fig5a.jpeg>
-Package pdftex.def Info: figures/fig5a.jpeg  used on input line 312.
-(pdftex.def)             Requested size: 219.51863pt x 219.91014pt.
-<figures/fig5b.jpeg, id=165, 1111.15125pt x 1113.15875pt>
-File: figures/fig5b.jpeg Graphic file (type jpg)
-<use figures/fig5b.jpeg>
-Package pdftex.def Info: figures/fig5b.jpeg  used on input line 319.
-(pdftex.def)             Requested size: 219.51863pt x 219.91014pt.
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-<figures/qwen35_figure2_think_judge.png, id=169, 1814.9406pt x 1293.633pt>
+<figures/qwen35_figure2_think_judge.png, id=168, 1814.9406pt x 1293.633pt>
 File: figures/qwen35_figure2_think_judge.png Graphic file (type png)
 <use figures/qwen35_figure2_think_judge.png>
-Package pdftex.def Info: figures/qwen35_figure2_think_judge.png  used on input line 356.
+Package pdftex.def Info: figures/qwen35_figure2_think_judge.png  used on input line 358.
 (pdftex.def)             Requested size: 341.47424pt x 243.38463pt.
-<figures/qwen35_figure3_think.png, id=171, 441.5697pt x 396.40096pt>
+<figures/qwen35_figure3_think.png, id=170, 441.5697pt x 396.40096pt>
 File: figures/qwen35_figure3_think.png Graphic file (type png)
 <use figures/qwen35_figure3_think.png>
-Package pdftex.def Info: figures/qwen35_figure3_think.png  used on input line 367.
+Package pdftex.def Info: figures/qwen35_figure3_think.png  used on input line 369.
 (pdftex.def)             Requested size: 216.08687pt x 193.98412pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -898,20 +897,20 @@ Underfull \hbox (badness 2334) in paragraph at lines 120--123
 ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-<figures/section4_jailbreak_scatter.png, id=258, 460.72125pt x 399.6531pt>
+<figures/section4_jailbreak_scatter.png, id=257, 460.72125pt x 399.6531pt>
 File: figures/section4_jailbreak_scatter.png Graphic file (type png)
 <use figures/section4_jailbreak_scatter.png>
-Package pdftex.def Info: figures/section4_jailbreak_scatter.png  used on input line 420.
+Package pdftex.def Info: figures/section4_jailbreak_scatter.png  used on input line 422.
 (pdftex.def)             Requested size: 211.3883pt x 183.36699pt.
-<figures/data_probe_cot_length.png, id=261, 751.608pt x 243.309pt>
+<figures/data_probe_cot_length.png, id=260, 751.608pt x 243.309pt>
 File: figures/data_probe_cot_length.png Graphic file (type png)
 <use figures/data_probe_cot_length.png>
-Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 456.
+Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 458.
 (pdftex.def)             Requested size: 360.99132pt x 116.86124pt.
-<figures/data_probe_layer_sweep.png, id=262, 787.9839pt x 503.481pt>
+<figures/data_probe_layer_sweep.png, id=261, 787.9839pt x 503.481pt>
 File: figures/data_probe_layer_sweep.png Graphic file (type png)
 <use figures/data_probe_layer_sweep.png>
-Package pdftex.def Info: figures/data_probe_layer_sweep.png  used on input line 462.
+Package pdftex.def Info: figures/data_probe_layer_sweep.png  used on input line 464.
 (pdftex.def)             Requested size: 360.99132pt x 230.65144pt.
  [10
 
@@ -928,18 +927,18 @@ Package rerunfilecheck Info: File `example_paper.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 29241 strings out of 467538
- 545512 string characters out of 5419551
+ 29250 strings out of 467538
+ 545593 string characters out of 5419551
  974868 words of memory out of 5000000
  57321 multiletter control sequences out of 15000+600000
- 680975 words of font info for 265 fonts, out of 8000000 for 9000
+ 681365 words of font info for 271 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  84i,12n,94p,1301b,746s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on example_paper.pdf (11 pages, 3428583 bytes).
+Output written on example_paper.pdf (11 pages, 3428867 bytes).
 PDF statistics:
- 366 PDF objects out of 1000 (max. 8388607)
- 285 compressed objects within 3 object streams
+ 365 PDF objects out of 1000 (max. 8388607)
+ 284 compressed objects within 3 object streams
  76 named destinations out of 1000 (max. 500000)
  52834 words of extra memory for PDF output out of 61914 (max. 10000000)
 
