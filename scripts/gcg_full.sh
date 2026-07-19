@@ -14,9 +14,9 @@ COMMON=(--mode gennothink --n-behaviors 15 --target-count 10 \
         --dataset advbench.json --seed 42)
 
 if [ "$PHASE" = "collect" ]; then
-    $MODAL run src/experiments_replication/modal_gcg.py "${COMMON[@]}" --collect-only
+    $MODAL run src/experiments_replication/modal_gcg.py::entry "${COMMON[@]}" --collect-only
 else
-    $MODAL run --detach src/experiments_replication/modal_gcg.py "${COMMON[@]}" \
+    $MODAL run --detach src/experiments_replication/modal_gcg.py::entry "${COMMON[@]}" \
         --gpu B300 --timeout 18000 --no-wait
     echo "Launched detached. When it finishes, collect with:  ./scripts/gcg_full.sh collect"
 fi

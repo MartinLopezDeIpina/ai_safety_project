@@ -41,8 +41,34 @@ plots without touching the GPU.
 **Output.** Under each model directory (e.g. `output/qwen359b/`) we store the raw generations, then
 the classified buckets under `classified_generations/` or `judge_classifications/` (depending on
 whether the judge LLM was used), and the activations under `activations/` or `judge_activations/`.
-The activation tensors are **removed from the repository** for storage reasons — they are shared
-out-of-band in a Drive folder: **#todo (add link)**.
+The activation tensors are not tracked in the repository for storage reasons; regenerate them by
+running the `acts` stage.
+
+> [!IMPORTANT]
+> **The activations are a prerequisite for the plotting and intervention stages, and are not in the
+> repo.** `gen_buckets`, `fig`, `fig3`, and the intervention `vectors` stage all read
+> `output/<model>/datasets_outputs/{activations,judge_activations}/*.pt`. If those files are absent,
+> these stages fail with `activation source not found`.
+>
+> Regenerate them from the committed generations (no re-inference needed) by running the `acts`
+> stage — for the thinking track, judged activations:
+>
+> ```bash
+> modal run src/experiments_replication/modal_run.py \
+>     --runs "qwen35:9b" --thinking --stages "acts" --use-judge \
+>     --config configs/bucketing/bucket_config_qwen35_think.json
+> ```
+>
+> and for the instruct (Qwen2) track:
+>
+> ```bash
+> modal run src/experiments_replication/modal_run.py \
+>     --runs "qwen:7b" --stages "acts" \
+>     --config configs/bucketing/bucket_config_clean.json
+> ```
+>
+> Once the `.pt` files are back under `datasets_outputs/`, the CPU-only plotting and the intervention
+> vector build work again.
 
 ---
 
