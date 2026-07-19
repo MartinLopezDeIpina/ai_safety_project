@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2025/dev/Debian) (preloaded format=pdflatex 2026.1.9)  19 JUL 2026 13:05
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2025/dev/Debian) (preloaded format=pdflatex 2026.1.9)  19 JUL 2026 13:21
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -867,25 +867,28 @@ Underfull \vbox (badness 1320) has occurred while \output is active []
 <figures/fig4.png, id=90, 1036.87375pt x 735.74875pt>
 File: figures/fig4.png Graphic file (type png)
 <use figures/fig4.png>
-Package pdftex.def Info: figures/fig4.png  used on input line 264.
+Package pdftex.def Info: figures/fig4.png  used on input line 266.
 (pdftex.def)             Requested size: 176.15813pt x 124.99704pt.
 
 
 [4 <./figures/tinst_qwen2.png> <./figures/tpost_qwen2.png> <./figures/think_tinst.png> <./figures/think_tpost.png> <./figures/nothink_tinst.png> <./figures/nothink_tpost.png> <./figures/nothink_gen1.png> <./figures/figure3_qwen35_nothink.png> <./figures/fig4.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 2717) has occurred while \output is active []
 
 
 
-<figures/qwen35_figure2_think_judge.png, id=110, 1814.9406pt x 1293.633pt>
+<figures/qwen35_figure2_think_judge.png, id=111, 1814.9406pt x 1293.633pt>
 File: figures/qwen35_figure2_think_judge.png Graphic file (type png)
 <use figures/qwen35_figure2_think_judge.png>
-Package pdftex.def Info: figures/qwen35_figure2_think_judge.png  used on input line 293.
+Package pdftex.def Info: figures/qwen35_figure2_think_judge.png  used on input line 295.
 (pdftex.def)             Requested size: 390.25948pt x 278.16515pt.
-<figures/qwen35_figure3_think.png, id=112, 441.5697pt x 396.40096pt>
+<figures/qwen35_figure3_think.png, id=113, 441.5697pt x 396.40096pt>
 File: figures/qwen35_figure3_think.png Graphic file (type png)
 <use figures/qwen35_figure3_think.png>
-Package pdftex.def Info: figures/qwen35_figure3_think.png  used on input line 304.
+Package pdftex.def Info: figures/qwen35_figure3_think.png  used on input line 306.
 (pdftex.def)             Requested size: 243.91124pt x 218.95872pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
 
 
 [5]
@@ -896,25 +899,25 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 [6 <./figures/qwen35_figure2_think_judge.png>]
-<figures/section4_jailbreak_scatter.png, id=183, 460.72125pt x 399.6531pt>
+<figures/section4_jailbreak_scatter.png, id=184, 460.72125pt x 399.6531pt>
 File: figures/section4_jailbreak_scatter.png Graphic file (type png)
 <use figures/section4_jailbreak_scatter.png>
-Package pdftex.def Info: figures/section4_jailbreak_scatter.png  used on input line 342.
+Package pdftex.def Info: figures/section4_jailbreak_scatter.png  used on input line 344.
 (pdftex.def)             Requested size: 351.23279pt x 304.67253pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-<figures/data_probe_cot_length.png, id=186, 751.608pt x 243.309pt>
+<figures/data_probe_cot_length.png, id=187, 751.608pt x 243.309pt>
 File: figures/data_probe_cot_length.png Graphic file (type png)
 <use figures/data_probe_cot_length.png>
-Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 376.
+Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 378.
 (pdftex.def)             Requested size: 463.42987pt x 150.02211pt.
-<figures/data_probe_layer_sweep.png, id=187, 787.9839pt x 503.481pt>
+<figures/data_probe_layer_sweep.png, id=188, 787.9839pt x 503.481pt>
 File: figures/data_probe_layer_sweep.png Graphic file (type png)
 <use figures/data_probe_layer_sweep.png>
-Package pdftex.def Info: figures/data_probe_layer_sweep.png  used on input line 383.
+Package pdftex.def Info: figures/data_probe_layer_sweep.png  used on input line 385.
 (pdftex.def)             Requested size: 463.42987pt x 296.10626pt.
 (./example_paper.bbl
 
@@ -946,18 +949,18 @@ Package rerunfilecheck Info: File `example_paper.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 29158 strings out of 473197
- 542732 string characters out of 5718606
+ 29159 strings out of 473197
+ 542746 string characters out of 5718606
  948187 words of memory out of 5000000
  51616 multiletter control sequences out of 15000+600000
  612456 words of font info for 250 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,11n,101p,1073b,742s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on example_paper.pdf (10 pages, 2991696 bytes).
+Output written on example_paper.pdf (10 pages, 2991781 bytes).
 PDF statistics:
- 299 PDF objects out of 1000 (max. 8388607)
- 222 compressed objects within 3 object streams
- 65 named destinations out of 1000 (max. 500000)
+ 300 PDF objects out of 1000 (max. 8388607)
+ 223 compressed objects within 3 object streams
+ 66 named destinations out of 1000 (max. 500000)
  55384 words of extra memory for PDF output out of 61914 (max. 10000000)
 
