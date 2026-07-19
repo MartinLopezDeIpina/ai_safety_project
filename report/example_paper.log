@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.11.13)  19 JUL 2026 21:38
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.11.13)  19 JUL 2026 21:49
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -864,11 +864,6 @@ Underfull \vbox (badness 3557) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [6 <./figures/fig5a.jpeg> <./figures/fig5b.jpeg>] (./example_paper.bbl
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [7
-
-]
 Underfull \hbox (badness 1472) in paragraph at lines 69--72
 []\T1/ptm/m/n/10 (+20) Taori, R., Gul-ra-jani, I., Zhang, T., Dubois, Y., Li,
  []
@@ -883,195 +878,197 @@ Underfull \hbox (badness 7151) in paragraph at lines 69--72
 \T1/ptm/m/n/10 (+20) model.  [][]$\T1/pcr/m/n/10 https : / / github . com / tatsu-[]lab /
  []
 
-[8]
+[7
+
+]
 Underfull \hbox (badness 2334) in paragraph at lines 125--128
 []\T1/ptm/m/n/10 (+20) Zhao, J., Fu, T., Scha-ef-fer, R., Sharma, M., and
  []
 
-) [9
+) [8
 
 ]
-<figures/nothink_run/00_slot00.png, id=250, 513.8397pt x 382.66965pt>
+<figures/nothink_run/00_slot00.png, id=246, 513.8397pt x 382.66965pt>
 File: figures/nothink_run/00_slot00.png Graphic file (type png)
 <use figures/nothink_run/00_slot00.png>
 Package pdftex.def Info: figures/nothink_run/00_slot00.png  used on input line 386.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/nothink_run/01_slot01.png, id=251, 513.8397pt x 382.66965pt>
+<figures/nothink_run/01_slot01.png, id=247, 513.8397pt x 382.66965pt>
 File: figures/nothink_run/01_slot01.png Graphic file (type png)
 <use figures/nothink_run/01_slot01.png>
 Package pdftex.def Info: figures/nothink_run/01_slot01.png  used on input line 389.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/nothink_run/02_slot02.png, id=252, 513.8397pt x 382.66965pt>
+<figures/nothink_run/02_slot02.png, id=248, 513.8397pt x 382.66965pt>
 File: figures/nothink_run/02_slot02.png Graphic file (type png)
 <use figures/nothink_run/02_slot02.png>
 Package pdftex.def Info: figures/nothink_run/02_slot02.png  used on input line 392.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/nothink_run/03_slot03.png, id=253, 513.8397pt x 383.031pt>
+<figures/nothink_run/03_slot03.png, id=249, 513.8397pt x 383.031pt>
 File: figures/nothink_run/03_slot03.png Graphic file (type png)
 <use figures/nothink_run/03_slot03.png>
 Package pdftex.def Info: figures/nothink_run/03_slot03.png  used on input line 395.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/nothink_run/04_slot04.png, id=254, 513.8397pt x 382.66965pt>
+<figures/nothink_run/04_slot04.png, id=250, 513.8397pt x 382.66965pt>
 File: figures/nothink_run/04_slot04.png Graphic file (type png)
 <use figures/nothink_run/04_slot04.png>
 Package pdftex.def Info: figures/nothink_run/04_slot04.png  used on input line 398.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/nothink_run/05_slot24.png, id=255, 513.8397pt x 383.031pt>
+<figures/nothink_run/05_slot24.png, id=251, 513.8397pt x 383.031pt>
 File: figures/nothink_run/05_slot24.png Graphic file (type png)
 <use figures/nothink_run/05_slot24.png>
 Package pdftex.def Info: figures/nothink_run/05_slot24.png  used on input line 404.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/nothink_run/06_slot20.png, id=256, 513.8397pt x 383.031pt>
+<figures/nothink_run/06_slot20.png, id=252, 513.8397pt x 383.031pt>
 File: figures/nothink_run/06_slot20.png Graphic file (type png)
 <use figures/nothink_run/06_slot20.png>
 Package pdftex.def Info: figures/nothink_run/06_slot20.png  used on input line 407.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/nothink_run/07_slot21.png, id=257, 513.47835pt x 382.66965pt>
+<figures/nothink_run/07_slot21.png, id=253, 513.47835pt x 382.66965pt>
 File: figures/nothink_run/07_slot21.png Graphic file (type png)
 <use figures/nothink_run/07_slot21.png>
 Package pdftex.def Info: figures/nothink_run/07_slot21.png  used on input line 410.
 (pdftex.def)             Requested size: 92.68745pt x 69.07025pt.
-<figures/nothink_run/08_slot22.png, id=258, 513.8397pt x 382.66965pt>
+<figures/nothink_run/08_slot22.png, id=254, 513.8397pt x 382.66965pt>
 File: figures/nothink_run/08_slot22.png Graphic file (type png)
 <use figures/nothink_run/08_slot22.png>
 Package pdftex.def Info: figures/nothink_run/08_slot22.png  used on input line 413.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/nothink_run/09_slot23.png, id=259, 513.47835pt x 382.66965pt>
+<figures/nothink_run/09_slot23.png, id=255, 513.47835pt x 382.66965pt>
 File: figures/nothink_run/09_slot23.png Graphic file (type png)
 <use figures/nothink_run/09_slot23.png>
 Package pdftex.def Info: figures/nothink_run/09_slot23.png  used on input line 416.
 (pdftex.def)             Requested size: 92.68745pt x 69.07025pt.
-<figures/think_run/00_slot00.png, id=260, 513.47835pt x 382.66965pt>
+<figures/think_run/00_slot00.png, id=256, 513.47835pt x 382.66965pt>
 File: figures/think_run/00_slot00.png Graphic file (type png)
 <use figures/think_run/00_slot00.png>
 Package pdftex.def Info: figures/think_run/00_slot00.png  used on input line 427.
 (pdftex.def)             Requested size: 92.68745pt x 69.07025pt.
-<figures/think_run/01_slot01.png, id=261, 513.8397pt x 382.66965pt>
+<figures/think_run/01_slot01.png, id=257, 513.8397pt x 382.66965pt>
 File: figures/think_run/01_slot01.png Graphic file (type png)
 <use figures/think_run/01_slot01.png>
 Package pdftex.def Info: figures/think_run/01_slot01.png  used on input line 430.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/02_slot02.png, id=262, 513.8397pt x 382.66965pt>
+<figures/think_run/02_slot02.png, id=258, 513.8397pt x 382.66965pt>
 File: figures/think_run/02_slot02.png Graphic file (type png)
 <use figures/think_run/02_slot02.png>
 Package pdftex.def Info: figures/think_run/02_slot02.png  used on input line 433.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/03_slot03.png, id=263, 513.8397pt x 383.031pt>
+<figures/think_run/03_slot03.png, id=259, 513.8397pt x 383.031pt>
 File: figures/think_run/03_slot03.png Graphic file (type png)
 <use figures/think_run/03_slot03.png>
 Package pdftex.def Info: figures/think_run/03_slot03.png  used on input line 436.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/04_slot04.png, id=264, 513.8397pt x 382.66965pt>
+<figures/think_run/04_slot04.png, id=260, 513.8397pt x 382.66965pt>
 File: figures/think_run/04_slot04.png Graphic file (type png)
 <use figures/think_run/04_slot04.png>
 Package pdftex.def Info: figures/think_run/04_slot04.png  used on input line 439.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/05_slot05.png, id=265, 513.8397pt x 382.66965pt>
+<figures/think_run/05_slot05.png, id=261, 513.8397pt x 382.66965pt>
 File: figures/think_run/05_slot05.png Graphic file (type png)
 <use figures/think_run/05_slot05.png>
 Package pdftex.def Info: figures/think_run/05_slot05.png  used on input line 445.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/06_slot06.png, id=266, 513.8397pt x 382.66965pt>
+<figures/think_run/06_slot06.png, id=262, 513.8397pt x 382.66965pt>
 File: figures/think_run/06_slot06.png Graphic file (type png)
 <use figures/think_run/06_slot06.png>
 Package pdftex.def Info: figures/think_run/06_slot06.png  used on input line 448.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/07_slot07.png, id=267, 513.8397pt x 382.66965pt>
+<figures/think_run/07_slot07.png, id=263, 513.8397pt x 382.66965pt>
 File: figures/think_run/07_slot07.png Graphic file (type png)
 <use figures/think_run/07_slot07.png>
 Package pdftex.def Info: figures/think_run/07_slot07.png  used on input line 451.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/08_slot08.png, id=268, 513.8397pt x 382.66965pt>
+<figures/think_run/08_slot08.png, id=264, 513.8397pt x 382.66965pt>
 File: figures/think_run/08_slot08.png Graphic file (type png)
 <use figures/think_run/08_slot08.png>
 Package pdftex.def Info: figures/think_run/08_slot08.png  used on input line 454.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/09_slot09.png, id=269, 513.8397pt x 382.66965pt>
+<figures/think_run/09_slot09.png, id=265, 513.8397pt x 382.66965pt>
 File: figures/think_run/09_slot09.png Graphic file (type png)
 <use figures/think_run/09_slot09.png>
 Package pdftex.def Info: figures/think_run/09_slot09.png  used on input line 457.
 (pdftex.def)             Requested size: 92.68745pt x 69.02353pt.
-<figures/think_run/10_slot10.png, id=270, 513.8397pt x 383.031pt>
+<figures/think_run/10_slot10.png, id=266, 513.8397pt x 383.031pt>
 File: figures/think_run/10_slot10.png Graphic file (type png)
 <use figures/think_run/10_slot10.png>
 Package pdftex.def Info: figures/think_run/10_slot10.png  used on input line 463.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/11_slot11.png, id=271, 513.8397pt x 383.031pt>
+<figures/think_run/11_slot11.png, id=267, 513.8397pt x 383.031pt>
 File: figures/think_run/11_slot11.png Graphic file (type png)
 <use figures/think_run/11_slot11.png>
 Package pdftex.def Info: figures/think_run/11_slot11.png  used on input line 466.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/12_slot12.png, id=272, 513.8397pt x 383.031pt>
+<figures/think_run/12_slot12.png, id=268, 513.8397pt x 383.031pt>
 File: figures/think_run/12_slot12.png Graphic file (type png)
 <use figures/think_run/12_slot12.png>
 Package pdftex.def Info: figures/think_run/12_slot12.png  used on input line 469.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/13_slot13.png, id=273, 513.8397pt x 383.031pt>
+<figures/think_run/13_slot13.png, id=269, 513.8397pt x 383.031pt>
 File: figures/think_run/13_slot13.png Graphic file (type png)
 <use figures/think_run/13_slot13.png>
 Package pdftex.def Info: figures/think_run/13_slot13.png  used on input line 472.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/14_slot14.png, id=274, 513.8397pt x 383.031pt>
+<figures/think_run/14_slot14.png, id=270, 513.8397pt x 383.031pt>
 File: figures/think_run/14_slot14.png Graphic file (type png)
 <use figures/think_run/14_slot14.png>
 Package pdftex.def Info: figures/think_run/14_slot14.png  used on input line 475.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/15_slot15.png, id=275, 513.8397pt x 383.031pt>
+<figures/think_run/15_slot15.png, id=271, 513.8397pt x 383.031pt>
 File: figures/think_run/15_slot15.png Graphic file (type png)
 <use figures/think_run/15_slot15.png>
 Package pdftex.def Info: figures/think_run/15_slot15.png  used on input line 481.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/16_slot16.png, id=276, 513.8397pt x 383.031pt>
+<figures/think_run/16_slot16.png, id=272, 513.8397pt x 383.031pt>
 File: figures/think_run/16_slot16.png Graphic file (type png)
 <use figures/think_run/16_slot16.png>
 Package pdftex.def Info: figures/think_run/16_slot16.png  used on input line 484.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/17_slot17.png, id=277, 513.8397pt x 383.031pt>
+<figures/think_run/17_slot17.png, id=273, 513.8397pt x 383.031pt>
 File: figures/think_run/17_slot17.png Graphic file (type png)
 <use figures/think_run/17_slot17.png>
 Package pdftex.def Info: figures/think_run/17_slot17.png  used on input line 487.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/18_slot18.png, id=278, 513.8397pt x 383.031pt>
+<figures/think_run/18_slot18.png, id=274, 513.8397pt x 383.031pt>
 File: figures/think_run/18_slot18.png Graphic file (type png)
 <use figures/think_run/18_slot18.png>
 Package pdftex.def Info: figures/think_run/18_slot18.png  used on input line 490.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/19_slot19.png, id=279, 513.8397pt x 383.031pt>
+<figures/think_run/19_slot19.png, id=275, 513.8397pt x 383.031pt>
 File: figures/think_run/19_slot19.png Graphic file (type png)
 <use figures/think_run/19_slot19.png>
 Package pdftex.def Info: figures/think_run/19_slot19.png  used on input line 493.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/20_slot24.png, id=280, 513.8397pt x 383.031pt>
+<figures/think_run/20_slot24.png, id=276, 513.8397pt x 383.031pt>
 File: figures/think_run/20_slot24.png Graphic file (type png)
 <use figures/think_run/20_slot24.png>
 Package pdftex.def Info: figures/think_run/20_slot24.png  used on input line 499.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/21_slot20.png, id=281, 513.8397pt x 383.031pt>
+<figures/think_run/21_slot20.png, id=277, 513.8397pt x 383.031pt>
 File: figures/think_run/21_slot20.png Graphic file (type png)
 <use figures/think_run/21_slot20.png>
 Package pdftex.def Info: figures/think_run/21_slot20.png  used on input line 502.
 (pdftex.def)             Requested size: 92.68745pt x 69.08871pt.
-<figures/think_run/22_slot21.png, id=282, 513.47835pt x 382.66965pt>
+<figures/think_run/22_slot21.png, id=278, 513.47835pt x 382.66965pt>
 File: figures/think_run/22_slot21.png Graphic file (type png)
 <use figures/think_run/22_slot21.png>
 Package pdftex.def Info: figures/think_run/22_slot21.png  used on input line 505.
 (pdftex.def)             Requested size: 92.68745pt x 69.07025pt.
-<figures/think_run/23_slot22.png, id=283, 513.47835pt x 382.66965pt>
+<figures/think_run/23_slot22.png, id=279, 513.47835pt x 382.66965pt>
 File: figures/think_run/23_slot22.png Graphic file (type png)
 <use figures/think_run/23_slot22.png>
 Package pdftex.def Info: figures/think_run/23_slot22.png  used on input line 508.
 (pdftex.def)             Requested size: 92.68745pt x 69.07025pt.
-<figures/think_run/24_slot23.png, id=284, 513.47835pt x 382.66965pt>
+<figures/think_run/24_slot23.png, id=280, 513.47835pt x 382.66965pt>
 File: figures/think_run/24_slot23.png Graphic file (type png)
 <use figures/think_run/24_slot23.png>
 Package pdftex.def Info: figures/think_run/24_slot23.png  used on input line 511.
 (pdftex.def)             Requested size: 92.68745pt x 69.07025pt.
-<figures/section4_jailbreak_scatter.png, id=285, 460.72125pt x 399.6531pt>
+<figures/section4_jailbreak_scatter.png, id=281, 460.72125pt x 399.6531pt>
 File: figures/section4_jailbreak_scatter.png Graphic file (type png)
 <use figures/section4_jailbreak_scatter.png>
 Package pdftex.def Info: figures/section4_jailbreak_scatter.png  used on input line 532.
 (pdftex.def)             Requested size: 351.23279pt x 304.67253pt.
-<figures/data_probe_cot_length.png, id=288, 751.608pt x 243.309pt>
+<figures/data_probe_cot_length.png, id=284, 751.608pt x 243.309pt>
 File: figures/data_probe_cot_length.png Graphic file (type png)
 <use figures/data_probe_cot_length.png>
 Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 566.
@@ -1079,17 +1076,17 @@ Package pdftex.def Info: figures/data_probe_cot_length.png  used on input line 5
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [10
+ [9
 
-] [11 <./figures/nothink_run/00_slot00.png> <./figures/nothink_run/01_slot01.png> <./figures/nothink_run/02_slot02.png> <./figures/nothink_run/03_slot03.png> <./figures/nothink_run/04_slot04.png> <./figures/nothink_run/05_slot24.png> <./figures/nothink_run/06_slot20.png> <./figures/nothink_run/07_slot21.png> <./figures/nothink_run/08_slot22.png> <./figures/nothink_run/09_slot23.png> <./figures/think_run/00_slot00.png> <./figures/think_run/01_slot01.png> <./figures/think_run/02_slot02.png> <./figures/think_run/03_slot03.png> <./figures/think_run/04_slot04.png> <./figures/think_run/05_slot05.png> <./figures/think_run/06_slot06.png> <./figures/think_run/07_slot07.png> <./figures/think_run/08_slot08.png> <./figures/think_run/09_slot09.png> <./figures/think_run/10_slot10.png> <./figures/think_run/11_slot11.png> <./figures/think_run/12_slot12.png> <./figures/think_run/13_slot13.png> <./figures/think_run/14_slot14.png> <./figures/think_run/15_slot15.png> <./figures/think_run/16_slot16.png> <./figures/think_run/17_slot17.png> <./figures/think_run/18_slot18.png> <./figures/think_run/19_slot19.png> <./figures/think_run/20_slot24.png> <./figures/think_run/21_slot20.png> <./figures/think_run/22_slot21.png> <./figures/think_run/23_slot22.png> <./figures/think_run/24_slot23.png>]
-<figures/data_probe_layer_sweep.png, id=341, 787.9839pt x 503.481pt>
+] [10 <./figures/nothink_run/00_slot00.png> <./figures/nothink_run/01_slot01.png> <./figures/nothink_run/02_slot02.png> <./figures/nothink_run/03_slot03.png> <./figures/nothink_run/04_slot04.png> <./figures/nothink_run/05_slot24.png> <./figures/nothink_run/06_slot20.png> <./figures/nothink_run/07_slot21.png> <./figures/nothink_run/08_slot22.png> <./figures/nothink_run/09_slot23.png> <./figures/think_run/00_slot00.png> <./figures/think_run/01_slot01.png> <./figures/think_run/02_slot02.png> <./figures/think_run/03_slot03.png> <./figures/think_run/04_slot04.png> <./figures/think_run/05_slot05.png> <./figures/think_run/06_slot06.png> <./figures/think_run/07_slot07.png> <./figures/think_run/08_slot08.png> <./figures/think_run/09_slot09.png> <./figures/think_run/10_slot10.png> <./figures/think_run/11_slot11.png> <./figures/think_run/12_slot12.png> <./figures/think_run/13_slot13.png> <./figures/think_run/14_slot14.png> <./figures/think_run/15_slot15.png> <./figures/think_run/16_slot16.png> <./figures/think_run/17_slot17.png> <./figures/think_run/18_slot18.png> <./figures/think_run/19_slot19.png> <./figures/think_run/20_slot24.png> <./figures/think_run/21_slot20.png> <./figures/think_run/22_slot21.png> <./figures/think_run/23_slot22.png> <./figures/think_run/24_slot23.png>]
+<figures/data_probe_layer_sweep.png, id=337, 787.9839pt x 503.481pt>
 File: figures/data_probe_layer_sweep.png Graphic file (type png)
 <use figures/data_probe_layer_sweep.png>
 Package pdftex.def Info: figures/data_probe_layer_sweep.png  used on input line 573.
 (pdftex.def)             Requested size: 463.42987pt x 296.10626pt.
- [12
+ [11
 
- <./figures/section4_jailbreak_scatter.png>] [13 <./figures/data_probe_cot_length.png> <./figures/data_probe_layer_sweep.png>] (./example_paper.aux)
+ <./figures/section4_jailbreak_scatter.png>] [12 <./figures/data_probe_cot_length.png> <./figures/data_probe_layer_sweep.png>] (./example_paper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-10-24>
@@ -1098,18 +1095,18 @@ Package rerunfilecheck Info: File `example_paper.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 29429 strings out of 467538
- 554052 string characters out of 5419551
- 981011 words of memory out of 5000000
+ 29425 strings out of 467538
+ 554021 string characters out of 5419551
+ 969122 words of memory out of 5000000
  57534 multiletter control sequences out of 15000+600000
- 679777 words of font info for 251 fonts, out of 8000000 for 9000
+ 679647 words of font info for 249 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,12n,108p,6825b,746s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,12n,108p,1088b,746s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on example_paper.pdf (13 pages, 5978054 bytes).
+Output written on example_paper.pdf (12 pages, 5971001 bytes).
 PDF statistics:
- 438 PDF objects out of 1000 (max. 8388607)
- 291 compressed objects within 3 object streams
- 76 named destinations out of 1000 (max. 500000)
+ 433 PDF objects out of 1000 (max. 8388607)
+ 287 compressed objects within 3 object streams
+ 75 named destinations out of 1000 (max. 500000)
  52999 words of extra memory for PDF output out of 61914 (max. 10000000)
 

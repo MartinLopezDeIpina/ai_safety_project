@@ -5,34 +5,34 @@ The style file: icml2022.bst
 Database file #1: example_paper.bib
 You've used 27 entries,
             2773 wiz_defined-function locations,
-            707 strings with 21552 characters,
-and the built_in function-call counts, 46138 in all, are:
-= -- 3033
-> -- 7034
+            707 strings with 11031 characters,
+and the built_in function-call counts, 16068 in all, are:
+= -- 1228
+> -- 1623
 < -- 5
-+ -- 2349
-- -- 2319
-* -- 5064
-:= -- 7991
++ -- 546
+- -- 516
+* -- 1454
+:= -- 2582
 add.period$ -- 82
 call.type$ -- 27
-change.case$ -- 854
+change.case$ -- 251
 chr.to.int$ -- 24
 cite$ -- 54
 duplicate$ -- 484
 empty$ -- 939
-format.name$ -- 2348
-if$ -- 8653
+format.name$ -- 545
+if$ -- 3240
 int.to.chr$ -- 4
 int.to.str$ -- 1
 missing$ -- 6
 newline$ -- 144
 num.names$ -- 108
-pop$ -- 1786
+pop$ -- 580
 preamble$ -- 1
-purify$ -- 827
+purify$ -- 224
 quote$ -- 0
-skip$ -- 1119
+skip$ -- 518
 stack$ -- 0
 substring$ -- 110
 swap$ -- 54
