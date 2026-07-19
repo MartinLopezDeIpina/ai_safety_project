@@ -1,4 +1,4 @@
-This is BibTeX, Version 0.99d (TeX Live 2025/dev/Debian)
+This is BibTeX, Version 0.99d (TeX Live 2025)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: example_paper.aux
 The style file: icml2022.bst
@@ -7,49 +7,45 @@ Warning--I didn't find a database entry for "turner2022activation"
 Warning--I didn't find a database entry for "zhao2024harmfulness"
 Warning--I didn't find a database entry for "yamaguchi2025where"
 Warning--I didn't find a database entry for "predictalignment2024"
-Warning--to sort, need author or key in qwen2
-Warning--empty author in qwen2
-Warning--empty journal in qwen2
-Warning--empty journal in llama3modelcard
 You've used 24 entries,
             2773 wiz_defined-function locations,
-            697 strings with 10213 characters,
-and the built_in function-call counts, 13712 in all, are:
-= -- 1059
-> -- 1325
-< -- 5
-+ -- 447
-- -- 420
-* -- 1231
-:= -- 2179
+            699 strings with 21081 characters,
+and the built_in function-call counts, 44826 in all, are:
+= -- 2927
+> -- 6928
+< -- 4
++ -- 2313
+- -- 2286
+* -- 4963
+:= -- 7784
 add.period$ -- 73
 call.type$ -- 24
-change.case$ -- 212
+change.case$ -- 834
 chr.to.int$ -- 21
-cite$ -- 53
-duplicate$ -- 443
-empty$ -- 838
-format.name$ -- 445
-if$ -- 2777
+cite$ -- 48
+duplicate$ -- 437
+empty$ -- 841
+format.name$ -- 2312
+if$ -- 8381
 int.to.chr$ -- 4
 int.to.str$ -- 1
-missing$ -- 8
+missing$ -- 6
 newline$ -- 129
-num.names$ -- 92
-pop$ -- 494
+num.names$ -- 96
+pop$ -- 1736
 preamble$ -- 1
-purify$ -- 188
+purify$ -- 810
 quote$ -- 0
-skip$ -- 450
+skip$ -- 1072
 stack$ -- 0
-substring$ -- 105
-swap$ -- 49
+substring$ -- 104
+swap$ -- 51
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 264
-warning$ -- 4
-while$ -- 72
+warning$ -- 0
+while$ -- 75
 width$ -- 0
-write$ -- 297
-(There were 8 warnings)
+write$ -- 299
+(There were 4 warnings)

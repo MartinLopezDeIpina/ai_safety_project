@@ -122,7 +122,7 @@ For this matter, we search in thinking models under two different generation con
 
 In this section, we describe the datasets and configuration used in our experiments.
 
-We first reproduced the original paper's experiments on Qwen2-7B \citep{qwen2} and Llama3-8B \citep{llama3modelcard}. We then ran our experiments on Qwen3.5-9B, using the recommended sampling configuration (see Appendix \ref{ap:confg}). For the judge model, Qwen3.5-4B was used, with few-shot examples containing thinking traces to reduce overthinking \citep{ge2025innatereasoningenoughincontext}.
+We first reproduced the original paper's experiments on Qwen2-7B \citep{qwen2} and Llama3-8B \citep{llama3}. We then ran our experiments on Qwen3.5-9B, using the recommended sampling configuration (see Appendix \ref{ap:confg}). For the judge model, Qwen3.5-4B was used, with few-shot examples containing thinking traces to reduce overthinking \citep{ge2025innatereasoningenoughincontext}.
 
 In order to extract the harmful and refusal activations, we collect 3 datasets containing harmful queries: AdvBench \citep{chen2022should}, SorryBench \citep{xie2025sorrybenchsystematicallyevaluatinglarge} and JailbreakBench (JBB) \citep{chao2024jailbreakbench}, and 2 datasets containing harmless queries: XSTest \citep{röttger2024xstesttestsuiteidentifying} and Alpaca \citep{alpaca}. We then apply the two-step pipeline shown in Figure \ref{fig:datasets}:
 
