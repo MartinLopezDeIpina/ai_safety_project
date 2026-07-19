@@ -1,15 +1,15 @@
 # Fdb version 4
-["bibtex example_paper"] 1784486938.41989 "example_paper.aux" "example_paper.bbl" "example_paper" 1784487055.59853 0
+["bibtex example_paper"] 1784487343.3351 "example_paper.aux" "example_paper.bbl" "example_paper" 1784487348.01405 0
   "./example_paper.bib" 1784480404.39525 8944 cc4334d94ad9a93a21ccd233ef90de54 ""
   "./icml2022.bst" 1784366963.30907 27147 754d35bad1e0551f1b55824eb3875247 ""
-  "example_paper.aux" 1784487055.38335 11958 148c2bc76499b2af9e76dfd3b2592fea "pdflatex"
+  "example_paper.aux" 1784487347.82165 11947 4932a071a67f2446a09f32138d611fd6 "pdflatex"
   (generated)
   "example_paper.bbl"
   "example_paper.blg"
   (rewritten before read)
-["pdflatex"] 1784487050.97984 "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" "example_paper.pdf" "example_paper" 1784487055.59868 0
+["pdflatex"] 1784487343.4371 "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" "example_paper.pdf" "example_paper" 1784487348.01415 0
   "/etc/texmf/web2c/texmf.cnf" 1759911561.27607 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" 1784487050.81917 40122 a16a8ba351ac4fbdb5605c6726118fc8 ""
+  "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" 1784487338.38368 40110 d7cff1441b0b081933d76d1ad3115363 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/courier/pcrr8r.tfm" 1136768653 1292 bd42be2f344128bff6d35d98474adfe3 ""
@@ -209,10 +209,10 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1767970753 3350209 fef40a38d47baa2c8cbbb8263b64e28a ""
   "algorithm.sty" 1784366963.28607 2302 d2b29bd8abe4b311c2e3cf0641b4549b ""
   "algorithmic.sty" 1784366963.28755 7615 a7a253154ed6d7d83141571d55bc3515 ""
-  "example_paper.aux" 1784487055.38335 11958 148c2bc76499b2af9e76dfd3b2592fea "pdflatex"
-  "example_paper.bbl" 1784486938.50111 8005 20cc5686e68dc4b23d42c6637631ae1f "bibtex example_paper"
-  "example_paper.out" 1784487051.36871 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "example_paper.tex" 1784487050.81917 40122 a16a8ba351ac4fbdb5605c6726118fc8 ""
+  "example_paper.aux" 1784487347.82165 11947 4932a071a67f2446a09f32138d611fd6 "pdflatex"
+  "example_paper.bbl" 1784487343.43258 8005 20cc5686e68dc4b23d42c6637631ae1f "bibtex example_paper"
+  "example_paper.out" 1784487343.85907 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "example_paper.tex" 1784487338.38368 40110 d7cff1441b0b081933d76d1ad3115363 ""
   "fancyhdr.sty" 1784366963.29607 21006 088e3513a90ac3aa21515dd46e858ae4 ""
   "figures/data_probe_cot_length.png" 1784366963.29807 345319 92e6e9fdb8f013628a2b174eb2b7a62a ""
   "figures/data_probe_layer_sweep.png" 1784366963.29907 396538 342d503ccbf1ee01800375f7809cb763 ""
