@@ -1,15 +1,15 @@
 # Fdb version 4
-["bibtex example_paper"] 1784482628.30557 "example_paper.aux" "example_paper.bbl" "example_paper" 1784482632.90108 0
+["bibtex example_paper"] 1784486938.41989 "example_paper.aux" "example_paper.bbl" "example_paper" 1784487055.59853 0
   "./example_paper.bib" 1784480404.39525 8944 cc4334d94ad9a93a21ccd233ef90de54 ""
   "./icml2022.bst" 1784366963.30907 27147 754d35bad1e0551f1b55824eb3875247 ""
-  "example_paper.aux" 1784482632.68527 13372 0fac5febe6f003758df68ec8b1693d8c "pdflatex"
+  "example_paper.aux" 1784487055.38335 11958 148c2bc76499b2af9e76dfd3b2592fea "pdflatex"
   (generated)
   "example_paper.bbl"
   "example_paper.blg"
   (rewritten before read)
-["pdflatex"] 1784482628.38111 "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" "example_paper.pdf" "example_paper" 1784482632.90119 0
+["pdflatex"] 1784487050.97984 "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" "example_paper.pdf" "example_paper" 1784487055.59868 0
   "/etc/texmf/web2c/texmf.cnf" 1759911561.27607 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" 1784482623.10127 40306 9a8fe7e8bbbac87eeec78630fd20227e ""
+  "/home/martin/LLMs_Encode_Harmfulness_Refusal_Separately/report/example_paper.tex" 1784487050.81917 40122 a16a8ba351ac4fbdb5605c6726118fc8 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/courier/pcrr8r.tfm" 1136768653 1292 bd42be2f344128bff6d35d98474adfe3 ""
@@ -44,8 +44,8 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb" 1248133631 32734 69e00a6b65cedb993666e42eedb3d48f ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1248133631 32762 224316ccc9ad3ca0423a14971cfa7fc1 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
-  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb" 1248133631 32716 08e384dc442464e7285e891af9f45947 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb" 1248133631 32442 c975af247b6702f7ca0c299af3616b80 ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb" 1248133631 34694 ad62b13721ee8eda1dcc8993c8bd7041 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb" 1136849748 45758 19968a0990191524e34e1994d4a31cb6 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb" 1136849748 44729 811d6c62865936705a31c797a1d5dada ""
   "/usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb" 1136849748 46026 6dab18b61c907687b520c72847215a68 ""
@@ -209,10 +209,10 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1767970753 3350209 fef40a38d47baa2c8cbbb8263b64e28a ""
   "algorithm.sty" 1784366963.28607 2302 d2b29bd8abe4b311c2e3cf0641b4549b ""
   "algorithmic.sty" 1784366963.28755 7615 a7a253154ed6d7d83141571d55bc3515 ""
-  "example_paper.aux" 1784482632.68527 13372 0fac5febe6f003758df68ec8b1693d8c "pdflatex"
-  "example_paper.bbl" 1784482628.37759 8787 123c5eeb91e8e802e4d60c3fd50a9d49 "bibtex example_paper"
-  "example_paper.out" 1784482628.75979 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "example_paper.tex" 1784482623.10127 40306 9a8fe7e8bbbac87eeec78630fd20227e ""
+  "example_paper.aux" 1784487055.38335 11958 148c2bc76499b2af9e76dfd3b2592fea "pdflatex"
+  "example_paper.bbl" 1784486938.50111 8005 20cc5686e68dc4b23d42c6637631ae1f "bibtex example_paper"
+  "example_paper.out" 1784487051.36871 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "example_paper.tex" 1784487050.81917 40122 a16a8ba351ac4fbdb5605c6726118fc8 ""
   "fancyhdr.sty" 1784366963.29607 21006 088e3513a90ac3aa21515dd46e858ae4 ""
   "figures/data_probe_cot_length.png" 1784366963.29807 345319 92e6e9fdb8f013628a2b174eb2b7a62a ""
   "figures/data_probe_layer_sweep.png" 1784366963.29907 396538 342d503ccbf1ee01800375f7809cb763 ""
@@ -234,7 +234,6 @@
   "figures/nothink_run/09_slot23.png" 1784482005.94228 125649 ab0b532dff388885d50d1407fef6a1fa ""
   "figures/nothink_tinst.png" 1784449232.72004 112250 c113438fd2e416fc2a2550dac4a81045 ""
   "figures/nothink_tpost.png" 1784449232.72872 140121 0a41ad85da504c2fc87d1b1484d285c1 ""
-  "figures/qwen35_figure3_think.png" 1784366963.30907 98918 3670a32544405b29b221b32e08ae597d ""
   "figures/section4_jailbreak_scatter.png" 1784366963.30907 121868 ff6257cf40a37064f01464cff5c5d35a ""
   "figures/think_run/00_slot00.png" 1784482005.97661 113483 f120f44bbffb96f6c1b5c3d71bf72e55 ""
   "figures/think_run/01_slot01.png" 1784482005.97935 164739 c8841e685529cbcfb2f3abb5291cd86b ""

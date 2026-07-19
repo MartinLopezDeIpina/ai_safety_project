@@ -1,4 +1,4 @@
-\begin{thebibliography}{27}
+\begin{thebibliography}{24}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -24,11 +24,6 @@ Arditi, A., Obeso, O., Syed, A., Paleka, D., Panickssery, N., Gurnee, W., and Na
 Arditi, A., Obeso, O., Syed, A., Paleka, D., Panickssery, N., Gurnee, W., and Nanda, N.
 \newblock Refusal in language models is mediated by a single direction, 2024{\natexlab{b}}.
 \newblock URL \url{https://arxiv.org/abs/2406.11717}.
-
-\bibitem[Chan(2025)]{predictalignment2025}
-Chan, Y.~S.
-\newblock Can we predict alignment before models finish thinking? towards monitoring misaligned reasoning models.
-\newblock arXiv preprint arXiv:2507.12428, 2025.
 
 \bibitem[Chao et~al.(2024)Chao, Debenedetti, Robey, Andriushchenko, Croce, Sehwag, Dobriban, Flammarion, Pappas, Tramèr, Hassani, and Wong]{chao2024jailbreakbench}
 Chao, P., Debenedetti, E., Robey, A., Andriushchenko, M., Croce, F., Sehwag, V., Dobriban, E., Flammarion, N., Pappas, G.~J., Tramèr, F., Hassani, H., and Wong, E.
@@ -75,11 +70,6 @@ Taori, R., Gulrajani, I., Zhang, T., Dubois, Y., Li, X., Guestrin, C., Liang, P.
 \newblock Stanford alpaca: An instruction-following llama model.
 \newblock \url{https://github.com/tatsu-lab/stanford_alpaca}, 2023.
 
-\bibitem[Turner et~al.(2023)Turner, Thiergart, Leech, Udell, Vazquez, Mini, and MacDiarmid]{turner2023activation}
-Turner, A.~M., Thiergart, L., Leech, G., Udell, D., Vazquez, J.~J., Mini, U., and MacDiarmid, M.
-\newblock Activation addition: Steering language models without optimization.
-\newblock arXiv preprint arXiv:2308.10248, 2023.
-
 \bibitem[Venhoff et~al.(2025)Venhoff, Arcuschin, Torr, Conmy, and Nanda]{venhoff2025understanding}
 Venhoff, C., Arcuschin, I., Torr, P., Conmy, A., and Nanda, N.
 \newblock Understanding reasoning in thinking language models via steering vectors.
@@ -100,11 +90,6 @@ Wollschl\"ager, T., Elstner, J., Geisler, S., Cohen-Addad, V., G\"unnemann, S., 
 Xie, T., Qi, X., Zeng, Y., Huang, Y., Sehwag, U.~M., Huang, K., He, L., Wei, B., Li, D., Sheng, Y., Jia, R., Li, B., Li, K., Chen, D., Henderson, P., and Mittal, P.
 \newblock Sorry-bench: Systematically evaluating large language model safety refusal, 2025.
 \newblock URL \url{https://arxiv.org/abs/2406.14598}.
-
-\bibitem[Yamaguchi et~al.(2025)Yamaguchi, Etheridge, and Arditi]{yamaguchi2026where}
-Yamaguchi, K., Etheridge, B., and Arditi, A.
-\newblock Where do reasoning models refuse?
-\newblock arXiv preprint arXiv:2507.03167, 2025.
 
 \bibitem[Yang et~al.(2026)Yang, Meier, Zhao, Ruas, and Gipp]{yang2026beyond}
 Yang, K.-J., Meier, D., Zhao, J., Ruas, T., and Gipp, B.
