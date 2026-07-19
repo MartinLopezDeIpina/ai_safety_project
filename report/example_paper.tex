@@ -257,6 +257,10 @@ h_l' = h_l + c * v_l^{\text{harmful}}
 \label{eq:h_prime}
 \end{equation}
 
+
+Figure \ref{fig:fig4} shows the steering results. We first conduct two baseline trials to measure the refusal rate induced by a random vector matched in coefficient and magnitude to the two vectors of interest. As the random vectors induce no refusal, we proceed to evaluate the harmful and refusal vectors. We observe a maximum refusal rate of 68\% for the harmful direction at the 14th layer, and a maximum refusal rate of 36\% for the refusal direction. Both directions successfully induce refusal in the responses, but to a lesser extent than in the Instruct model.
+
+
 \subsection{Harfmul and refusal direction causal separation}
 
 
@@ -264,7 +268,7 @@ h_l' = h_l + c * v_l^{\text{harmful}}
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.75\linewidth]{figures/fig4.png}
-\caption{}
+\caption{Refusal rate on harmless instructions after steering with the harmful (fh_s1) and refusal (refusal_s20) directions. random_hf_s1 represents a baseline random vector with the harmful vector's magnitude, and random_refusal_s20 represents a baseline random vector with the refusal vector's magnitude.}
 \label{fig:fig4}
 \end{figure}
 
@@ -274,43 +278,6 @@ h_l' = h_l + c * v_l^{\text{harmful}}
 
 \paragraph{Figures 2 and 3.} Figure~2-style plots test where safety-relevant information is localized across layers and token positions. Figure~3-style plots test whether harmfulness and refusal behave as separate axes: if they are separable, accepted harmful examples should be high on harmfulness but low on refusal, while refused harmless examples should be low on harmfulness but high on refusal.
 
-\section{Experiments}
-
-We evaluate Qwen3.5-9B under three generation regimes. In \texttt{genthink}, the model produces a reasoning trace before answering. In \texttt{gennothink}, the prompt supplies an empty think block, causing the model to answer directly. In \texttt{gennothink\_stripped}, we remove or alter post-instruction template tokens to test whether refusal depends on a fixed boundary token. We use harmful datasets including AdvBench, JailbreakBench, and SorryBench, and harmless datasets including XSTest and Alpaca. For thinking outputs, we use judge-corrected labels because refusal-string matching can confuse reasoning text with final-answer behavior.
-
-\section{Results}
-
-\subsection{Behavioral Refusal Remains Stable Across Thinking Modes}
-
-Across Qwen3.5-9B judged outputs, harmful refusal remains high across generation modes: \texttt{genthink} refuses 93.9\% of harmful prompts, \texttt{gennothink} refuses 94.6\%, and \texttt{gennothink\_stripped} refuses 94.4\%. Harmless refusal remains low: 0.3\%, 1.0\%, and 2.3\% respectively. Thus, removing or suppressing the explicit reasoning phase does not by itself collapse behavioral safety.
-
-A smaller post-token stripping diagnostic on Qwen3.5-0.8B also does not support a single-token account: removing post-instruction tokens decreases harmful-prompt acceptance from 25.0\% to 17.5\% on the inspected AdvBench subset. This suggests that refusal in thinking-style prompting is not reducible to merely keeping or removing one post-instruction token.
-
-\subsection{Figure 2: Localization Changes in Thinking Models}
-
-Figure~\ref{fig:fig2-thinking} shows the Figure~2-style score across the thinking layout. This figure should be interpreted primarily as localization evidence: it shows where the representation resembles refused-harmful versus accepted-harmless anchors across layers and token positions. In the original paper, the relevant positions are mainly $t_{\text{inst}}$ and $t_{\text{post-inst}}$; in the thinking setting, comparable structure appears across think-template and answer-boundary positions as well. Thus, Figure~2 supports the claim that safety-relevant information remains present, but is distributed over more positions in reasoning models.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.8\textwidth]{figures/qwen35_figure2_think_judge.png}
-\caption{Figure~2-style score curves for Qwen3.5-9B in the thinking setting. The multi-slot layout extends the original $t_{\text{inst}}$/$t_{\text{post-inst}}$ analysis to prompt, think-template, CoT, \texttt{</think>}, and answer positions.}
-\label{fig:fig2-thinking}
-\end{figure*}
-
-\subsection{Figure 3: Harmfulness and Refusal Remain Separable Axes}
-
-Figure~\ref{fig:fig3-thinking} provides the stronger evidence for separability. The $x$-axis measures harmfulness, while the $y$-axis measures refusal. A single monolithic safety direction would tend to collapse harmfulness and refusal into one axis. Instead, behavior categories can separate along the two dimensions: accepted harmful examples can retain high harmfulness while having low refusal, and refused harmless examples can show refusal without corresponding harmfulness. This is the key evidence that harmfulness and refusal are encoded separately. The thinking-model result therefore supports the original paper's conceptual claim, while also showing that the token positions carrying refusal are less localized than in non-reasoning models.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.5\textwidth]{figures/qwen35_figure3_think.png}
-\caption{Figure~3-style harmfulness/refusal scatter for Qwen3.5-9B in the thinking setting. The two axes separate input harmfulness from refusal behavior, supporting the claim that the concepts are represented separately rather than as one monolithic safety signal.}
-\label{fig:fig3-thinking}
-\end{figure*}
-
-\subsection{Auxiliary Projection Probes Track CoT Dynamics}
-
-The projection probes provide a complementary contribution: instead of only asking where the prompt-boundary representations lie, they track how steering directions interact with the generated reasoning process itself. Across the Qwen3-thinking layer sweep, CoT is preserved in all inspected modes, but inversion-style settings shorten the generated reasoning trace relative to non-inversion settings. The same runs show strong layer dependence in the $t_{\text{inst}}$ and $t_{\text{post-inst}}$ projection scores, especially in later layers. This supports the broader thesis of the report: once a model reasons before answering, harmfulness/refusal analysis should include not only static prompt positions but also the trajectory and length of the reasoning process. We include the detailed CoT-length and projection-score plots in Appendix~\ref{sec:appendix-cot-probes}.
 
 \section{Conclusions}
 \section{Limitations}

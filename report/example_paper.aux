@@ -53,7 +53,7 @@
 \newlabel{eq:v_refuse@cref}{{[equation][5][]5}{[1][4][]4}{}{}{}}
 \newlabel{eq:h_prime}{{6}{4}{}{equation.6}{}}
 \newlabel{eq:h_prime@cref}{{[equation][6][]6}{[1][4][]4}{}{}{}}
-\newlabel{fig:fig4}{{5}{4}{\relax }{figure.caption.6}{}}
+\newlabel{fig:fig4}{{5}{4}{Refusal rate on harmless instructions after steering with the harmful (fh_s1) and refusal (refusal_s20) directions. random_hf_s1 represents a baseline random vector with the harmful vector's magnitude, and random_refusal_s20 represents a baseline random vector with the refusal vector's magnitude}{figure.caption.6}{}}
 \newlabel{fig:fig4@cref}{{[figure][5][]5}{[1][4][]4}{}{}{}}
 \citation{turner2023activation,rimsky2024steering}
 \citation{arditi2024refusal}
@@ -65,18 +65,10 @@
 \citation{yong2026selfjailbreaking,zhao2026cothijacking,refusalcliff2025}
 \citation{predictalignment2025}
 \citation{venhoff2025understanding}
-\newlabel{fig:fig2-thinking}{{6}{6}{Figure~2-style score curves for Qwen3.5-9B in the thinking setting. The multi-slot layout extends the original $t_{\text {inst}}$/$t_{\text {post-inst}}$ analysis to prompt, think-template, CoT, \texttt {</think>}, and answer positions}{figure.caption.7}{}}
-\newlabel{fig:fig2-thinking@cref}{{[figure][6][]6}{[1][5][]6}{}{}{}}
 \bibstyle{icml2022}
 \bibdata{example_paper}
 \bibcite{arditi2024refusal}{{1}{2024}{{Arditi et~al.}}{{Arditi, Obeso, Syed, Paleka, Panickssery, Gurnee, and Nanda}}}
 \bibcite{predictalignment2025}{{2}{2025}{{Chan}}{{}}}
-\newlabel{fig:fig3-thinking}{{7}{7}{Figure~3-style harmfulness/refusal scatter for Qwen3.5-9B in the thinking setting. The two axes separate input harmfulness from refusal behavior, supporting the claim that the concepts are represented separately rather than as one monolithic safety signal}{figure.caption.8}{}}
-\newlabel{fig:fig3-thinking@cref}{{[figure][7][]7}{[1][5][]7}{}{}{}}
-\newlabel{sec:appendix-cot-probes}{{A.2}{7}{}{subsection.A.2}{}}
-\newlabel{sec:appendix-cot-probes@cref}{{[subsection][2][1]A.2}{[1][7][]7}{}{}{}}
-\newlabel{tab:appendix-compliance}{{2}{7}{Heuristic harmful-compliance audit for the jailbreak prompt families in \cref {fig:appendix-jailbreak-scatter}. The evaluator separates explicit refusals, benign diversions, and responses that appear to continue addressing the original harmful request. These labels are a sanity-check audit rather than a substitute for human or LLM judging}{table.caption.10}{}}
-\newlabel{tab:appendix-compliance@cref}{{[table][2][]2}{[1][7][]7}{}{}{}}
 \bibcite{joad2026more}{{3}{2026}{{Joad et~al.}}{{Joad, Hawasly, Boughorbel, Durrani, and Sencar}}}
 \bibcite{maskey2026overrefusal}{{4}{2026}{{Maskey et~al.}}{{Maskey, Dras, and Naseem}}}
 \bibcite{rimsky2024steering}{{5}{2024}{{Rimsky et~al.}}{{Rimsky, Gabrieli, Schulz, Tong, Hubinger, and Turner}}}
@@ -87,13 +79,17 @@
 \bibcite{yamaguchi2026where}{{10}{2025}{{Yamaguchi et~al.}}{{Yamaguchi, Etheridge, and Arditi}}}
 \bibcite{yang2026beyond}{{11}{2026}{{Yang et~al.}}{{Yang, Meier, Zhao, Ruas, and Gipp}}}
 \bibcite{refusalcliff2025}{{12}{2025}{{Yin et~al.}}{{Yin, Leong, Yang, Huang, Li, Wang, Yoon, YunXing, XingYu, and Gu}}}
-\newlabel{fig:appendix-jailbreak-scatter}{{8}{8}{Exploratory jailbreak geometry for Qwen-7B. Refused-harmful baseline prompts are plotted alongside template jailbreaks, evil-persona prompts, GCG suffixes, and persuasion prompts. The attack families occupy distinct regions of the harmfulness/refusal plane}{figure.caption.9}{}}
-\newlabel{fig:appendix-jailbreak-scatter@cref}{{[figure][8][]8}{[1][7][]8}{}{}{}}
 \bibcite{yong2026selfjailbreaking}{{13}{2025}{{Yong \& Bach}}{{Yong and Bach}}}
 \bibcite{zhao2026cothijacking}{{14}{2025{a}}{{Zhao et~al.}}{{Zhao, Fu, Schaeffer, Sharma, and Barez}}}
 \bibcite{zhao2025harmfulness}{{15}{2025{b}}{{Zhao et~al.}}{{Zhao, Huang, Wu, Bau, and Shi}}}
-\newlabel{fig:appendix-cot-length}{{9}{9}{Exploratory CoT-length diagnostics under inversion and non-inversion settings. Inversion settings produce shorter CoTs on average than non-inversion settings for both harmfulness and refusal probes}{figure.caption.11}{}}
-\newlabel{fig:appendix-cot-length@cref}{{[figure][9][]9}{[1][7][]9}{}{}{}}
-\newlabel{fig:appendix-projection-sweep}{{10}{10}{Exploratory projection-score layer sweep for harmfulness and refusal probes. Scores vary strongly by layer, especially in later layers, suggesting that steering effects are layer-dependent rather than uniform across the network}{figure.caption.12}{}}
-\newlabel{fig:appendix-projection-sweep@cref}{{[figure][10][]10}{[1][7][]10}{}{}{}}
-\gdef \@abspage@last{10}
+\newlabel{tab:appendix-compliance}{{2}{6}{Heuristic harmful-compliance audit for the jailbreak prompt families in \cref {fig:appendix-jailbreak-scatter}. The evaluator separates explicit refusals, benign diversions, and responses that appear to continue addressing the original harmful request. These labels are a sanity-check audit rather than a substitute for human or LLM judging}{table.caption.8}{}}
+\newlabel{tab:appendix-compliance@cref}{{[table][2][]2}{[1][6][]6}{}{}{}}
+\newlabel{sec:appendix-cot-probes}{{A.2}{6}{}{subsection.A.2}{}}
+\newlabel{sec:appendix-cot-probes@cref}{{[subsection][2][1]A.2}{[1][6][]6}{}{}{}}
+\newlabel{fig:appendix-jailbreak-scatter}{{6}{7}{Exploratory jailbreak geometry for Qwen-7B. Refused-harmful baseline prompts are plotted alongside template jailbreaks, evil-persona prompts, GCG suffixes, and persuasion prompts. The attack families occupy distinct regions of the harmfulness/refusal plane}{figure.caption.7}{}}
+\newlabel{fig:appendix-jailbreak-scatter@cref}{{[figure][6][]6}{[1][5][]7}{}{}{}}
+\newlabel{fig:appendix-cot-length}{{7}{7}{Exploratory CoT-length diagnostics under inversion and non-inversion settings. Inversion settings produce shorter CoTs on average than non-inversion settings for both harmfulness and refusal probes}{figure.caption.9}{}}
+\newlabel{fig:appendix-cot-length@cref}{{[figure][7][]7}{[1][6][]7}{}{}{}}
+\newlabel{fig:appendix-projection-sweep}{{8}{8}{Exploratory projection-score layer sweep for harmfulness and refusal probes. Scores vary strongly by layer, especially in later layers, suggesting that steering effects are layer-dependent rather than uniform across the network}{figure.caption.10}{}}
+\newlabel{fig:appendix-projection-sweep@cref}{{[figure][8][]8}{[1][6][]8}{}{}{}}
+\gdef \@abspage@last{8}
