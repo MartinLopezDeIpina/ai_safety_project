@@ -9,7 +9,6 @@
 % Recommended, but optional, packages for figures and better typesetting:
 \usepackage{microtype}
 \usepackage{graphicx}
-\usepackage{subfigure}
 \usepackage{booktabs} % for professional tables
 
 % hyperref makes hyperlinks in the resulting PDF.
@@ -34,6 +33,9 @@
 \usepackage{mathtools}
 \usepackage{amsthm}
 \usepackage{calligra}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{cuted}
 
 % if you use cleveref..
 \usepackage[capitalize,noabbrev]{cleveref}
@@ -116,6 +118,7 @@ For this matter, we search on thinking models on two different generation config
 
 
 \section{Datasets and Setup}
+\label{sec:datasets}
 
 In this section, we explain our experiments' datasets and configuration.
 
@@ -138,8 +141,86 @@ We base our manual bucketing on the following basis: \emph{(i)} Qwen3.5 has been
 
 
 \section{Methodology}
+In this section, we present our approach with the experiments we conducted. We first test in Section \ref{sec:strip} whether stripping the last tokens also decreases refusal like in Instruct models. Since that proves not effective, we then search for potential tokens with a strong harmful and refusal signal on Section \ 
 
-In this section we present the experiments 
+\subsection{Token stripping generation} \label{sec:strip}
+We compare the refusal rate of 4 generation configurations on the AdvBench and JBB datasets. This corresponds to the thinking, non-thinking, and two stripped versions. For stripped version a, we only remove the last \texttt{\textbackslash n\textbackslash n} from the non-thinking configuration, which is codified as only one token. For stripped version b, we strip everything in the thinking configuration until the <|im\_start|> token. Results are shown in Table \ref{tab:refusal-rate}. Contrary to the Instruct models, none of the configurations shows a decrease in the refusal rate.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\hline
+\textbf{Generation Configuration} & \textbf{Refusal Rate} \\
+\hline
+Thinking     & 98.6\% \\
+Non-thinking & 98.8\% \\
+Strip A      & 97.3\% \\
+Strip B      & 98.9\% \\
+\hline
+\end{tabular}
+\caption{Refusal rate by generation configuration.}
+\label{tab:refusal-rate}
+\end{table}
+
+\subsection{Activation visualization}
+We plot each token's mean activations to search for harmfulness and refusal encoding patterns. Taking activations for a chosen token, we implement Equation \ref{eq:refusal_score}. We first compute the centroid of the correctly behaved clusters, $\mu_{\text{harmful}}^{\text{refused}}$ and $\mu_{\text{harmless}}^{\text{accepted}}$, using the bucketing explained in Section \ref{sec:datasets}. After this, $s_l$ is defined as the similarity of the mean activations for the chosen token at layer $l$. All the buckets are divided into an equal ratio train and test sets, to ensure that no activation is compared against a mean that cointains it's own value. 
+
+\begin{strip}
+\begin{equation}
+s_l(h_l) = \text{cos\_sim}\left(h_l, \mu_l^{\text{refused harmful}}\right) - \text{cos\_sim}\left(h_l, \mu_l^{\text{accepted harmless}}\right)
+\label{eq:refusal_score}
+\end{equation}
+\end{strip}
+
+We use the activations of the opposing expected behavior to test the following hypothesis: if a token's representation is closer to the cluster matching its harmfulness label than to the cluster matching its expected behavior, then that token encodes harmfulness more strongly than refusal, and vice versa. For example, if accepted harmful query activations are closer to the refused harmful centroid, then this token encodes harmfulness to a greater magnitude than refusal; if instead they are closer to the accepted harmless centroid, then the refusal direction is more present. The same logic applies to refused harmless activations.
+
+We run this experiment on the following tokens: \emph{(i)} $t_{inst}$ and $t_{post}$ tokens; \emph{(ii)} $\backslash$n and thinking tag tokens; \emph{(iii)} a set of 15 selected tokens in the CoT, for which we take the first 5 tokens of the CoT, the last 5 tokens of the CoT, and 5 selected middle tokens — for the middle tokens, we divide the CoT into 5 groups (excluding the first and last 5) and take the middle index of each group; \emph{(iv)} the first 3 generated tokens.
+
+Figure \ref{fig:grid} shows the results for the distinguished tokens, All the other tokens' plots can be found in the Appendix (cite here). Figure \ref{fig:col_qwen2} shows the desired opposing behavior on Qwen2-7B, tinst encodes harmfulness while tpost encodes refusal. Figure \ref{fig:col_think} and Figure \ref{fig:col_nothink} show the activations for Qwen3.5-9B on thinking and non-thinking generations. Tpost on the non-thinking configuration is the only token on the prompt activations that show the desired behavior. For this reason, we choose tpost and the first generated token on the non-thinking configuration to continue with our experiments. As Figure \ref{fig:col_gen1} shows, we hypothesize that tpost contains the harmfulness direction and the first generated token contains the refusal direction.
+
+The thinking configuration tokens show less promising results. Appendix (insert cite) shows all the tokens on this configuration. We try the $\backslash$n token after the opening think token as the harmful token and mid1 token for the refusal direction, but we get no interesting results. We conclude that either there is no clear separation, or the SorryBench dataset was not harmful enough to capture the harmful direction. 
+
+
+\begin{figure*}[t]
+\centering
+\begin{subfigure}[t]{0.24\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/tinst_qwen2.png}\\[0.3em]
+    \includegraphics[width=\linewidth]{figures/tpost_qwen2.png}
+    \caption{Desired behavior, replicated on Qwen2-7B for tinst and tpost.}
+    \label{fig:col_qwen2}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.24\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/think_tinst.png}\\[0.3em]
+    \includegraphics[width=\linewidth]{figures/think_tpost.png}
+    \caption{Qwen3.5-9B on thinking configuration, tinst and tpost activations}
+    \label{fig:col_think}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.24\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/nothink_tinst.png}\\[0.3em]
+    \includegraphics[width=\linewidth]{figures/nothink_tpost.png}
+    \caption{Qwen3.5-9B on non-thinking configuration, tinst and tpost activations}
+    \label{fig:col_nothink}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.24\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/nothink_tpost.png}\\[0.3em]
+    \includegraphics[width=\linewidth]{figures/nothink_gen1.png}
+    \caption{Qwen3.5-9B on non-thinking configuration, tpost and gen1 activations}
+    \label{fig:col_gen1}
+\end{subfigure}
+\caption{}
+\label{fig:grid}
+\end{figure*}
+
+\subsection{}
+
+
 
 \paragraph{Behavioral buckets.} We group examples by both prompt type and observed behavior: accepted harmful, refused harmful, accepted harmless, and refused harmless. These buckets let us distinguish whether a representation tracks input harmfulness, output refusal, or a mixture of both.
 
@@ -214,7 +295,7 @@ The GCG suffix prompts are more heterogeneous. Some points lie near the template
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/section4_jailbreak_scatter.png}
+\includegraphics[width=0.72\textwidth]{figures/section4_jailbreak_scatter.png}
 \caption{Exploratory jailbreak geometry for Qwen-7B. Refused-harmful baseline prompts are plotted alongside template jailbreaks, evil-persona prompts, GCG suffixes, and persuasion prompts. The attack families occupy distinct regions of the harmfulness/refusal plane.}
 \label{fig:appendix-jailbreak-scatter}
 \end{figure*}
@@ -248,14 +329,14 @@ We also include an exploratory layer sweep from a separate Qwen3-thinking probe.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.75\textwidth]{figures/data_probe_cot_length.png}
+\includegraphics[width=0.95\textwidth]{figures/data_probe_cot_length.png}
 \caption{Exploratory CoT-length diagnostics under inversion and non-inversion settings. Inversion settings produce shorter CoTs on average than non-inversion settings for both harmfulness and refusal probes.}
 \label{fig:appendix-cot-length}
 \end{figure*}
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.75\textwidth]{figures/data_probe_layer_sweep.png}
+\includegraphics[width=0.95\textwidth]{figures/data_probe_layer_sweep.png}
 \caption{Exploratory projection-score layer sweep for harmfulness and refusal probes. Scores vary strongly by layer, especially in later layers, suggesting that steering effects are layer-dependent rather than uniform across the network.}
 \label{fig:appendix-projection-sweep}
 \end{figure*}

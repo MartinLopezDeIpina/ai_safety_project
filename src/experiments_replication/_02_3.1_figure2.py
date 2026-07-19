@@ -8,7 +8,9 @@ the two plotted lines are the misbehaving buckets accepted-harmful (coral, solid
 refused-harmless (teal, dash-dot), each as mean +/- std over its examples per layer.
 """
 
+import glob
 import os
+import re
 
 import numpy as np
 import torch
@@ -27,6 +29,85 @@ TITLES = {
 
 CORAL = "#E8766C"   # accepted harmful  (solid line, upper region)
 TEAL = "#158A8A"    # refused harmless  (dash-dot line, lower region)
+
+
+RUN_DIR_PREFIX = "fig2_run_"
+
+
+def _next_run_dir(base_dir, prefix=RUN_DIR_PREFIX):
+    """Create and return base_dir/<prefix><N>, N being the next free integer.
+
+    Each one_image_per_figure call gets its own folder so re-running never overwrites an earlier
+    run's panels. Existing dirs whose suffix isn't an integer are ignored.
+    """
+    used = []
+    for path in glob.glob(os.path.join(base_dir, f"{prefix}*")):
+        match = re.fullmatch(rf"{re.escape(prefix)}(\d+)", os.path.basename(path))
+        if match and os.path.isdir(path):
+            used.append(int(match.group(1)))
+    run_dir = os.path.join(base_dir, f"{prefix}{max(used, default=0) + 1}")
+    os.makedirs(run_dir, exist_ok=True)
+    return run_dir
+
+
+class _PanelSink:
+    """Where the per-panel axes come from, and when each panel is written.
+
+    Two modes behind one interface, so the plotting loops stay single-copy:
+      grid  (run_dir=None) - one shared figure; `axis()` hands out the next cell of a pre-built
+                             grid and `close()` saves the whole thing to `out_path`.
+      split (run_dir set)  - one figure per panel; `axis()` opens a fresh figure and the matching
+                             `finish()` saves it under `run_dir`.
+    """
+
+    def __init__(self, out_path, run_dir, nrows=1, ncols=1, figsize=(7.2, 5.4), dpi=200,
+                 split_figsize=(7.2, 5.4), split_dpi=200):
+        self.out_path = out_path
+        self.run_dir = run_dir
+        # a standalone panel gets the full-size canvas even when the grid packs small cells:
+        # _draw_score's font sizes are absolute, so a 4.2x3.6 cell alone reads as oversized text
+        self.figsize = split_figsize
+        self.dpi = split_dpi if run_dir is not None else dpi
+        self._fig = None
+        self._axes = None
+        self._index = 0
+        if run_dir is None:
+            self._fig, axes = plt.subplots(nrows, ncols,
+                                           figsize=(figsize[0] * ncols, figsize[1] * nrows),
+                                           squeeze=False)
+            self._axes = axes.ravel()
+
+    def axis(self):
+        """The axes for the next panel."""
+        if self.run_dir is None:
+            ax = self._axes[self._index]
+        else:
+            self._fig, ax = plt.subplots(figsize=self.figsize)
+        self._index += 1
+        return ax
+
+    def finish(self, filename):
+        """End the panel opened by the last `axis()`; saves it in split mode, no-op in grid mode."""
+        if self.run_dir is None:
+            return
+        path = os.path.join(self.run_dir, filename)
+        self._fig.tight_layout()
+        self._fig.savefig(path, dpi=self.dpi, bbox_inches="tight")
+        plt.close(self._fig)
+        self._fig = None
+        print(f"saved {path}")
+
+    def close(self):
+        """Save the grid figure (grid mode); in split mode every panel is already on disk."""
+        if self.run_dir is not None:
+            return
+        for ax in self._axes[self._index:]:
+            ax.axis("off")
+        self._fig.tight_layout()
+        os.makedirs(os.path.dirname(self.out_path), exist_ok=True)
+        self._fig.savefig(self.out_path, dpi=self.dpi, bbox_inches="tight")
+        plt.close(self._fig)
+        print(f"saved {self.out_path}")
 
 
 def _cosine(hidden, center):
@@ -208,7 +289,8 @@ def _slice_pos(tensor, p):
     return sl[:, keep]
 
 
-def plot_figure2_thinking(model, model_size, buckets, positions, out_path, mode, ncols=6):
+def plot_figure2_thinking(model, model_size, buckets, positions, out_path, mode, ncols=6,
+                          one_image_per_figure=False):
     """Figure 2 across the 25-slot thinking layout (one panel per slot in `positions`).
 
     Same score as plot_figure2: anchors mu_refused_harmful / mu_accepted_harmless from the train
@@ -217,6 +299,9 @@ def plot_figure2_thinking(model, model_size, buckets, positions, out_path, mode,
 
     `mode` is the generation mode these buckets came from ("genthink", "gennothink", ...); it picks
     the panel labels, which are not the same across modes (see _SLOT_LABELS_BY_MODE).
+
+    one_image_per_figure: write one PNG per slot into a fresh <out_path dir>/fig2_run_<N>/ folder
+    instead of the single grid PNG (see _next_run_dir).
     """
     _check_layout(buckets)
     labels = slot_labels(mode)
@@ -224,16 +309,23 @@ def plot_figure2_thinking(model, model_size, buckets, positions, out_path, mode,
     n = len(positions)
     ncols = min(ncols, n)
     nrows = int(np.ceil(n / ncols))
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4.2 * ncols, 3.6 * nrows), squeeze=False)
-    axes = axes.ravel()
+    run_dir = _next_run_dir(os.path.dirname(out_path)) if one_image_per_figure else None
+    if run_dir:
+        print(f"one image per figure -> {run_dir}")
+    sink = _PanelSink(out_path, run_dir, nrows=nrows, ncols=ncols, figsize=(4.2, 3.6), dpi=150)
 
-    for ax, p in zip(axes, positions):
+    for order, p in enumerate(positions):
+        # slot order is not token order (THINK_POSITIONS), so prefix with the panel's position in
+        # the sequence to keep the files sorted the way the grid reads
+        filename = f"{order:02d}_slot{p:02d}.png"
+        ax = sink.axis()
         title = labels.get(p, str(p))
         rh_tr = _slice_pos(train["refused_harmful"], p)
         ah_tr = _slice_pos(train["accepted_harmless"], p)
         if rh_tr.shape[1] == 0 or ah_tr.shape[1] == 0:
             ax.set_title(title, fontsize=12)
             ax.text(0.5, 0.5, "no anchors", ha="center", va="center", transform=ax.transAxes)
+            sink.finish(filename)
             continue
         mu_refused_harmful, mu_accepted_harmless = rh_tr.mean(1), ah_tr.mean(1)
 
@@ -247,6 +339,7 @@ def plot_figure2_thinking(model, model_size, buckets, positions, out_path, mode,
         if accepted_harmful_mean is None:
             ax.set_title(title, fontsize=12)
             ax.text(0.5, 0.5, "no data", ha="center", va="center", transform=ax.transAxes)
+            sink.finish(filename)
             continue
 
         layers = np.arange(mu_refused_harmful.shape[0])
@@ -260,30 +353,31 @@ def plot_figure2_thinking(model, model_size, buckets, positions, out_path, mode,
             accepted_harmful_mean, accepted_harmful_std,
             refused_harmless_mean, refused_harmless_std,
             title=title, ymin=-ymax, ymax=ymax)
+        sink.finish(filename)
 
-    for ax in axes[n:]:
-        ax.axis("off")
-
-    fig.tight_layout()
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"saved {out_path}")
+    sink.close()
 
 
-def plot_figure2(model, model_size, buckets, out_path=None):
+def plot_figure2(model, model_size, buckets, out_path=None, one_image_per_figure=False):
     """Build and save Figure 2 (t_inst and t_post as two panels of one PNG).
 
     buckets: {"train": {...}, "test": {...}} from dynamic_bucket_formation.gen_buckets. Anchors
         (mu) come from the train clusters; the plotted lines from the test clusters.
     out_path: override the output PNG path (default: output/<model><size>/figure2.png).
+    one_image_per_figure: write one PNG per token position (tinst.png, tpost.png) into a fresh
+        <out dir>/fig2_run_<N>/ folder instead of the single two-panel PNG (see _next_run_dir).
     """
     train, test = buckets["train"], buckets["test"]
     out_dir = os.path.join(HERE, "output", f"{model}{model_size}")
+    save_path = out_path or os.path.join(out_dir, "figure2.png")
 
-    fig, axes = plt.subplots(1, len(POSITIONS), figsize=(7.2 * len(POSITIONS), 5.4))
+    run_dir = _next_run_dir(os.path.dirname(save_path)) if one_image_per_figure else None
+    if run_dir:
+        print(f"one image per figure -> {run_dir}")
+    sink = _PanelSink(save_path, run_dir, nrows=1, ncols=len(POSITIONS))
 
-    for ax, position in zip(axes, POSITIONS):
+    for position in POSITIONS:
+        ax = sink.axis()
         mu_refused_harmful = train[f"refused_harmful_{position}"].mean(1)     # (L, H)
         mu_accepted_harmless = train[f"accepted_harmless_{position}"].mean(1)
 
@@ -310,10 +404,6 @@ def plot_figure2(model, model_size, buckets, out_path=None):
 
         if refused_harmless_mean is None:
             print(f"{position}: refused_harmless empty -> green line omitted")
+        sink.finish(f"{position}.png")
 
-    fig.tight_layout()
-    save_path = out_path or os.path.join(out_dir, "figure2.png")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    fig.savefig(save_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    print(f"saved {save_path}")
+    sink.close()

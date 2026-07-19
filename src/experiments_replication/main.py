@@ -52,7 +52,7 @@ def _main_thinking(model, model_size, left, right, stages,
                    bucket_config_stripped_v2, max_len, batch_size, sampling_config,
                    use_judge=False, judge_config=None, only_datasets=None, only_modes=None,
                    use_judged_classifications=False, max_acts_per_bucket=None,
-                   intervene_config=None):
+                   intervene_config=None, one_image_per_figure=False):
     """Qwen3.5 thinking track (see main's docstring)."""
     # defaults carry the configs/bucketing/ prefix: gen_buckets_thinking resolves a relative path
     # against this dir, and that is where the checked-in configs live.
@@ -103,7 +103,8 @@ def _main_thinking(model, model_size, left, right, stages,
                 # sources, which are only extracted under judge_activations/)
                 if "refused_harmful" in buckets["train"]:
                     plot_figure2_thinking(model, model_size, buckets, positions,
-                                          _fig_path(model, model_size, "figure2", cfg), mode)
+                                          _fig_path(model, model_size, "figure2", cfg), mode,
+                                          one_image_per_figure=one_image_per_figure)
                 else:
                     print(f"skipping figure2 for {cfg}: no activations found")
             if "fig3" in stages:
@@ -154,7 +155,7 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
          sampling_config="sampling_config.json", use_judge=False,
          judge_config=None, only_datasets=None, only_modes=None,
          use_judged_classifications=False, max_acts_per_bucket=None,
-         intervene_config=None):
+         intervene_config=None, one_image_per_figure=False):
     """Run the pipeline for one model/config. `stages` selects which stages run.
 
     bucket_config: path to a bucket config json (relative paths resolve against this dir), or None
@@ -206,6 +207,10 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
     wrote), so a full judged run needs only use_judge=True. This flag remains an explicit override for
     fig-only runs (stages=("fig",)) that read judge_activations/ produced by an earlier judged run.
 
+    one_image_per_figure: split Figure 2 into one PNG per panel (per token position on the instruct
+    track, per token slot on the thinking track) written to output/<model><size>/fig2_run_<N>/, a
+    fresh numbered folder per call, instead of the single combined PNG. Only affects figure2.
+
     max_acts_per_bucket: cap the `acts` stage to the first N rows PER bucket (per classified/judged
     split file), bounding each .pt so figure/bucket loading doesn't OOM. None = no cap; per-file, so
     buckets are never mixed.
@@ -216,7 +221,8 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
                        bucket_config_stripped_v2, max_len, batch_size, sampling_config,
                        use_judge=use_judge, judge_config=judge_config, only_datasets=only_datasets,
                        only_modes=only_modes, use_judged_classifications=use_judged_classifications,
-                       max_acts_per_bucket=max_acts_per_bucket, intervene_config=intervene_config)
+                       max_acts_per_bucket=max_acts_per_bucket, intervene_config=intervene_config,
+                       one_image_per_figure=one_image_per_figure)
         return
 
     if "infer" in stages:
@@ -245,7 +251,8 @@ def main(model="qwen", model_size="0.5b", left=0, right=10,
         fig2_buckets = (gen_buckets(model, model_size, bucket_config, use_judged=True)
                         if use_judged_acts else buckets)
         plot_figure2(model, model_size, fig2_buckets,
-                     out_path=_fig_path(model, model_size, "figure2", bucket_config))
+                     out_path=_fig_path(model, model_size, "figure2", bucket_config),
+                     one_image_per_figure=one_image_per_figure)
     if "fig3" in stages:
         plot_figure3(model, model_size, buckets,
                      save_path=_fig_path(model, model_size, "figure3", bucket_config))
@@ -255,14 +262,16 @@ if __name__ == "__main__":
     # Experiments-only smoke for qwen 0.5b (activations already computed). Uncomment the GPU
     # stages to regenerate generations/classified_generations/activations from scratch.
     # main("qwen", "0.5b", stages=("infer", "eval", "acts"))
-    main("qwen35", "9b",
-         stages=("fig3",),  # note the trailing comma
-         bucket_config="configs/bucketing/bucket_config_qwen35_think.json",
+    main("qwen", "7b",
+         stages=("fig",),  # note the trailing comma
+         #bucket_config="configs/bucketing/bucket_config_qwen35_think.json",
+         bucket_config="configs/bucketing/bucket_config_clean.json",
          bucket_config_nothink="configs/bucketing/bucket_config_qwen35_nothink.json",
          bucket_config_stripped="configs/bucketing/bucket_config_qwen35_nothink_stripped.json",
          bucket_config_stripped_v2="configs/bucketing/bucket_config_qwen35_nothink_stripped_v2.json",
-         thinking=True,
-         use_judged_classifications=True)
+         thinking=False,
+         use_judged_classifications=True,
+         one_image_per_figure=True)
     """
     main("qwen", "7b",
          stages=("fig", "fig3"),  # note the trailing comma
