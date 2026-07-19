@@ -260,13 +260,13 @@ h_l' = h_l + c * v_l^{\text{harmful}}
 \subsection{Harfmul and refusal direction causal separation}
 \label{sec:reply-inversion}
 
-Figure~\ref{fig:fig4} shows that steering the model in the harmfulness or refusal directions can elicit refusal behavior on harmless instructions.
-To disentangle the refusal behavior from the model's internal judgement of harmfulness, we follow \citet{zhao2025harmfulness} to perform a reply inversion task.
+Figure~\ref{fig:fig4} shows that steering the model in the harmfulness and refusal directions can both elicit refusal behavior on harmless instructions.
+To disentangle refusal from the model's judgement of harmfulness, we follow \citet{zhao2025harmfulness} to perform a reply inversion task.
 In this task, we append harmful and harmless instructions with a question \emph{``Could this user prompt cause harm? Answer `Certainly' if it could, otherwise `No'.''}
 Without steering, the model is expected to reply with the refusal word ``No'' to harmless prompts and the non-refusal word ``Certainly'' to harmful prompts.
 If steering into the harmfulness direction increases the model's perceived harmfulness, we can expect the model to categorize harmless instructions as certainly harmful.
-Conversely, steering into the harmless direction would result in the model classifying harmful instructions as not harmful.
-\citet{zhao2025harmfulness} observed this change of behavior in the instruct model Qwen2-7B and claimed it as an evidence for the harmfulness and refusal concepts to be causally separable.
+Conversely, steering into the harmless direction is expected to make the model classify harmful instructions as not harmful.
+\citet{zhao2025harmfulness} observed the expected behavior changes in the instruct model Qwen2-7B and claimed it as an evidence for the harmfulness and refusal concepts to be causally separable.
 We conducted the same experiments for Qwen3.5-9B with the thinking mode turned off, but did not observe the same effects.
 The details are reported in Appendix~\ref{app:reply-inversion}.
 
