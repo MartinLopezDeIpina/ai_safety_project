@@ -258,31 +258,31 @@ Figure \ref{fig:figure3_qwen35_nothink} shows the resulting clusters. The four c
 \label{fig:figure3_qwen35_nothink}
 \end{figure}
 
-\subsection{Refusal elicitation}
+\subsection{Activation steering}
 \label{sec:elicit_refusal}
-\label{eq:elicit_refusal}
-We test our $t_{\text{post-inst}}$ and gen1 token activations to check whether we can elicit refusal. For each layer, we extract the harmful vector by subtracting the $t_{\text{post-inst}}$ token's mean harmless activation from the $t_{\text{post-inst}}$ mean harmful activation (Equation \ref{eq:v_harmful}). We apply the same logic with the refusal vector in Equation \ref{eq:v_refuse}. Afterwards, the computed vector on each layer is added to the model's residual stream while generating a response, multiplied by a magnitude coefficient. 
+% \label{eq:elicit_refusal}
+We test our $t_{\text{post-inst}}$ and gen1 token activations to check whether we can elicit refusal.
+For each layer $l$, we compute the steering vectors
+\begin{align*}
+    v_l^{\text{harmful}} &= \mu_{l,\,\text{harmful}}^{t_{\text{post}}} - \mu_{l,\,\text{harmless}}^{t_{\text{post}}}, \\
+    v_l^{\text{refuse}} &= \mu_{l,\,\text{refuse}}^{t_{\text{gen1}}} - \mu_{l,\,\text{accept}}^{t_{\text{gen1}}}
+\end{align*}
+and perform additive steering to alter the hidden state $h^l$ in every layer $l$.
+During forward passes, we compute $h^l \gets h^l + c \, v_l^{\text{harmful}}$ or $h^l \gets h^l + c \, v_l^{\text{refuse}}$ with $c \in \mathbb{R}$ across all tokens of input instructions.
 
-\begin{equation}
-v_l^{\text{harmful}} = \mu_{l,\,\text{harmful}}^{t_{\text{post}}} - \mu_{l,\,\text{harmless}}^{t_{\text{post}}}
-\label{eq:v_harmful}
-\end{equation}
-\begin{equation}
-v_l^{\text{refuse}} = \mu_{l,\,\text{refuse}}^{t_{\text{gen1}}} - \mu_{l,\,\text{accept}}^{t_{\text{gen1}}}
-\label{eq:v_refuse}
-\end{equation}
-\begin{equation}
-h_l' = h_l + c * v_l^{\text{harmful}}
-\label{eq:h_prime}
-\end{equation}
+In addition to steering along the harmfulness and refusal directions, we also consider steering along random directions.
+If a behavior is indeed induced by steering in a specific direction, then we should observe a different behavior if we change the direction.
+Thus, we use random steering as a baseline for assessing steering effects.
+For each layer $l$, we randomly rotate $v_l^\textup{harmful}$ and $v_l^\textup{refuse}$ to produce two random steering vectors $\tilde{v}_l^\textup{harmful}$ and $\tilde{v}_l^\textup{refuse}$.
+The random steering vectors yield perturbations of the same magnitude as the original steering vectors, but in different directions.
+
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/fig4.png}
-\caption{The orange and blue curves show the refusal rates under additive steering in the harmfulness direction (orange curve) and refusal direction (blue curve).
-In addition, we randomly rotated the steering vectors $v^\textup{harmful}_l$ and $v^\textup{refuse}_l$ to produce two random steering directions.
-The results of random steering are given by the green and purple curves.
-The steering coefficient is set to $c = 4$ in all cases, and the thinking mode is disabled.}
+\caption{The orange and blue curves show the refusal rates under additive steering in the harmfulness direction $v_l^\textup{harmful}$ (orange curve) and refusal direction $v_l^\textup{refuse}$ (blue curve), respectively.
+The green and purple curves curves show the refusal rates under additive steering in the random directions $\tilde{v}_l^\textup{harmful}$ and $\tilde{v}_l^\textup{refuse}$, respectively.
+The steering coefficient is $c = 4$ in all cases, and the thinking mode is disabled.}
 \label{fig:fig4}
 \end{figure}
 
@@ -324,7 +324,7 @@ This suggests a lack of evidence for the steered model to perceive less harmfuln
 \caption{Intervention results for the reply inversion tasks.
 If the model does not reply with ``Certainly'' or ``No'' but a canonical refusal phrase (e.g., ``I cannot assist...''), then we classify the response as an refusal to answering the question.
 As in \Cref{fig:fig4}, we include random steering results for comparison.
-The steering coefficient is set to $c = 2$ in all cases.
+The steering coefficient is $c = 2$ in all cases.
 Without steering, the model answers ``No'' to 100\% of the harmless instructions and 2\% of the harmful instructions.
 }
 \label{fig:fig5}

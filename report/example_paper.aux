@@ -42,10 +42,6 @@
 \newlabel{eq:delta_refuse@cref}{{[equation][3][]3}{[1][3][]3}{}{}{}}
 \newlabel{sec:elicit_refusal}{{3.4}{3}{}{subsection.3.4}{}}
 \newlabel{sec:elicit_refusal@cref}{{[subsection][4][3]3.4}{[1][3][]3}{}{}{}}
-\newlabel{eq:elicit_refusal}{{3.4}{3}{}{subsection.3.4}{}}
-\newlabel{eq:elicit_refusal@cref}{{[subsection][4][3]3.4}{[1][3][]3}{}{}{}}
-\newlabel{eq:v_harmful}{{4}{3}{}{equation.4}{}}
-\newlabel{eq:v_harmful@cref}{{[equation][4][]4}{[1][3][]3}{}{}{}}
 \citation{zhao2025harmfulness}
 \citation{zhao2025harmfulness}
 \newlabel{fig:col_qwen2}{{3a}{4}{Qwen2-7B replication}{figure.caption.4}{}}
@@ -68,25 +64,21 @@
 \newlabel{fig:grid@cref}{{[figure][3][]3}{[1][3][]4}{}{}{}}
 \newlabel{fig:figure3_qwen35_nothink}{{4}{4}{Non-thinking generation activations for $t_{\text {post-inst}}$ and gen1 tokens clustered according to refusal and harmful score}{figure.caption.5}{}}
 \newlabel{fig:figure3_qwen35_nothink@cref}{{[figure][4][]4}{[1][3][]4}{}{}{}}
-\newlabel{fig:fig4}{{5}{4}{The orange and blue curves show the refusal rates under additive steering in the harmfulness direction (orange curve) and refusal direction (blue curve). In addition, we randomly rotated the steering vectors $v^\textup {harmful}_l$ and $v^\textup {refuse}_l$ to produce two random steering directions. The results of random steering are given by the green and purple curves. The steering coefficient is set to $c = 4$ in all cases, and the thinking mode is disabled}{figure.caption.6}{}}
-\newlabel{fig:fig4@cref}{{[figure][5][]5}{[1][4][]4}{}{}{}}
-\newlabel{eq:v_refuse}{{5}{4}{}{equation.5}{}}
-\newlabel{eq:v_refuse@cref}{{[equation][5][]5}{[1][3][]4}{}{}{}}
-\newlabel{eq:h_prime}{{6}{4}{}{equation.6}{}}
-\newlabel{eq:h_prime@cref}{{[equation][6][]6}{[1][4][]4}{}{}{}}
 \newlabel{sec:reply-inversion}{{3.5}{4}{}{subsection.3.5}{}}
 \newlabel{sec:reply-inversion@cref}{{[subsection][5][3]3.5}{[1][4][]4}{}{}{}}
+\newlabel{fig:fig4}{{5}{4}{The orange and blue curves show the refusal rates under additive steering in the harmfulness direction $v_l^\textup {harmful}$ (orange curve) and refusal direction $v_l^\textup {refuse}$ (blue curve), respectively. The green and purple curves curves show the refusal rates under additive steering in the random directions $\tilde {v}_l^\textup {harmful}$ and $\tilde {v}_l^\textup {refuse}$, respectively. The steering coefficient is $c = 4$ in all cases, and the thinking mode is disabled}{figure.caption.6}{}}
+\newlabel{fig:fig4@cref}{{[figure][5][]5}{[1][4][]4}{}{}{}}
 \citation{zhao2025harmfulness}
 \newlabel{fig:fig5a}{{6a}{6}{\relax }{figure.caption.7}{}}
-\newlabel{fig:fig5a@cref}{{[subfigure][1][6]6a}{[1][4][]6}{}{}{}}
+\newlabel{fig:fig5a@cref}{{[subfigure][1][6]6a}{[1][5][]6}{}{}{}}
 \newlabel{sub@fig:fig5a}{{a}{6}{\relax }{figure.caption.7}{}}
-\newlabel{sub@fig:fig5a@cref}{{[subfigure][1][6]6a}{[1][4][]6}{}{}{}}
+\newlabel{sub@fig:fig5a@cref}{{[subfigure][1][6]6a}{[1][5][]6}{}{}{}}
 \newlabel{fig:fig5b}{{6b}{6}{\relax }{figure.caption.7}{}}
-\newlabel{fig:fig5b@cref}{{[subfigure][2][6]6b}{[1][4][]6}{}{}{}}
+\newlabel{fig:fig5b@cref}{{[subfigure][2][6]6b}{[1][5][]6}{}{}{}}
 \newlabel{sub@fig:fig5b}{{b}{6}{\relax }{figure.caption.7}{}}
-\newlabel{sub@fig:fig5b@cref}{{[subfigure][2][6]6b}{[1][4][]6}{}{}{}}
-\newlabel{fig:fig5}{{6}{6}{Intervention results for the reply inversion tasks. If the model does not reply with ``Certainly'' or ``No'' but a canonical refusal phrase (e.g., ``I cannot assist...''), then we classify the response as an refusal to answering the question. As in \Cref {fig:fig4}, we include random steering results for comparison. The steering coefficient is set to $c = 2$ in all cases. Without steering, the model answers ``No'' to 100\% of the harmless instructions and 2\% of the harmful instructions}{figure.caption.7}{}}
-\newlabel{fig:fig5@cref}{{[figure][6][]6}{[1][4][]6}{}{}{}}
+\newlabel{sub@fig:fig5b@cref}{{[subfigure][2][6]6b}{[1][5][]6}{}{}{}}
+\newlabel{fig:fig5}{{6}{6}{Intervention results for the reply inversion tasks. If the model does not reply with ``Certainly'' or ``No'' but a canonical refusal phrase (e.g., ``I cannot assist...''), then we classify the response as an refusal to answering the question. As in \Cref {fig:fig4}, we include random steering results for comparison. The steering coefficient is $c = 2$ in all cases. Without steering, the model answers ``No'' to 100\% of the harmless instructions and 2\% of the harmful instructions}{figure.caption.7}{}}
+\newlabel{fig:fig5@cref}{{[figure][6][]6}{[1][5][]6}{}{}{}}
 \newlabel{fig:fig2-thinking}{{7}{6}{Score curves for Qwen3.5-9B in the thinking setting. The multi-slot layout extends the original $t_{\text {inst}}$/$t_{\text {post-inst}}$ analysis to prompt, think-template, CoT, \texttt {</think>}, and answer positions}{figure.caption.8}{}}
 \newlabel{fig:fig2-thinking@cref}{{[figure][7][]7}{[1][5][]6}{}{}{}}
 \citation{turner2023activation,rimsky2024steering}
@@ -97,10 +89,10 @@
 \citation{yamaguchi2026where}
 \citation{yang2026beyond}
 \citation{yong2026selfjailbreaking,zhao2026cothijacking,refusalcliff2025}
-\citation{predictalignment2025}
-\citation{venhoff2025understanding}
 \newlabel{fig:fig3-thinking}{{8}{7}{Harmfulness/refusal scatter for Qwen3.5-9B in the thinking setting. The two axes separate input harmfulness from refusal behavior, supporting the claim that the concepts are represented separately rather than as one monolithic safety signal}{figure.caption.9}{}}
 \newlabel{fig:fig3-thinking@cref}{{[figure][8][]8}{[1][5][]7}{}{}{}}
+\citation{predictalignment2025}
+\citation{venhoff2025understanding}
 \bibstyle{icml2022.bst}
 \bibdata{example_paper.bib}
 \bibcite{arditi2024refusal}{{1}{2024}{{Arditi et~al.}}{{Arditi, Obeso, Syed, Paleka, Panickssery, Gurnee, and Nanda}}}
@@ -129,12 +121,12 @@
 \bibcite{zhao2025harmfulness}{{24}{2025{b}}{{Zhao et~al.}}{{Zhao, Huang, Wu, Bau, and Shi}}}
 \bibcite{zou2023universal}{{25}{2023}{{Zou et~al.}}{{Zou, Wang, Carlini, Nasr, Kolter, and Fredrikson}}}
 \citation{chen2025personavectors}
-\newlabel{fig:appendix-jailbreak-scatter}{{9}{10}{Exploratory jailbreak geometry for Qwen-7B. Refused-harmful baseline prompts are plotted alongside template jailbreaks, evil-persona prompts, GCG suffixes, and persuasion prompts. The attack families occupy distinct regions of the harmfulness/refusal plane}{figure.caption.11}{}}
-\newlabel{fig:appendix-jailbreak-scatter@cref}{{[figure][9][]9}{[1][10][]10}{}{}{}}
-\newlabel{tab:appendix-compliance}{{2}{10}{Heuristic harmful-compliance audit for the jailbreak prompt families in \cref {fig:appendix-jailbreak-scatter}. The evaluator separates explicit refusals, benign diversions, and responses that appear to continue addressing the original harmful request. These labels are a sanity-check audit rather than a substitute for human or LLM judging}{table.caption.12}{}}
-\newlabel{tab:appendix-compliance@cref}{{[table][2][]2}{[1][10][]10}{}{}{}}
-\newlabel{sec:appendix-cot-probes}{{A.2}{10}{}{subsection.A.2}{}}
-\newlabel{sec:appendix-cot-probes@cref}{{[subsection][2][1]A.2}{[1][10][]10}{}{}{}}
-\newlabel{fig:appendix-cot-diagnostics}{{10}{11}{Exploratory CoT and projection diagnostics. Inversion settings produce shorter CoTs on average than non-inversion settings, while projection scores vary strongly by layer, especially in later layers}{figure.caption.13}{}}
-\newlabel{fig:appendix-cot-diagnostics@cref}{{[figure][10][]10}{[1][10][]11}{}{}{}}
-\gdef \@abspage@last{11}
+\newlabel{fig:appendix-jailbreak-scatter}{{9}{11}{Exploratory jailbreak geometry for Qwen-7B. Refused-harmful baseline prompts are plotted alongside template jailbreaks, evil-persona prompts, GCG suffixes, and persuasion prompts. The attack families occupy distinct regions of the harmfulness/refusal plane}{figure.caption.11}{}}
+\newlabel{fig:appendix-jailbreak-scatter@cref}{{[figure][9][]9}{[1][11][]11}{}{}{}}
+\newlabel{tab:appendix-compliance}{{2}{11}{Heuristic harmful-compliance audit for the jailbreak prompt families in \cref {fig:appendix-jailbreak-scatter}. The evaluator separates explicit refusals, benign diversions, and responses that appear to continue addressing the original harmful request. These labels are a sanity-check audit rather than a substitute for human or LLM judging}{table.caption.12}{}}
+\newlabel{tab:appendix-compliance@cref}{{[table][2][]2}{[1][11][]11}{}{}{}}
+\newlabel{sec:appendix-cot-probes}{{A.2}{11}{}{subsection.A.2}{}}
+\newlabel{sec:appendix-cot-probes@cref}{{[subsection][2][1]A.2}{[1][11][]11}{}{}{}}
+\newlabel{fig:appendix-cot-diagnostics}{{10}{12}{Exploratory CoT and projection diagnostics. Inversion settings produce shorter CoTs on average than non-inversion settings, while projection scores vary strongly by layer, especially in later layers}{figure.caption.13}{}}
+\newlabel{fig:appendix-cot-diagnostics@cref}{{[figure][10][]10}{[1][11][]12}{}{}{}}
+\gdef \@abspage@last{12}
