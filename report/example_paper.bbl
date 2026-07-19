@@ -1,4 +1,4 @@
-\begin{thebibliography}{15}
+\begin{thebibliography}{25}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -15,6 +15,21 @@ Chan, Y.~S.
 \newblock Can we predict alignment before models finish thinking? towards monitoring misaligned reasoning models.
 \newblock arXiv preprint arXiv:2507.12428, 2025.
 
+\bibitem[Chao et~al.(2024)Chao, Debenedetti, Robey, Andriushchenko, Croce, Sehwag, Dobriban, Flammarion, Pappas, Tram{\`e}r, Hassani, and Wong]{chao2024jailbreakbench}
+Chao, P., Debenedetti, E., Robey, A., Andriushchenko, M., Croce, F., Sehwag, V., Dobriban, E., Flammarion, N., Pappas, G.~J., Tram{\`e}r, F., Hassani, H., and Wong, E.
+\newblock Jailbreakbench: An open robustness benchmark for jailbreaking large language models.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2024.
+
+\bibitem[Chen et~al.(2025)Chen, Helbling, Bhargava, Mu, and Nanda]{chen2025personavectors}
+Chen, S., Helbling, A., Bhargava, R., Mu, J., and Nanda, N.
+\newblock Persona vectors: Monitoring and controlling character traits in language models.
+\newblock arXiv preprint arXiv:2507.21509, 2025.
+
+\bibitem[Dubey et~al.(2024)Dubey, Jauhri, Pandey, Kadian, Al-Dahle, Letman, Mathur, Schelten, Yang, Fan, et~al.]{dubey2024llama3}
+Dubey, A., Jauhri, A., Pandey, A., Kadian, A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A., Yang, A., Fan, A., et~al.
+\newblock The {Llama} 3 herd of models.
+\newblock arXiv preprint arXiv:2407.21783, 2024.
+
 \bibitem[Joad et~al.(2026)Joad, Hawasly, Boughorbel, Durrani, and Sencar]{joad2026more}
 Joad, F., Hawasly, M., Boughorbel, S., Durrani, N., and Sencar, H.~T.
 \newblock There is more to refusal in large language models than a single direction.
@@ -25,10 +40,25 @@ Maskey, U., Dras, M., and Naseem, U.
 \newblock Over-refusal and representation subspaces: A mechanistic analysis of task-conditioned refusal in aligned {LLMs}.
 \newblock arXiv preprint arXiv:2603.27518, 2026.
 
+\bibitem[{Qwen Team}(2026)]{qwen35}
+{Qwen Team}.
+\newblock {Qwen3.5}: Towards native multimodal agents.
+\newblock Qwen blog and model card, 2026.
+
 \bibitem[Rimsky et~al.(2024)Rimsky, Gabrieli, Schulz, Tong, Hubinger, and Turner]{rimsky2024steering}
 Rimsky, N., Gabrieli, N., Schulz, J., Tong, M., Hubinger, E., and Turner, A.~M.
 \newblock Steering {Llama} 2 via contrastive activation addition.
 \newblock arXiv preprint arXiv:2312.06681, 2024.
+
+\bibitem[R{\"o}ttger et~al.(2024)R{\"o}ttger, Kirk, Vidgen, Attanasio, Bianchi, and Hovy]{rottger2024xstest}
+R{\"o}ttger, P., Kirk, H.~R., Vidgen, B., Attanasio, G., Bianchi, F., and Hovy, D.
+\newblock {XSTest}: A test suite for identifying exaggerated safety behaviours in large language models.
+\newblock In \emph{Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics}, 2024.
+
+\bibitem[Taori et~al.(2023)Taori, Gulrajani, Zhang, Dubois, Li, Guestrin, Liang, and Hashimoto]{taori2023alpaca}
+Taori, R., Gulrajani, I., Zhang, T., Dubois, Y., Li, X., Guestrin, C., Liang, P., and Hashimoto, T.~B.
+\newblock Stanford {Alpaca}: An instruction-following {LLaMA} model.
+\newblock Stanford Center for Research on Foundation Models blog, 2023.
 
 \bibitem[Turner et~al.(2023)Turner, Thiergart, Leech, Udell, Vazquez, Mini, and MacDiarmid]{turner2023activation}
 Turner, A.~M., Thiergart, L., Leech, G., Udell, D., Vazquez, J.~J., Mini, U., and MacDiarmid, M.
@@ -41,6 +71,11 @@ Venhoff, C., Arcuschin, I., Torr, P., Conmy, A., and Nanda, N.
 \newblock arXiv preprint arXiv:2506.18167, 2025.
 \newblock Workshop on Reasoning and Planning for Large Language Models.
 
+\bibitem[Wang(2025)]{nanogcg2025}
+Wang, J.
+\newblock {nanoGCG}: A lightweight implementation of greedy coordinate gradient.
+\newblock Python package, 2025.
+
 \bibitem[Wang et~al.(2025)Wang, Hu, R\"ottger, and Plank]{wang2024surgical}
 Wang, X., Hu, C., R\"ottger, P., and Plank, B.
 \newblock Surgical, cheap, and flexible: Mitigating false refusal in language models via single vector ablation.
@@ -51,10 +86,20 @@ Wollschl\"ager, T., Elstner, J., Geisler, S., Cohen-Addad, V., G\"unnemann, S., 
 \newblock The geometry of refusal in large language models: Concept cones and representational independence.
 \newblock In \emph{Proceedings of the 42nd International Conference on Machine Learning (ICML)}, 2025.
 
+\bibitem[Xie et~al.(2025)Xie, Qi, Zeng, Huang, Sehwag, Huang, He, Wei, Li, Sheng, Jia, Li, Li, Chen, Henderson, and Mittal]{xie2025sorrybench}
+Xie, T., Qi, X., Zeng, Y., Huang, Y., Sehwag, U.~M., Huang, K., He, L., Wei, B., Li, D., Sheng, Y., Jia, R., Li, B., Li, K., Chen, D., Henderson, P., and Mittal, P.
+\newblock {SORRY}-bench: Systematically evaluating large language model safety refusal.
+\newblock In \emph{The Thirteenth International Conference on Learning Representations}, 2025.
+
 \bibitem[Yamaguchi et~al.(2025)Yamaguchi, Etheridge, and Arditi]{yamaguchi2026where}
 Yamaguchi, K., Etheridge, B., and Arditi, A.
 \newblock Where do reasoning models refuse?
 \newblock arXiv preprint arXiv:2507.03167, 2025.
+
+\bibitem[Yang et~al.(2024)Yang, Yang, Hui, Zheng, Yu, Zhou, Li, Li, Liu, Huang, et~al.]{yang2024qwen2}
+Yang, A., Yang, B., Hui, B., Zheng, B., Yu, B., Zhou, C., Li, C., Li, C., Liu, D., Huang, F., et~al.
+\newblock Qwen2 technical report.
+\newblock arXiv preprint arXiv:2407.10671, 2024.
 
 \bibitem[Yang et~al.(2026)Yang, Meier, Zhao, Ruas, and Gipp]{yang2026beyond}
 Yang, K.-J., Meier, D., Zhao, J., Ruas, T., and Gipp, B.
@@ -80,5 +125,10 @@ Zhao, J., Fu, T., Schaeffer, R., Sharma, M., and Barez, F.
 Zhao, J., Huang, J., Wu, Z., Bau, D., and Shi, W.
 \newblock {LLMs} encode harmfulness and refusal separately.
 \newblock arXiv preprint arXiv:2507.11878, 2025{\natexlab{b}}.
+
+\bibitem[Zou et~al.(2023)Zou, Wang, Carlini, Nasr, Kolter, and Fredrikson]{zou2023universal}
+Zou, A., Wang, Z., Carlini, N., Nasr, M., Kolter, J.~Z., and Fredrikson, M.
+\newblock Universal and transferable adversarial attacks on aligned language models.
+\newblock arXiv preprint arXiv:2307.15043, 2023.
 
 \end{thebibliography}

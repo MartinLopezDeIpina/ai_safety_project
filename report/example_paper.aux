@@ -3,18 +3,33 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{wang2024surgical,maskey2026overrefusal}
+\citation{arditi2024refusal}
 \citation{zhao2025harmfulness}
+\citation{qwen35}
+\citation{zhao2025harmfulness}
+\citation{yang2024qwen2}
+\citation{dubey2024llama3}
+\citation{qwen35}
+\citation{qwen35}
+\citation{zou2023universal}
+\citation{xie2025sorrybench}
+\citation{chao2024jailbreakbench}
+\citation{rottger2024xstest}
+\citation{taori2023alpaca}
 \newlabel{sec:datasets}{{2}{1}{}{section.2}{}}
 \newlabel{sec:datasets@cref}{{[section][2][]2}{[1][1][]1}{}{}{}}
+\citation{arditi2024refusal,zhao2025harmfulness}
+\citation{zou2023universal}
+\citation{nanogcg2025}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:tokens}{{1}{2}{Chat template tokenization on Qwen model family for instruct models (a) reasoning models thinking generation (b) and reasoning models non-thinking generation (b)}{figure.caption.1}{}}
+\newlabel{fig:tokens}{{1}{2}{Chat template tokenization on the Qwen model family for instruct models (a), reasoning models with thinking generation (b), and reasoning models with non-thinking generation (c)}{figure.caption.1}{}}
 \newlabel{fig:tokens@cref}{{[figure][1][]1}{[1][1][]2}{}{}{}}
 \newlabel{fig:datasets}{{2}{2}{Two-step dataset configuration pipeline for the experiments. The datasets are first subject to a manual bucketing based on thinking or non-thinking generation, and then classified using a programmatic and later LLM-judged approach. Red buckets represent datasets containing harmful queries, whereas green buckets represent datasets containing harmless queries}{figure.caption.2}{}}
 \newlabel{fig:datasets@cref}{{[figure][2][]2}{[1][1][]2}{}{}{}}
-\newlabel{sec:strip}{{3.1}{3}{}{subsection.3.1}{}}
-\newlabel{sec:strip@cref}{{[subsection][1][3]3.1}{[1][3][]3}{}{}{}}
 \newlabel{tab:refusal-rate}{{1}{3}{Refusal rate by generation configuration}{table.caption.3}{}}
 \newlabel{tab:refusal-rate@cref}{{[table][1][]1}{[1][3][]3}{}{}{}}
+\newlabel{sec:strip}{{3.1}{3}{}{subsection.3.1}{}}
+\newlabel{sec:strip@cref}{{[subsection][1][3]3.1}{[1][2][]3}{}{}{}}
 \newlabel{sec:activations}{{3.2}{3}{}{subsection.3.2}{}}
 \newlabel{sec:activations@cref}{{[subsection][2][3]3.2}{[1][3][]3}{}{}{}}
 \newlabel{eq:refusal_score}{{1}{3}{}{equation.1}{}}
@@ -25,38 +40,49 @@
 \newlabel{eq:delta_harmful@cref}{{[equation][2][]2}{[1][3][]3}{}{}{}}
 \newlabel{eq:delta_refuse}{{3}{3}{}{equation.3}{}}
 \newlabel{eq:delta_refuse@cref}{{[equation][3][]3}{[1][3][]3}{}{}{}}
-\newlabel{fig:col_qwen2}{{3a}{4}{Desired behavior, replicated on Qwen2-7B for tinst and tpost}{figure.caption.4}{}}
+\newlabel{sec:elicit_refusal}{{3.4}{3}{}{subsection.3.4}{}}
+\newlabel{sec:elicit_refusal@cref}{{[subsection][4][3]3.4}{[1][3][]3}{}{}{}}
+\newlabel{eq:elicit_refusal}{{3.4}{3}{}{subsection.3.4}{}}
+\newlabel{eq:elicit_refusal@cref}{{[subsection][4][3]3.4}{[1][3][]3}{}{}{}}
+\newlabel{eq:v_harmful}{{4}{3}{}{equation.4}{}}
+\newlabel{eq:v_harmful@cref}{{[equation][4][]4}{[1][3][]3}{}{}{}}
+\citation{zhao2025harmfulness}
+\citation{zhao2025harmfulness}
+\newlabel{fig:col_qwen2}{{3a}{4}{Qwen2-7B replication}{figure.caption.4}{}}
 \newlabel{fig:col_qwen2@cref}{{[subfigure][1][3]3a}{[1][3][]4}{}{}{}}
-\newlabel{sub@fig:col_qwen2}{{a}{4}{Desired behavior, replicated on Qwen2-7B for tinst and tpost}{figure.caption.4}{}}
+\newlabel{sub@fig:col_qwen2}{{a}{4}{Qwen2-7B replication}{figure.caption.4}{}}
 \newlabel{sub@fig:col_qwen2@cref}{{[subfigure][1][3]3a}{[1][3][]4}{}{}{}}
-\newlabel{fig:col_think}{{3b}{4}{Qwen3.5-9B on thinking configuration, tinst and tpost activations}{figure.caption.4}{}}
+\newlabel{fig:col_think}{{3b}{4}{Qwen3.5 thinking}{figure.caption.4}{}}
 \newlabel{fig:col_think@cref}{{[subfigure][2][3]3b}{[1][3][]4}{}{}{}}
-\newlabel{sub@fig:col_think}{{b}{4}{Qwen3.5-9B on thinking configuration, tinst and tpost activations}{figure.caption.4}{}}
+\newlabel{sub@fig:col_think}{{b}{4}{Qwen3.5 thinking}{figure.caption.4}{}}
 \newlabel{sub@fig:col_think@cref}{{[subfigure][2][3]3b}{[1][3][]4}{}{}{}}
-\newlabel{fig:col_nothink}{{3c}{4}{Qwen3.5-9B on non-thinking configuration, tinst and tpost activations}{figure.caption.4}{}}
+\newlabel{fig:col_nothink}{{3c}{4}{Qwen3.5 non-thinking}{figure.caption.4}{}}
 \newlabel{fig:col_nothink@cref}{{[subfigure][3][3]3c}{[1][3][]4}{}{}{}}
-\newlabel{sub@fig:col_nothink}{{c}{4}{Qwen3.5-9B on non-thinking configuration, tinst and tpost activations}{figure.caption.4}{}}
+\newlabel{sub@fig:col_nothink}{{c}{4}{Qwen3.5 non-thinking}{figure.caption.4}{}}
 \newlabel{sub@fig:col_nothink@cref}{{[subfigure][3][3]3c}{[1][3][]4}{}{}{}}
-\newlabel{fig:col_gen1}{{3d}{4}{Qwen3.5-9B on non-thinking configuration, tpost and gen1 activations}{figure.caption.4}{}}
+\newlabel{fig:col_gen1}{{3d}{4}{Qwen3.5 tpost/gen1}{figure.caption.4}{}}
 \newlabel{fig:col_gen1@cref}{{[subfigure][4][3]3d}{[1][3][]4}{}{}{}}
-\newlabel{sub@fig:col_gen1}{{d}{4}{Qwen3.5-9B on non-thinking configuration, tpost and gen1 activations}{figure.caption.4}{}}
+\newlabel{sub@fig:col_gen1}{{d}{4}{Qwen3.5 tpost/gen1}{figure.caption.4}{}}
 \newlabel{sub@fig:col_gen1@cref}{{[subfigure][4][3]3d}{[1][3][]4}{}{}{}}
-\newlabel{fig:grid}{{3}{4}{\relax }{figure.caption.4}{}}
+\newlabel{fig:grid}{{3}{4}{Layer-wise activation score curves for selected token positions. The Qwen2-7B panel reproduces the original prompt-boundary pattern, while the Qwen3.5 panels compare thinking and non-thinking token choices}{figure.caption.4}{}}
 \newlabel{fig:grid@cref}{{[figure][3][]3}{[1][3][]4}{}{}{}}
-\newlabel{fig:figure3_qwen35_nothink}{{4}{4}{Non-thinking generation activations for tpost and gen1 tokens clustered according to refusal and harmful score}{figure.caption.5}{}}
+\newlabel{fig:figure3_qwen35_nothink}{{4}{4}{Non-thinking generation activations for $t_{\text {post-inst}}$ and gen1 tokens clustered according to refusal and harmful score}{figure.caption.5}{}}
 \newlabel{fig:figure3_qwen35_nothink@cref}{{[figure][4][]4}{[1][3][]4}{}{}{}}
-\newlabel{eq:elicit_refusal}{{3.4}{4}{}{subsection.3.4}{}}
-\newlabel{eq:elicit_refusal@cref}{{[subsection][4][3]3.4}{[1][3][]4}{}{}{}}
-\newlabel{eq:v_harmful}{{4}{4}{}{equation.4}{}}
-\newlabel{eq:v_harmful@cref}{{[equation][4][]4}{[1][4][]4}{}{}{}}
 \newlabel{eq:v_refuse}{{5}{4}{}{equation.5}{}}
-\newlabel{eq:v_refuse@cref}{{[equation][5][]5}{[1][4][]4}{}{}{}}
+\newlabel{eq:v_refuse@cref}{{[equation][5][]5}{[1][3][]4}{}{}{}}
 \newlabel{eq:h_prime}{{6}{4}{}{equation.6}{}}
 \newlabel{eq:h_prime@cref}{{[equation][6][]6}{[1][4][]4}{}{}{}}
-\newlabel{fig:fig4}{{5}{4}{\relax }{figure.caption.6}{}}
+\newlabel{sec:reply-inversion}{{3.5}{4}{}{subsection.3.5}{}}
+\newlabel{sec:reply-inversion@cref}{{[subsection][5][3]3.5}{[1][4][]4}{}{}{}}
+\newlabel{fig:fig4}{{5}{4}{The orange and blue curves show the refusal rates under additive steering in the harmfulness and refusal directions across all layers, respectively. The green and purple curves show the refusal rates under additive steering in each layer $l$ along a random vector with the same norm as $v^\textup {harmful}_l$ and $v^\textup {refuse}_l$. The steering coefficient is set to $4$ in all cases}{figure.caption.6}{}}
 \newlabel{fig:fig4@cref}{{[figure][5][]5}{[1][4][]4}{}{}{}}
+\citation{zhao2025harmfulness}
 \citation{turner2023activation,rimsky2024steering}
 \citation{arditi2024refusal}
+\newlabel{fig:fig2-thinking}{{6}{6}{Score curves for Qwen3.5-9B in the thinking setting. The multi-slot layout extends the original $t_{\text {inst}}$/$t_{\text {post-inst}}$ analysis to prompt, think-template, CoT, \texttt {</think>}, and answer positions}{figure.caption.7}{}}
+\newlabel{fig:fig2-thinking@cref}{{[figure][6][]6}{[1][5][]6}{}{}{}}
+\newlabel{fig:fig3-thinking}{{7}{6}{Harmfulness/refusal scatter for Qwen3.5-9B in the thinking setting. The two axes separate input harmfulness from refusal behavior, supporting the claim that the concepts are represented separately rather than as one monolithic safety signal}{figure.caption.8}{}}
+\newlabel{fig:fig3-thinking@cref}{{[figure][7][]7}{[1][5][]6}{}{}{}}
 \citation{zhao2025harmfulness}
 \citation{wollschlager2025geometry,joad2026more}
 \citation{wang2024surgical,maskey2026overrefusal}
@@ -65,35 +91,52 @@
 \citation{yong2026selfjailbreaking,zhao2026cothijacking,refusalcliff2025}
 \citation{predictalignment2025}
 \citation{venhoff2025understanding}
-\newlabel{fig:fig2-thinking}{{6}{6}{Figure~2-style score curves for Qwen3.5-9B in the thinking setting. The multi-slot layout extends the original $t_{\text {inst}}$/$t_{\text {post-inst}}$ analysis to prompt, think-template, CoT, \texttt {</think>}, and answer positions}{figure.caption.7}{}}
-\newlabel{fig:fig2-thinking@cref}{{[figure][6][]6}{[1][5][]6}{}{}{}}
-\bibstyle{icml2022}
-\bibdata{example_paper}
+\bibstyle{icml2022.bst}
+\bibdata{example_paper.bib}
 \bibcite{arditi2024refusal}{{1}{2024}{{Arditi et~al.}}{{Arditi, Obeso, Syed, Paleka, Panickssery, Gurnee, and Nanda}}}
 \bibcite{predictalignment2025}{{2}{2025}{{Chan}}{{}}}
-\newlabel{fig:fig3-thinking}{{7}{7}{Figure~3-style harmfulness/refusal scatter for Qwen3.5-9B in the thinking setting. The two axes separate input harmfulness from refusal behavior, supporting the claim that the concepts are represented separately rather than as one monolithic safety signal}{figure.caption.8}{}}
-\newlabel{fig:fig3-thinking@cref}{{[figure][7][]7}{[1][5][]7}{}{}{}}
-\newlabel{sec:appendix-cot-probes}{{A.2}{7}{}{subsection.A.2}{}}
-\newlabel{sec:appendix-cot-probes@cref}{{[subsection][2][1]A.2}{[1][7][]7}{}{}{}}
-\newlabel{tab:appendix-compliance}{{2}{7}{Heuristic harmful-compliance audit for the jailbreak prompt families in \cref {fig:appendix-jailbreak-scatter}. The evaluator separates explicit refusals, benign diversions, and responses that appear to continue addressing the original harmful request. These labels are a sanity-check audit rather than a substitute for human or LLM judging}{table.caption.10}{}}
-\newlabel{tab:appendix-compliance@cref}{{[table][2][]2}{[1][7][]7}{}{}{}}
-\bibcite{joad2026more}{{3}{2026}{{Joad et~al.}}{{Joad, Hawasly, Boughorbel, Durrani, and Sencar}}}
-\bibcite{maskey2026overrefusal}{{4}{2026}{{Maskey et~al.}}{{Maskey, Dras, and Naseem}}}
-\bibcite{rimsky2024steering}{{5}{2024}{{Rimsky et~al.}}{{Rimsky, Gabrieli, Schulz, Tong, Hubinger, and Turner}}}
-\bibcite{turner2023activation}{{6}{2023}{{Turner et~al.}}{{Turner, Thiergart, Leech, Udell, Vazquez, Mini, and MacDiarmid}}}
-\bibcite{venhoff2025understanding}{{7}{2025}{{Venhoff et~al.}}{{Venhoff, Arcuschin, Torr, Conmy, and Nanda}}}
-\bibcite{wang2024surgical}{{8}{2025}{{Wang et~al.}}{{Wang, Hu, R\"ottger, and Plank}}}
-\bibcite{wollschlager2025geometry}{{9}{2025}{{Wollschl\"ager et~al.}}{{Wollschl\"ager, Elstner, Geisler, Cohen-Addad, G\"unnemann, and Gasteiger}}}
-\bibcite{yamaguchi2026where}{{10}{2025}{{Yamaguchi et~al.}}{{Yamaguchi, Etheridge, and Arditi}}}
-\bibcite{yang2026beyond}{{11}{2026}{{Yang et~al.}}{{Yang, Meier, Zhao, Ruas, and Gipp}}}
-\bibcite{refusalcliff2025}{{12}{2025}{{Yin et~al.}}{{Yin, Leong, Yang, Huang, Li, Wang, Yoon, YunXing, XingYu, and Gu}}}
-\newlabel{fig:appendix-jailbreak-scatter}{{8}{8}{Exploratory jailbreak geometry for Qwen-7B. Refused-harmful baseline prompts are plotted alongside template jailbreaks, evil-persona prompts, GCG suffixes, and persuasion prompts. The attack families occupy distinct regions of the harmfulness/refusal plane}{figure.caption.9}{}}
-\newlabel{fig:appendix-jailbreak-scatter@cref}{{[figure][8][]8}{[1][7][]8}{}{}{}}
-\bibcite{yong2026selfjailbreaking}{{13}{2025}{{Yong \& Bach}}{{Yong and Bach}}}
-\bibcite{zhao2026cothijacking}{{14}{2025{a}}{{Zhao et~al.}}{{Zhao, Fu, Schaeffer, Sharma, and Barez}}}
-\bibcite{zhao2025harmfulness}{{15}{2025{b}}{{Zhao et~al.}}{{Zhao, Huang, Wu, Bau, and Shi}}}
-\newlabel{fig:appendix-cot-length}{{9}{9}{Exploratory CoT-length diagnostics under inversion and non-inversion settings. Inversion settings produce shorter CoTs on average than non-inversion settings for both harmfulness and refusal probes}{figure.caption.11}{}}
-\newlabel{fig:appendix-cot-length@cref}{{[figure][9][]9}{[1][7][]9}{}{}{}}
-\newlabel{fig:appendix-projection-sweep}{{10}{10}{Exploratory projection-score layer sweep for harmfulness and refusal probes. Scores vary strongly by layer, especially in later layers, suggesting that steering effects are layer-dependent rather than uniform across the network}{figure.caption.12}{}}
-\newlabel{fig:appendix-projection-sweep@cref}{{[figure][10][]10}{[1][7][]10}{}{}{}}
-\gdef \@abspage@last{10}
+\bibcite{chao2024jailbreakbench}{{3}{2024}{{Chao et~al.}}{{Chao, Debenedetti, Robey, Andriushchenko, Croce, Sehwag, Dobriban, Flammarion, Pappas, Tram{\`e}r, Hassani, and Wong}}}
+\bibcite{chen2025personavectors}{{4}{2025}{{Chen et~al.}}{{Chen, Helbling, Bhargava, Mu, and Nanda}}}
+\bibcite{dubey2024llama3}{{5}{2024}{{Dubey et~al.}}{{Dubey, Jauhri, Pandey, Kadian, Al-Dahle, Letman, Mathur, Schelten, Yang, Fan, et~al.}}}
+\bibcite{joad2026more}{{6}{2026}{{Joad et~al.}}{{Joad, Hawasly, Boughorbel, Durrani, and Sencar}}}
+\bibcite{maskey2026overrefusal}{{7}{2026}{{Maskey et~al.}}{{Maskey, Dras, and Naseem}}}
+\bibcite{qwen35}{{8}{2026}{{Qwen Team}}{{}}}
+\bibcite{rimsky2024steering}{{9}{2024}{{Rimsky et~al.}}{{Rimsky, Gabrieli, Schulz, Tong, Hubinger, and Turner}}}
+\bibcite{rottger2024xstest}{{10}{2024}{{R{\"o}ttger et~al.}}{{R{\"o}ttger, Kirk, Vidgen, Attanasio, Bianchi, and Hovy}}}
+\bibcite{taori2023alpaca}{{11}{2023}{{Taori et~al.}}{{Taori, Gulrajani, Zhang, Dubois, Li, Guestrin, Liang, and Hashimoto}}}
+\bibcite{turner2023activation}{{12}{2023}{{Turner et~al.}}{{Turner, Thiergart, Leech, Udell, Vazquez, Mini, and MacDiarmid}}}
+\bibcite{venhoff2025understanding}{{13}{2025}{{Venhoff et~al.}}{{Venhoff, Arcuschin, Torr, Conmy, and Nanda}}}
+\bibcite{nanogcg2025}{{14}{2025}{{Wang}}{{}}}
+\bibcite{wang2024surgical}{{15}{2025}{{Wang et~al.}}{{Wang, Hu, R\"ottger, and Plank}}}
+\bibcite{wollschlager2025geometry}{{16}{2025}{{Wollschl\"ager et~al.}}{{Wollschl\"ager, Elstner, Geisler, Cohen-Addad, G\"unnemann, and Gasteiger}}}
+\bibcite{xie2025sorrybench}{{17}{2025}{{Xie et~al.}}{{Xie, Qi, Zeng, Huang, Sehwag, Huang, He, Wei, Li, Sheng, Jia, Li, Li, Chen, Henderson, and Mittal}}}
+\bibcite{yamaguchi2026where}{{18}{2025}{{Yamaguchi et~al.}}{{Yamaguchi, Etheridge, and Arditi}}}
+\bibcite{yang2024qwen2}{{19}{2024}{{Yang et~al.}}{{Yang, Yang, Hui, Zheng, Yu, Zhou, Li, Li, Liu, Huang, et~al.}}}
+\bibcite{yang2026beyond}{{20}{2026}{{Yang et~al.}}{{Yang, Meier, Zhao, Ruas, and Gipp}}}
+\bibcite{refusalcliff2025}{{21}{2025}{{Yin et~al.}}{{Yin, Leong, Yang, Huang, Li, Wang, Yoon, YunXing, XingYu, and Gu}}}
+\bibcite{yong2026selfjailbreaking}{{22}{2025}{{Yong \& Bach}}{{Yong and Bach}}}
+\bibcite{zhao2026cothijacking}{{23}{2025{a}}{{Zhao et~al.}}{{Zhao, Fu, Schaeffer, Sharma, and Barez}}}
+\bibcite{zhao2025harmfulness}{{24}{2025{b}}{{Zhao et~al.}}{{Zhao, Huang, Wu, Bau, and Shi}}}
+\bibcite{zou2023universal}{{25}{2023}{{Zou et~al.}}{{Zou, Wang, Carlini, Nasr, Kolter, and Fredrikson}}}
+\citation{chen2025personavectors}
+\newlabel{fig:appendix-jailbreak-scatter}{{8}{9}{Exploratory jailbreak geometry for Qwen-7B. Refused-harmful baseline prompts are plotted alongside template jailbreaks, evil-persona prompts, GCG suffixes, and persuasion prompts. The attack families occupy distinct regions of the harmfulness/refusal plane}{figure.caption.10}{}}
+\newlabel{fig:appendix-jailbreak-scatter@cref}{{[figure][8][]8}{[1][9][]9}{}{}{}}
+\newlabel{tab:appendix-compliance}{{2}{9}{Heuristic harmful-compliance audit for the jailbreak prompt families in \cref {fig:appendix-jailbreak-scatter}. The evaluator separates explicit refusals, benign diversions, and responses that appear to continue addressing the original harmful request. These labels are a sanity-check audit rather than a substitute for human or LLM judging}{table.caption.11}{}}
+\newlabel{tab:appendix-compliance@cref}{{[table][2][]2}{[1][9][]9}{}{}{}}
+\newlabel{sec:appendix-cot-probes}{{A.2}{9}{}{subsection.A.2}{}}
+\newlabel{sec:appendix-cot-probes@cref}{{[subsection][2][1]A.2}{[1][9][]9}{}{}{}}
+\newlabel{app:reply-inversion}{{A.3}{10}{}{subsection.A.3}{}}
+\newlabel{app:reply-inversion@cref}{{[subsection][3][1]A.3}{[1][10][]10}{}{}{}}
+\newlabel{fig:appendix-cot-diagnostics}{{9}{11}{Exploratory CoT and projection diagnostics. Inversion settings produce shorter CoTs on average than non-inversion settings, while projection scores vary strongly by layer, especially in later layers}{figure.caption.12}{}}
+\newlabel{fig:appendix-cot-diagnostics@cref}{{[figure][9][]9}{[1][10][]11}{}{}{}}
+\newlabel{fig:fig5a}{{10a}{12}{Unsteered model answers ``No'' at 100\% rate. Adding $v^\textup {harmful}_l$ makes the model not answering at all}{figure.caption.13}{}}
+\newlabel{fig:fig5a@cref}{{[subfigure][1][10]10a}{[1][10][]12}{}{}{}}
+\newlabel{sub@fig:fig5a}{{a}{12}{Unsteered model answers ``No'' at 100\% rate. Adding $v^\textup {harmful}_l$ makes the model not answering at all}{figure.caption.13}{}}
+\newlabel{sub@fig:fig5a@cref}{{[subfigure][1][10]10a}{[1][10][]12}{}{}{}}
+\newlabel{fig:fig5b}{{10b}{12}{Unsteered model answers ``No'' at 2\% rate. Subtracting $v^\textup {harmful}_l$ does not make the model answer ``No'' more frequently than random steering}{figure.caption.13}{}}
+\newlabel{fig:fig5b@cref}{{[subfigure][2][10]10b}{[1][10][]12}{}{}{}}
+\newlabel{sub@fig:fig5b}{{b}{12}{Unsteered model answers ``No'' at 2\% rate. Subtracting $v^\textup {harmful}_l$ does not make the model answer ``No'' more frequently than random steering}{figure.caption.13}{}}
+\newlabel{sub@fig:fig5b@cref}{{[subfigure][2][10]10b}{[1][10][]12}{}{}{}}
+\newlabel{fig:fig5}{{10}{12}{Intervention results for the reply inversion tasks. If the model does not reply with ``Certainly'' or ``No'' but a canonical refusal phrase (e.g., ``I cannot assist...''), then we classify the response as an refusal to answering the question. Similar to \Cref {fig:fig4}, we include results of random steering for comparison}{figure.caption.13}{}}
+\newlabel{fig:fig5@cref}{{[figure][10][]10}{[1][10][]12}{}{}{}}
+\gdef \@abspage@last{12}
